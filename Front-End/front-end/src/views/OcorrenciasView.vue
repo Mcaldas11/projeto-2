@@ -4,29 +4,36 @@
       <div class="logo-area">
         <img src="@/assets/logoP.png" alt="VC Comunica Logo" class="logo-img" />
       </div>
-      <div class="nav-icons">
+      <div class="nav-icons" ref="navIcons">
         <router-link to="/new-ocorrencia" class="icon add">+</router-link>
         <img
           :src="notifications.length === 0 ? notifOff : notifOn"
+          alt="notifications"
           class="icon notification"
-          @click="toggleNotif($event)"
+          @click="toggleNotif"
           ref="notifIcon"
         />
-        <span class="icon" @click="toggleMenu($event)" ref="menuIcon">☰</span>
+        <span class="icon" ref="menuIcon" @click="toggleMenu">☰</span>
 
         <div v-if="showMenu" class="hamburger-menu" ref="menuPanel">
           <div class="menu-list">
-            <router-link to="/" class="menu-item"
-              >Home <img src="@/assets/home.png" class="menu-icon"
-            /></router-link>
-            <router-link to="/ocorrencias" class="menu-item"
-              >Ocorrências <img src="@/assets/ocorrencias.png" class="menu-icon"
-            /></router-link>
-            <router-link to="/conta" class="menu-item"
-              >Conta <img src="@/assets/conta.png" class="menu-icon"
-            /></router-link>
+            <router-link to="/" class="menu-item" @click="showMenu = false">
+              <span class="menu-label">Home</span>
+              <img src="@/assets/home.png" alt="home" class="menu-icon" />
+            </router-link>
+
+            <router-link to="/ocorrencias" class="menu-item" @click="showMenu = false">
+              <span class="menu-label">Ocorrências</span>
+              <img src="@/assets/ocorrencias.png" alt="ocorrencias" class="menu-icon" />
+            </router-link>
+
+            <router-link to="/conta" class="menu-item" @click="showMenu = false">
+              <span class="menu-label">Conta</span>
+              <img src="@/assets/conta.png" alt="conta" class="menu-icon" />
+            </router-link>
           </div>
         </div>
+
         <div v-if="showNotif" class="notifications" ref="notifPanel">
           <h4>Notificações</h4>
           <div class="notif-list">
@@ -47,7 +54,9 @@
 
     <main class="main-content">
       <div class="title-header">
-        <img src="@/assets/ocorrencias.png" alt="Ocorrências" class="icon-title-img" />
+        <div class="icon-main-bg">
+          <img src="@/assets/ocorrencias.png" alt="Ocorrências" class="icon-main-img" />
+        </div>
         <h1>Ocorrências</h1>
       </div>
 
@@ -75,7 +84,9 @@
             <tr>
               <th>Nome</th>
               <th>Situação ↕</th>
-              <th>Tipo de Problema <img src="@/assets/detalhes.png" alt="Detalhes" class="th-icon" /></th>
+              <th>
+                Tipo de Problema <img src="@/assets/detalhes.png" alt="Detalhes" class="th-icon" />
+              </th>
               <th>Detalhes</th>
               <th></th>
             </tr>
@@ -104,8 +115,7 @@
       <section v-else class="map-view">
         <div class="map-container">
           <div class="map-placeholder">
-<!--             <img src="@/assets/mapa_fundo.png" alt="Mapa" />
- -->            <div class="marker red" style="top: 40%; left: 45%">3</div>
+            <div class="marker red" style="top: 40%; left: 45%">3</div>
             <div class="marker red-large" style="top: 55%; left: 25%">6</div>
             <div class="marker green" style="top: 75%; left: 75%">1</div>
           </div>
@@ -125,8 +135,8 @@
             </p>
             <div class="reported-by">
               <strong>Reportado por:</strong>
-              <div class="reporter">
-                <img src="@/assets/avatar.png" class="avatar-small" />
+              <div class="user-chip">
+                <img src="@/assets/avatar.png" class="avatar-xs" />
                 <span>Miguel Silva</span>
               </div>
             </div>
@@ -138,17 +148,17 @@
     <footer class="main-footer">
       <div class="footer-links">
         <div class="col">
-          <a href="#">Home</a>
-          <a href="#">Ocorrências</a>
-          <a href="#">Mapa Ocorrências</a>
+          <router-link to="/">Home</router-link>
+          <router-link to="/ocorrencias">Ocorrências</router-link>
+          <router-link to="/mapa">Mapa Ocorrências</router-link>
         </div>
         <div class="col">
-          <a href="#">Sobre</a>
-          <a href="#">Conta</a>
+          <router-link to="/sobre">Sobre</router-link>
+          <router-link to="/conta">Conta</router-link>
         </div>
       </div>
       <div class="footer-brand">
-        <img src="@/assets/logoP.png" alt="Logo" class="logo-img-small" />
+        <img src="@/assets/logo_footer.png" alt="Logo" class="logo-img-small" />
         <p class="copyright">© 2026 VC Comunica All rights reserved.</p>
       </div>
     </footer>
@@ -160,23 +170,36 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 
-const viewMode = ref('lista') // 'lista' ou 'mapa'
+const viewMode = ref('lista')
 const showNotif = ref(false)
 const showMenu = ref(false)
-const notifications = ref([{ id: 1, title: 'Estado', body: 'Resolvido' }])
+const notifications = ref([
+  {
+    id: 1,
+    title: 'Estado da ocorrência',
+    body: 'O estado foi alterado para <strong>Resolvido</strong>',
+  },
+])
 
-// refs for panels/icons
 const notifPanel = ref(null)
 const notifIcon = ref(null)
 const menuPanel = ref(null)
 const menuIcon = ref(null)
 
-const toggleNotif = (e) => { showNotif.value = !showNotif.value; e?.stopPropagation() }
-const toggleMenu = (e) => { showMenu.value = !showMenu.value; e?.stopPropagation() }
+const toggleNotif = (e) => {
+  e.stopPropagation()
+  showNotif.value = !showNotif.value
+  showMenu.value = false
+}
+
+const toggleMenu = (e) => {
+  e.stopPropagation()
+  showMenu.value = !showMenu.value
+  showNotif.value = false
+}
 
 const removeNotif = (i) => notifications.value.splice(i, 1)
 
-// Dados de exemplo para a lista
 const ocorrencias = ref([
   {
     id: 1,
@@ -185,7 +208,7 @@ const ocorrencias = ref([
     statusClass: 'resolvido',
     tipo: 'Sinalização',
     detalhes: 'Necessária a poda de árvores...',
-    userImg: '/path/to/img1.png',
+    userImg: '/img/avatar1.png',
   },
   {
     id: 2,
@@ -194,7 +217,7 @@ const ocorrencias = ref([
     statusClass: 'em-resolucao',
     tipo: 'Buracos na Via',
     detalhes: 'Reparação urgente de buraco...',
-    userImg: '/path/to/img2.png',
+    userImg: '/img/avatar2.png',
   },
   {
     id: 3,
@@ -203,25 +226,26 @@ const ocorrencias = ref([
     statusClass: 'espera',
     tipo: 'Iluminação Pública',
     detalhes: 'Substituição de lâmpada...',
-    userImg: '/path/to/img3.png',
+    userImg: '/img/avatar3.png',
   },
 ])
 
 function handleDocClick(e) {
-  const nPanel = notifPanel.value
-  const nIcon = notifIcon.value
-  if (showNotif.value) {
-    if (nPanel && !nPanel.contains(e.target) && nIcon && !nIcon.contains(e.target)) {
-      showNotif.value = false
-    }
+  if (
+    showNotif.value &&
+    notifPanel.value &&
+    !notifPanel.value.contains(e.target) &&
+    !notifIcon.value.contains(e.target)
+  ) {
+    showNotif.value = false
   }
-
-  const mPanel = menuPanel.value
-  const mIcon = menuIcon.value
-  if (showMenu.value) {
-    if (mPanel && !mPanel.contains(e.target) && mIcon && !mIcon.contains(e.target)) {
-      showMenu.value = false
-    }
+  if (
+    showMenu.value &&
+    menuPanel.value &&
+    !menuPanel.value.contains(e.target) &&
+    !menuIcon.value.contains(e.target)
+  ) {
+    showMenu.value = false
   }
 }
 
@@ -230,39 +254,98 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
 </script>
 
 <style scoped>
-/* ESTRUTURA E NAVBAR */
 .page-container {
-  font-family: sans-serif;
+  font-family: Arial, sans-serif;
+  color: #1a1a1a;
 }
+
+/* NAVBAR (Styles da Home) */
 .navbar {
   display: flex;
   justify-content: space-between;
   padding: 20px 80px;
   align-items: center;
+  background: white;
 }
 .logo-img {
   height: 40px;
 }
 .nav-icons {
   display: flex;
-  gap: 15px;
+  gap: 20px;
   align-items: center;
   position: relative;
+  cursor: pointer;
 }
 .icon.add {
   background: #730000;
   color: white;
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 6px;
   text-decoration: none;
-  font-weight: bold;
+  font-weight: 700;
+}
+.icon.notification {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
 }
 
-/* TITULO E TOGGLE */
+/* MENU & NOTIFICAÇÕES */
+.hamburger-menu,
+.notifications {
+  position: absolute;
+  top: 44px;
+  right: 0;
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  z-index: 70;
+}
+.hamburger-menu {
+  width: 200px;
+}
+.menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-end;
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  text-decoration: none;
+  color: #0b2b2b;
+  font-weight: 700;
+  padding: 8px;
+  width: 100%;
+}
+.menu-label {
+  font-size: 13px;
+}
+.menu-icon {
+  width: 14px;
+  height: 14px;
+}
+.notif-item {
+  background: #dff3ec;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+.notif-title {
+  font-weight: 700;
+}
+
+/* CONTEÚDO ESPECÍFICO */
 .main-content {
   padding: 40px 80px;
   min-height: 70vh;
@@ -273,21 +356,19 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   gap: 15px;
   margin-bottom: 30px;
 }
-.icon-title-bg {
+.icon-main-bg {
   background: #730000;
-  color: white;
   padding: 10px;
   border-radius: 8px;
 }
-
-.icon-title-img {
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
-  background: #730000;
-  padding: 6px;
-  border-radius: 10px;
-  display: inline-block;
+.icon-main-img {
+  width: 30px;
+  height: 30px;
+  filter: brightness(0) invert(1);
+}
+.title-header h1 {
+  font-size: 32px;
+  font-weight: 800;
 }
 
 .view-toggle {
@@ -295,7 +376,6 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   align-items: center;
   gap: 10px;
   margin-bottom: 30px;
-  font-size: 0.9rem;
   font-weight: bold;
 }
 .toggle-buttons {
@@ -306,7 +386,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
 }
 .toggle-btn {
   border: none;
-  padding: 6px 15px;
+  padding: 6px 20px;
   border-radius: 6px;
   cursor: pointer;
   font-weight: bold;
@@ -317,11 +397,10 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   color: white;
 }
 
-/* VISTA DE LISTA (TABELA) */
+/* TABELA */
 .occ-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9rem;
 }
 .occ-table th {
   text-align: left;
@@ -340,48 +419,13 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   margin-right: 10px;
   vertical-align: middle;
 }
-
 .info-btn {
-  width: 34px;
-  height: 34px;
-  object-fit: contain;
+  width: 30px;
+  height: 30px;
   cursor: pointer;
-  border-radius: 6px;
 }
 
-.th-icon {
-  width: 18px;
-  height: 18px;
-  object-fit: contain;
-  vertical-align: middle;
-  margin-left: 8px;
-}
-
-/* BADGES DE STATUS */
-.status-badge {
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: bold;
-}
-.resolvido {
-  background: #dcfce7;
-  color: #166534;
-}
-.em-resolucao {
-  background: #fef9c3;
-  color: #854d0e;
-}
-.espera {
-  background: #ffedd5;
-  color: #9a3412;
-}
-.nao-resolvida {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-/* VISTA DE MAPA */
+/* MAPA */
 .map-container {
   display: grid;
   grid-template-columns: 1fr 350px;
@@ -394,12 +438,6 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   border-radius: 15px;
   overflow: hidden;
 }
-.map-placeholder img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
 .marker {
   position: absolute;
   width: 30px;
@@ -424,7 +462,6 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
 .green {
   background: #22c55e;
 }
-
 .map-info-card {
   background: white;
   border: 1px solid #e2e8f0;
@@ -443,69 +480,46 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   padding: 8px;
   border-radius: 8px;
 }
-
-/* Hamburger menu and notifications (match HomeView) */
-.hamburger-menu {
-  position: absolute;
-  top: 44px;
-  right: 0;
-  width: 200px;
-  background: #ffffff;
-  color: #0b2b2b;
-  border-radius: 12px;
-  padding: 8px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-  z-index: 70;
+.user-chip {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  transition: transform 0.18s ease, opacity 0.18s ease;
-  transform-origin: top right;
+  align-items: center;
+  gap: 8px;
+  margin-top: 5px;
+}
+.avatar-xs {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
 }
 
-.menu-item {
-  display: block;
-  padding: 10px 12px;
-  color: #0b2b2b;
-  text-decoration: none;
-  border-radius: 8px;
-  font-weight: 700;
+/* STATUS BADGES */
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+.resolvido {
+  background: #dcfce7;
+  color: #166534;
+}
+.em-resolucao {
+  background: #fef9c3;
+  color: #854d0e;
+}
+.espera {
+  background: #ffedd5;
+  color: #9a3412;
 }
 
-.menu-item:hover { background: rgba(0,0,0,0.05); }
-
-.menu-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  align-items: flex-end;
-  padding: 6px 6px;
-}
-
-.menu-item { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 8px 10px }
-.menu-label { font-size: 13px; margin-right: 8px }
-.menu-icon { width: 14px; height: 14px; object-fit: contain }
-
-.notifications {
-  position: absolute;
-  top: 44px;
-  right: 0;
-  width: 320px;
-  background: #fff;
-  color: #0b2b2b;
-  border-radius: 12px;
-  padding: 12px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-  z-index: 60;
-}
-
-/* FOOTER */
+/* FOOTER (Styles da Home) */
 .main-footer {
   padding: 60px 80px;
   background-color: #f5f1e9;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
+  margin-top: 60px;
 }
 .footer-links {
   display: flex;
@@ -523,5 +537,10 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
 }
 .logo-img-small {
   height: 80px;
+}
+.copyright {
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 10px;
 }
 </style>
