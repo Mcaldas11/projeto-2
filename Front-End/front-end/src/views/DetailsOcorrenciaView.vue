@@ -371,6 +371,24 @@ const prevImg = () => {
   gap: 15px;
   margin-top: 15px;
 }
+.gallery-nav button {
+  background: #ffffff;
+  border: 1px solid #e6e6e6;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 20px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.08s ease;
+  padding: 0;
+}
+.gallery-nav button:hover { background: #f3f4f6; transform: translateY(-1px); }
+.gallery-nav button:active { transform: translateY(0); }
+.gallery-nav button:disabled { opacity: 0.5; cursor: not-allowed; }
 .thumbnails img {
   width: 60px;
   height: 45px;
