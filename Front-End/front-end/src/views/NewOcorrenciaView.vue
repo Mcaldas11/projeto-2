@@ -219,32 +219,67 @@ const handleSubmit = () => console.log('Dados enviados:', form.value)
   object-fit: contain;
 }
 
-.hamburger-menu,
-.notifications {
+.hamburger-menu {
   position: absolute;
   top: 44px;
   right: 0;
-  background: #fff;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-  border-radius: 12px;
-  padding: 15px;
-  z-index: 100;
-}
-.hamburger-menu {
   width: 200px;
+  background: #ffffff;
+  color: #0b2b2b;
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: transform 0.18s ease, opacity 0.18s ease;
+  transform-origin: top right;
 }
+
+.menu-item {
+  display: block;
+  padding: 10px 12px;
+  color: #0b2b2b;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+.menu-item:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+.menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-end;
+  padding: 6px 6px;
+}
+
 .menu-item {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
-  padding: 8px;
-  text-decoration: none;
-  color: #0b2b2b;
-  font-weight: 700;
+  gap: 8px;
+  padding: 8px 10px;
 }
-.menu-icon {
-  width: 16px;
+
+.menu-label { font-size: 13px; margin-right: 8px }
+.menu-icon { width: 14px; height: 14px; object-fit: contain }
+
+.notifications {
+  position: absolute;
+  top: 44px;
+  right: 0;
+  width: 320px;
+  background: #fff;
+  color: #0b2b2b;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  z-index: 60;
 }
 
 /* Notification styles (match HomeView) */
@@ -397,6 +432,6 @@ const handleSubmit = () => console.log('Dados enviados:', form.value)
   font-weight: 600;
 }
 .logo-img-small {
-  height: 60px;
+  height: 80px;
 }
 </style>
