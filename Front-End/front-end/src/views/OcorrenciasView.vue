@@ -92,7 +92,9 @@
               <td>{{ occ.tipo }}</td>
               <td class="details-cell">{{ occ.detalhes }}</td>
               <td>
-                <img src="@/assets/detalhes.png" alt="Detalhes" class="info-btn" />
+                <router-link :to="`/ocorrencia/${occ.id}`">
+                  <img src="@/assets/detalhes.png" alt="Detalhes" class="info-btn" />
+                </router-link>
               </td>
             </tr>
           </tbody>
