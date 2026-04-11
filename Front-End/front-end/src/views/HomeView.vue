@@ -8,7 +8,7 @@
             <img src="@/assets/logo.png" alt="VC Comunica Logo" class="logo-img">
           </div>
           <div class="nav-icons" ref="navIcons">
-            <span class="icon add">+</span>
+            <router-link to="/new-ocorrencia" class="icon add">+</router-link>
             <img :src="notifications.length === 0 ? notifOff : notifOn" alt="notifications" class="icon notification" @click="toggleNotif" ref="notifIcon" />
             <span class="icon" ref="menuIcon" @click="toggleMenu">☰</span>
 

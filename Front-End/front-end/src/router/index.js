@@ -4,6 +4,7 @@ import LoginView from '../views/LoginView.vue'
 import RegisterEmail from '../views/RegisterEmail.vue'
 import RegisterPassword from '../views/RegisterPassword.vue'
 import RegisterMunicipio from '../views/RegisterMunicipio.vue'
+import NewOcorrencia from '../views/NewOcorrencia.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -32,6 +33,11 @@ const router = createRouter({
       path: '/register/municipio',
       name: 'register-municipio',
       component: RegisterMunicipio,
+    },
+    {
+      path: '/new-ocorrencia',
+      name: 'new-ocorrencia',
+      component: NewOcorrencia,
     },
   ],
 })
