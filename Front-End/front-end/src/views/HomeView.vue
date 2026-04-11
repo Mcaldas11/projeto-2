@@ -10,7 +10,26 @@
           <div class="nav-icons" ref="navIcons">
             <span class="icon add">+</span>
             <img :src="notifications.length === 0 ? notifOff : notifOn" alt="notifications" class="icon notification" @click="toggleNotif" ref="notifIcon" />
-            <span class="icon">☰</span>
+            <span class="icon" ref="menuIcon" @click="toggleMenu">☰</span>
+
+            <div v-if="showMenu" class="hamburger-menu" ref="menuPanel">
+              <div class="menu-list">
+                <router-link to="/" class="menu-item" @click="showMenu = false">
+                  <span class="menu-label">Home</span>
+                  <img src="@/assets/home.png" alt="home" class="menu-icon" />
+                </router-link>
+
+                <router-link to="/ocorrencias" class="menu-item" @click="showMenu = false">
+                  <span class="menu-label">Ocorrências</span>
+                  <img src="@/assets/ocorrencias.png" alt="ocorrencias" class="menu-icon" />
+                </router-link>
+
+                <router-link to="/conta" class="menu-item" @click="showMenu = false">
+                  <span class="menu-label">Conta</span>
+                  <img src="@/assets/conta.png" alt="conta" class="menu-icon" />
+                </router-link>
+              </div>
+            </div>
 
             <div v-if="showNotif" class="notifications" ref="notifPanel">
               <h4>Notificações</h4>
@@ -46,6 +65,10 @@
             <h2 class="stat-number">31</h2>
             <p class="stat-label">Ocorrências em análise</p>
           </div>
+        </div>
+        
+        <div class="home-actions">
+          <router-link to="/login" class="login-btn">Login</router-link>
         </div>
       </div>
     </header>
@@ -190,6 +213,58 @@
   box-shadow: 0 12px 30px rgba(0,0,0,0.15);
   z-index: 60;
 }
+
+/* Hamburger menu styles */
+.hamburger-menu {
+  position: absolute;
+  top: 44px;
+  right: 0;
+  width: 200px;
+  background: #ffffff;
+  color: #0b2b2b;
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: transform 0.18s ease, opacity 0.18s ease;
+  transform-origin: top right;
+}
+
+.menu-item {
+  display: block;
+  padding: 10px 12px;
+  color: #0b2b2b;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+.menu-item:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+/* Menu list + icon sizing */
+.menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-end;
+  padding: 6px 6px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 8px 10px;
+}
+
+.menu-label { font-size: 13px; margin-right: 8px }
+.menu-icon { width: 14px; height: 14px; object-fit: contain }
 
 .notifications h4 {
   margin: 0 0 10px 0;
@@ -348,6 +423,24 @@
   margin-top: 10px;
 }
 
+/* Home actions */
+.home-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.login-btn {
+  background: #730000;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.login-btn:hover { opacity: 0.95 }
+
 /* Responsividade Básica */
 @media (max-width: 1024px) {
   .hero-title { font-size: 3.5rem; }
@@ -364,6 +457,9 @@ import notifOff from '@/assets/notificationsoff.png'
 const showNotif = ref(false)
 const notifPanel = ref(null)
 const notifIcon = ref(null)
+const showMenu = ref(false)
+const menuPanel = ref(null)
+const menuIcon = ref(null)
 
 const notifications = ref([
   { id: 1, title: 'Estado da ocorrência', body: 'O estado da sua ocorrência foi alterado para <strong>Resolvido</strong>' },
@@ -375,16 +471,31 @@ function toggleNotif(event) {
   event.stopPropagation()
 }
 
+function toggleMenu(event) {
+  showMenu.value = !showMenu.value
+  event.stopPropagation()
+}
+
 function removeNotif(index) {
   notifications.value.splice(index, 1)
 }
 
+// Fecha notificações e menu hambúrguer ao clicar fora
 function handleDocClick(e) {
-  const panel = notifPanel.value
-  const icon = notifIcon.value
-  if (!showNotif.value) return
-  if (panel && !panel.contains(e.target) && icon && !icon.contains(e.target)) {
-    showNotif.value = false
+  const nPanel = notifPanel.value
+  const nIcon = notifIcon.value
+  if (showNotif.value) {
+    if (nPanel && !nPanel.contains(e.target) && nIcon && !nIcon.contains(e.target)) {
+      showNotif.value = false
+    }
+  }
+
+  const mPanel = menuPanel.value
+  const mIcon = menuIcon.value
+  if (showMenu.value) {
+    if (mPanel && !mPanel.contains(e.target) && mIcon && !mIcon.contains(e.target)) {
+      showMenu.value = false
+    }
   }
 }
 
