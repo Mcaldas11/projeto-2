@@ -427,7 +427,7 @@
 .home-actions {
   display: flex;
   justify-content: center;
-  margin-top: 20px;
+  margin-top: 90px;
 }
 
 .login-btn {
