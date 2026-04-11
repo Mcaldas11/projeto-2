@@ -7,10 +7,21 @@
           <div class="logo-area">
             <img src="@/assets/logo.png" alt="VC Comunica Logo" class="logo-img">
           </div>
-          <div class="nav-icons">
-            <span class="icon">+</span>
-            <span class="icon">🔔</span>
+          <div class="nav-icons" ref="navIcons">
+            <span class="icon add">+</span>
+            <img :src="notifications.length === 0 ? notifOff : notifOn" alt="notifications" class="icon notification" @click="toggleNotif" ref="notifIcon" />
             <span class="icon">☰</span>
+
+            <div v-if="showNotif" class="notifications" ref="notifPanel">
+              <h4>Notificações</h4>
+              <div class="notif-list">
+                <div v-for="(n, i) in notifications" :key="n.id" class="notif-item" @click.stop="removeNotif(i)">
+                  <div class="notif-title">{{ n.title }}</div>
+                  <div class="notif-body" v-html="n.body"></div>
+                </div>
+                <div v-if="notifications.length === 0" class="notif-empty">Sem notificações</div>
+              </div>
+            </div>
           </div>
         </nav>
 
@@ -84,10 +95,8 @@
       </div>
       <div class="footer-brand">
         <div class="logo-area">
-          <img src="@/assets/logo.png" alt="Logo" class="logo-img-small">
-          <span class="logo-text-dark">VC COMUNICA</span>
+          <img src="@/assets/logo_footer.png" alt="Logo" class="logo-img-small">
         </div>
-        <p class="copyright">© 2024 VC Comunica All rights reserved.</p>
       </div>
     </footer>
   </div>
@@ -145,7 +154,57 @@
   gap: 20px;
   font-size: 1.2rem;
   cursor: pointer;
+  position: relative;
 }
+
+.nav-icons .icon.add {
+  background: #730000; /* red */
+  color: #fff;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.nav-icons .icon.notification {
+  width: 28px;
+  height: 28px;
+  display: inline-block;
+  object-fit: contain;
+}
+
+.notifications {
+  position: absolute;
+  top: 44px;
+  right: 0;
+  width: 320px;
+  background: #ffffff;
+  color: #0b2b2b;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+  z-index: 60;
+}
+
+.notifications h4 {
+  margin: 0 0 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+}
+
+.notif-list { display: flex; flex-direction: column; gap: 12px }
+.notif-item { background: #dff3ec; padding: 12px; border-radius: 8px; cursor: pointer }
+.notif-title { font-weight: 700; margin-bottom: 6px }
+.notif-body { color: rgba(0,0,0,0.7); font-size: 14px }
+
+.notif-empty { color: #666; font-size: 14px; text-align: center; padding: 12px }
 
 .hero-main {
   margin-bottom: 80px;
@@ -281,13 +340,7 @@
   text-align: right;
 }
 
-.logo-text-dark {
-  font-weight: bold;
-  font-size: 1.2rem;
-  color: #1a1a1a;
-}
-
-.logo-img-small { height: 30px; }
+.logo-img-small { height: 80px; }
 
 .copyright {
   font-size: 0.8rem;
@@ -302,3 +355,39 @@
   .stats-container { flex-direction: column; }
 }
 </style>
+
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+import notifOn from '@/assets/notificationson.png'
+import notifOff from '@/assets/notificationsoff.png'
+
+const showNotif = ref(false)
+const notifPanel = ref(null)
+const notifIcon = ref(null)
+
+const notifications = ref([
+  { id: 1, title: 'Estado da ocorrência', body: 'O estado da sua ocorrência foi alterado para <strong>Resolvido</strong>' },
+  { id: 2, title: 'Estado da ocorrência', body: 'O estado da sua ocorrência foi alterado para <strong>Resolvido</strong>' },
+])
+
+function toggleNotif(event) {
+  showNotif.value = !showNotif.value
+  event.stopPropagation()
+}
+
+function removeNotif(index) {
+  notifications.value.splice(index, 1)
+}
+
+function handleDocClick(e) {
+  const panel = notifPanel.value
+  const icon = notifIcon.value
+  if (!showNotif.value) return
+  if (panel && !panel.contains(e.target) && icon && !icon.contains(e.target)) {
+    showNotif.value = false
+  }
+}
+
+onMounted(() => document.addEventListener('click', handleDocClick))
+onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
+</script>
