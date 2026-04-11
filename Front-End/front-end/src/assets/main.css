@@ -1,0 +1,11 @@
+/* Basic reset to remove default browser spacing */
+html, body, #app {
+	margin: 0;
+	padding: 0;
+	height: 100%;
+}
+
+*, *::before, *::after { box-sizing: border-box }
+
+/* Keep this file minimal — add project styles here */
+
