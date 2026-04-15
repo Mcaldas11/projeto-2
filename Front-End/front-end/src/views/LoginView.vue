@@ -18,6 +18,14 @@
         <p class="subtitle">Olá! Introduz os teus dados para poderes reportar ocorrências</p>
 
         <form @submit.prevent="handleLogin">
+          <div class="role-select">
+            <label>
+              <input type="radio" value="cidadao" v-model="role"> Entrar como Cidadão
+            </label>
+            <label>
+              <input type="radio" value="trabalhador" v-model="role"> Entrar como Trabalhador
+            </label>
+          </div>
           <div class="input-group">
             <label for="email">Email</label>
             <input 
@@ -62,13 +70,23 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 const email = ref('')
 const password = ref('')
 const rememberMe = ref(false)
+const role = ref('cidadao')
+
+const router = useRouter()
 
 const handleLogin = () => {
-  console.log('Login attempt:', { email: email.value, password: password.value })
+  localStorage.setItem('role', role.value)
+  console.log('Login attempt:', { email: email.value, password: password.value, role: role.value })
+  if (role.value === 'trabalhador') {
+    router.push({ name: 'trabalhador-home' })
+  } else {
+    router.push({ name: 'home' })
+  }
 }
 </script>
 

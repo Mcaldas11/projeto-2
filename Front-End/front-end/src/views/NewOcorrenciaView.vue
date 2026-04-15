@@ -16,7 +16,7 @@
 
         <div v-if="showMenu" class="hamburger-menu">
           <div class="menu-list">
-            <router-link to="/" class="menu-item">
+            <router-link to="/" class="menu-item" @click.prevent="navigateHome">
               <span class="menu-label">Home</span>
               <img src="@/assets/home.png" alt="home" class="menu-icon" />
             </router-link>
@@ -68,11 +68,11 @@
           <div class="options-group">
             <label class="checkbox-container">
               <input type="checkbox" v-model="form.useGeo" />
-              <span class="custom-box"></span> Usar localização geográfica
+               Usar localização geográfica
             </label>
             <label class="checkbox-container">
               <input type="checkbox" v-model="form.manualLoc" />
-              <span class="custom-box"></span> Introduzir localização
+               Introduzir localização
             </label>
           </div>
         </div>
@@ -136,6 +136,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 
@@ -159,6 +160,16 @@ const toggleMenu = () => {
   showNotif.value = false
 }
 const removeNotif = (i) => notifications.value.splice(i, 1)
+
+const router = useRouter()
+
+function navigateHome(e) {
+  if (e && e.preventDefault) e.preventDefault()
+  const role = localStorage.getItem('role')
+  if (role === 'trabalhador') router.push({ name: 'trabalhador-home' })
+  else router.push({ name: 'home' })
+  showMenu.value = false
+}
 
 // Estados do Formulário
 const currentDate = '19 março 2026' // Podes tornar dinâmico com new Date()

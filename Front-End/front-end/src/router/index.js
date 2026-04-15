@@ -8,6 +8,7 @@ import NewOcorrencia from '../views/NewOcorrenciaView.vue'
 import OcorrenciasView from '../views/OcorrenciasView.vue'
 import DetailsOcorrenciaView from '../views/DetailsOcorrenciaView.vue'
 import ContaView from '../views/ContaView.vue'
+import TrabalhadorHomeView from '../views/TrabalhadorHomeView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -26,7 +27,17 @@ const router = createRouter({
     },
     { path: '/ocorrencias', name: 'ocorrencias', component: OcorrenciasView },
     { path: '/conta', name: 'conta', component: ContaView },
+    { path: '/trabalhador', name: 'trabalhador-home', component: TrabalhadorHomeView, meta: { requiresWorker: true } },
   ],
+})
+
+router.beforeEach((to, from, next) => {
+  if (to.meta && to.meta.requiresWorker) {
+    const role = localStorage.getItem('role')
+    if (role === 'trabalhador') return next()
+    return next({ name: 'login' })
+  }
+  return next()
 })
 
 export default router

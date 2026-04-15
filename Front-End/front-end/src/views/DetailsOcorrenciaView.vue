@@ -17,7 +17,7 @@
 
         <div v-if="showMenu" class="hamburger-menu" ref="menuPanel">
           <div class="menu-list">
-            <router-link to="/" class="menu-item" @click="showMenu = false">
+            <router-link to="/" class="menu-item" @click.prevent="navigateHome">
               <span class="menu-label">Home</span>
               <img src="@/assets/home.png" alt="home" class="menu-icon" />
             </router-link>
@@ -104,6 +104,9 @@
                 <span>Miguel Silva</span>
               </div>
             </div>
+            <div v-if="isWorker" class="worker-actions">
+              <button class="report-btn" @click="reportError">Reportar Erro</button>
+            </div>
           </div>
         </section>
       </div>
@@ -158,6 +161,7 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 
@@ -218,6 +222,23 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
 const gallery = ['/img/iluminacao1.jpg', '/img/iluminacao2.jpg', '/img/iluminacao3.jpg']
 const activeImage = ref(gallery[0])
 
+const isWorker = ref(false)
+
+onMounted(() => {
+  // existing onMounted already used to register click handler earlier; ensure role check runs after mount
+  isWorker.value = localStorage.getItem('role') === 'trabalhador'
+})
+
+const router = useRouter()
+
+const navigateHome = (e) => {
+  if (e && e.preventDefault) e.preventDefault()
+  const role = localStorage.getItem('role')
+  if (role === 'trabalhador') router.push({ name: 'trabalhador-home' })
+  else router.push({ name: 'home' })
+  showMenu.value = false
+}
+
 const nextImg = () => {
   const idx = gallery.indexOf(activeImage.value)
   activeImage.value = gallery[(idx + 1) % gallery.length]
@@ -225,6 +246,11 @@ const nextImg = () => {
 const prevImg = () => {
   const idx = gallery.indexOf(activeImage.value)
   activeImage.value = gallery[(idx - 1 + gallery.length) % gallery.length]
+}
+const reportError = () => {
+  // placeholder action for reporting an error from worker
+  console.log('Reportar Erro clicked')
+  alert('Reportar Erro: ação simulada (só visível a trabalhadores)')
 }
 </script>
 
@@ -460,6 +486,18 @@ const prevImg = () => {
   height: 60px;
   border-radius: 50%;
 }
+
+.worker-actions { margin-top: 16px }
+.report-btn {
+  background: #730000;
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 
 /* FOOTER (Styles da Home) */
 .main-footer {
