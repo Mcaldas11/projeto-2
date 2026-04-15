@@ -278,8 +278,15 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   padding: 8px 10px;
 }
 
-.menu-label { font-size: 13px; margin-right: 8px }
-.menu-icon { width: 14px; height: 14px; object-fit: contain }
+.menu-label {
+  font-size: 13px;
+  margin-right: 8px;
+}
+.menu-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+}
 
 /* DASHBOARD LAYOUT */
 .main-content {
