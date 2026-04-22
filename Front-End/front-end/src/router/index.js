@@ -10,6 +10,13 @@ import DetailsOcorrenciaView from '../views/DetailsOcorrenciaView.vue'
 import ContaView from '../views/ContaView.vue'
 import TrabalhadorHomeView from '../views/TrabalhadorHomeView.vue'
 
+// Admin Views
+import AdminHomeView from '../views/admin/AdminHomeView.vue'
+import AdminOcorrenciaDetailView from '../views/admin/AdminOcorrenciaDetailView.vue'
+import AdminTrabalhadoresView from '../views/admin/AdminTrabalhadoresView.vue'
+import AdminEquipasView from '../views/admin/AdminEquipasView.vue'
+import AdminRotasView from '../views/admin/AdminRotasView.vue'
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -28,6 +35,13 @@ const router = createRouter({
     { path: '/ocorrencias', name: 'ocorrencias', component: OcorrenciasView },
     { path: '/conta', name: 'conta', component: ContaView },
     { path: '/trabalhador', name: 'trabalhador-home', component: TrabalhadorHomeView, meta: { requiresWorker: true } },
+
+    // Admin Routes
+    { path: '/admin', name: 'admin-home', component: AdminHomeView, meta: { requiresAdmin: true } },
+    { path: '/admin/ocorrencia/:id', name: 'admin-ocorrencia-detail', component: AdminOcorrenciaDetailView, meta: { requiresAdmin: true } },
+    { path: '/admin/trabalhadores', name: 'admin-trabalhadores', component: AdminTrabalhadoresView, meta: { requiresAdmin: true } },
+    { path: '/admin/equipas', name: 'admin-equipas', component: AdminEquipasView, meta: { requiresAdmin: true } },
+    { path: '/admin/rotas', name: 'admin-rotas', component: AdminRotasView, meta: { requiresAdmin: true } },
   ],
 })
 
@@ -35,6 +49,11 @@ router.beforeEach((to, from, next) => {
   if (to.meta && to.meta.requiresWorker) {
     const role = localStorage.getItem('role')
     if (role === 'trabalhador') return next()
+    return next({ name: 'login' })
+  }
+  if (to.meta && to.meta.requiresAdmin) {
+    const role = localStorage.getItem('role')
+    if (role === 'admin') return next()
     return next({ name: 'login' })
   }
   return next()
