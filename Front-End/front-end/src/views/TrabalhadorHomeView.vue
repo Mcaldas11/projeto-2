@@ -189,6 +189,10 @@ const setWorkerRole = (e) => {
   // ensure role is set to trabalhador when navigating from worker menu
   localStorage.setItem('role', 'trabalhador')
   showMenu.value = false
+
+  e.preventDefault()
+  router.push({ name: 'ocorrencias' })
+  
 }
 
 const navigateHome = (e) => {
