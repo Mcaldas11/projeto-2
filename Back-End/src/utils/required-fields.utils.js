@@ -1,0 +1,20 @@
+export const requiredFieldsByResource = {
+  cidadaos: ["nome", "munCidadao", "nrTelemovel", "email"],
+  municipios: ["nome"],
+  equipas: ["especializacao", "munEquipa"],
+  trabalhadores: ["nomeTrabalhador", "emailTrabalhador", "telemovelTrabalhador", "idEquipa"],
+  recursos: ["tipo", "estado", "localizacao", "equipaResponsavel"],
+  ocorrencias: [
+    "descricao",
+    "localizacao",
+    "dataOcorrencia",
+    "nomeAutor",
+    "nrTelemovelAutor",
+    "severidade",
+    "estado",
+    "idCidadao",
+    "idMunicipio",
+    "tipo_ocorrencia",
+  ],
+  mensagens: ["texto", "dataMensagem", "idCidadao", "idOcorrencia"],
+};
