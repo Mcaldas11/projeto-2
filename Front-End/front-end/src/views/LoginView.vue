@@ -80,8 +80,14 @@ const role = ref('cidadao')
 const router = useRouter()
 
 const handleLogin = () => {
+  // Check for admin credentials
+  if (email.value === 'admin@vcc.pt' && password.value === 'admin') {
+    localStorage.setItem('role', 'admin')
+    router.push({ name: 'admin-home' })
+    return
+  }
+
   localStorage.setItem('role', role.value)
-  console.log('Login attempt:', { email: email.value, password: password.value, role: role.value })
   if (role.value === 'trabalhador') {
     router.push({ name: 'trabalhador-home' })
   } else {
