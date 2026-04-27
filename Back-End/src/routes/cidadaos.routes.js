@@ -1,31 +1,27 @@
 import express from "express";
 
-import {
-  createCidadao,
-  deleteCidadao,
-  getAllCidadaos,
-  getCidadaoById,
-  updateCidadao,
-} from "../controllers/cidadaos.controller.js";
+import * as cidadaosControllers from "../controllers/cidadaos.controller.js";
 import { requireFields, requireJsonObject, validateIntegerParam } from "../middlewares.js";
 import { requiredFieldsByResource } from "../utils/required-fields.utils.js";
 
 const router = express.Router();
 
-router
-  .route("/")
-  .get(getAllCidadaos)
-  .post(requireJsonObject, requireFields(requiredFieldsByResource.cidadaos), createCidadao);
+router.get("/", cidadaosControllers.getAllCidadaos);
+router.post(
+  "/",
+  requireJsonObject,
+  requireFields(requiredFieldsByResource.cidadaos),
+  cidadaosControllers.createCidadao,
+);
 
-router
-  .route("/:id")
-  .get(validateIntegerParam("id"), getCidadaoById)
-  .put(
-    validateIntegerParam("id"),
-    requireJsonObject,
-    requireFields(requiredFieldsByResource.cidadaos),
-    updateCidadao,
-  )
-  .delete(validateIntegerParam("id"), deleteCidadao);
+router.get("/:id", validateIntegerParam("id"), cidadaosControllers.getCidadaoById);
+router.put(
+  "/:id",
+  validateIntegerParam("id"),
+  requireJsonObject,
+  requireFields(requiredFieldsByResource.cidadaos),
+  cidadaosControllers.updateCidadao,
+);
+router.delete("/:id", validateIntegerParam("id"), cidadaosControllers.deleteCidadao);
 
 export default router;

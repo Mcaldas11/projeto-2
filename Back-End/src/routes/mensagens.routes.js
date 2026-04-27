@@ -1,31 +1,27 @@
 import express from "express";
 
-import {
-  createMensagem,
-  deleteMensagem,
-  getAllMensagens,
-  getMensagemById,
-  updateMensagem,
-} from "../controllers/mensagens.controller.js";
+import * as mensagensControllers from "../controllers/mensagens.controller.js";
 import { requireFields, requireJsonObject, validateIntegerParam } from "../middlewares.js";
 import { requiredFieldsByResource } from "../utils/required-fields.utils.js";
 
 const router = express.Router();
 
-router
-  .route("/")
-  .get(getAllMensagens)
-  .post(requireJsonObject, requireFields(requiredFieldsByResource.mensagens), createMensagem);
+router.get("/", mensagensControllers.getAllMensagens);
+router.post(
+  "/",
+  requireJsonObject,
+  requireFields(requiredFieldsByResource.mensagens),
+  mensagensControllers.createMensagem,
+);
 
-router
-  .route("/:id")
-  .get(validateIntegerParam("id"), getMensagemById)
-  .put(
-    validateIntegerParam("id"),
-    requireJsonObject,
-    requireFields(requiredFieldsByResource.mensagens),
-    updateMensagem,
-  )
-  .delete(validateIntegerParam("id"), deleteMensagem);
+router.get("/:id", validateIntegerParam("id"), mensagensControllers.getMensagemById);
+router.put(
+  "/:id",
+  validateIntegerParam("id"),
+  requireJsonObject,
+  requireFields(requiredFieldsByResource.mensagens),
+  mensagensControllers.updateMensagem,
+);
+router.delete("/:id", validateIntegerParam("id"), mensagensControllers.deleteMensagem);
 
 export default router;

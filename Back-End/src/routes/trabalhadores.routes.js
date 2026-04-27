@@ -1,31 +1,27 @@
 import express from "express";
 
-import {
-  createTrabalhador,
-  deleteTrabalhador,
-  getAllTrabalhadores,
-  getTrabalhadorById,
-  updateTrabalhador,
-} from "../controllers/trabalhadores.controller.js";
+import * as trabalhadoresControllers from "../controllers/trabalhadores.controller.js";
 import { requireFields, requireJsonObject, validateIntegerParam } from "../middlewares.js";
 import { requiredFieldsByResource } from "../utils/required-fields.utils.js";
 
 const router = express.Router();
 
-router
-  .route("/")
-  .get(getAllTrabalhadores)
-  .post(requireJsonObject, requireFields(requiredFieldsByResource.trabalhadores), createTrabalhador);
+router.get("/", trabalhadoresControllers.getAllTrabalhadores);
+router.post(
+  "/",
+  requireJsonObject,
+  requireFields(requiredFieldsByResource.trabalhadores),
+  trabalhadoresControllers.createTrabalhador,
+);
 
-router
-  .route("/:id")
-  .get(validateIntegerParam("id"), getTrabalhadorById)
-  .put(
-    validateIntegerParam("id"),
-    requireJsonObject,
-    requireFields(requiredFieldsByResource.trabalhadores),
-    updateTrabalhador,
-  )
-  .delete(validateIntegerParam("id"), deleteTrabalhador);
+router.get("/:id", validateIntegerParam("id"), trabalhadoresControllers.getTrabalhadorById);
+router.put(
+  "/:id",
+  validateIntegerParam("id"),
+  requireJsonObject,
+  requireFields(requiredFieldsByResource.trabalhadores),
+  trabalhadoresControllers.updateTrabalhador,
+);
+router.delete("/:id", validateIntegerParam("id"), trabalhadoresControllers.deleteTrabalhador);
 
 export default router;

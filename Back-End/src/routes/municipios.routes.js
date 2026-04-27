@@ -1,31 +1,27 @@
 import express from "express";
 
-import {
-  createMunicipio,
-  deleteMunicipio,
-  getAllMunicipios,
-  getMunicipioById,
-  updateMunicipio,
-} from "../controllers/municipios.controller.js";
+import * as municipiosControllers from "../controllers/municipios.controller.js";
 import { requireFields, requireJsonObject, validateIntegerParam } from "../middlewares.js";
 import { requiredFieldsByResource } from "../utils/required-fields.utils.js";
 
 const router = express.Router();
 
-router
-  .route("/")
-  .get(getAllMunicipios)
-  .post(requireJsonObject, requireFields(requiredFieldsByResource.municipios), createMunicipio);
+router.get("/", municipiosControllers.getAllMunicipios);
+router.post(
+  "/",
+  requireJsonObject,
+  requireFields(requiredFieldsByResource.municipios),
+  municipiosControllers.createMunicipio,
+);
 
-router
-  .route("/:id")
-  .get(validateIntegerParam("id"), getMunicipioById)
-  .put(
-    validateIntegerParam("id"),
-    requireJsonObject,
-    requireFields(requiredFieldsByResource.municipios),
-    updateMunicipio,
-  )
-  .delete(validateIntegerParam("id"), deleteMunicipio);
+router.get("/:id", validateIntegerParam("id"), municipiosControllers.getMunicipioById);
+router.put(
+  "/:id",
+  validateIntegerParam("id"),
+  requireJsonObject,
+  requireFields(requiredFieldsByResource.municipios),
+  municipiosControllers.updateMunicipio,
+);
+router.delete("/:id", validateIntegerParam("id"), municipiosControllers.deleteMunicipio);
 
 export default router;
