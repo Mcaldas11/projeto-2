@@ -46,6 +46,7 @@ export const createCidadao = async (req, res, next) => {
     const cidadao = await Cidadao.create(req.body);
     res.status(201).json(cidadao);
   } catch (error) {
+    console.error("DEBUG:", error);
     if (handleSequelizeValidation(error, next)) {
       return;
     }
