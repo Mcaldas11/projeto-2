@@ -1,7 +1,7 @@
 import express from "express";
 
 import * as mensagensControllers from "../controllers/mensagens.controller.js";
-import { requireFields, requireJsonObject, validateIntegerParam } from "../middlewares.js";
+import { requireFields, requireJsonObject, validateIntegerParam } from "../middlewares/validation.middleware.js";
 import { requiredFieldsByResource } from "../utils/required-fields.utils.js";
 
 const router = express.Router();

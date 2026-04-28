@@ -1,6 +1,6 @@
 import express from "express";
 
-import { errorHandlerMiddleware, notFoundMiddleware } from "./middlewares.js";
+import { errorHandlerMiddleware, notFoundMiddleware } from "./middlewares/error.middleware.js";
 import apiRoutes from "./routes/index.js";
 
 const app = express();
