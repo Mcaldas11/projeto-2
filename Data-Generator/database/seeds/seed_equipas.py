@@ -1,5 +1,5 @@
 TIPOS_EQUIPA = [
-    "engenharia e vias",
-    "eletricidade",
-    "higiene urbana e espacos verdes",
+    {"idEquipa": 1, "especializacao": "engenharia e vias"},
+    {"idEquipa": 2, "especializacao": "eletricidade"},
+    {"idEquipa": 3, "especializacao": "higiene urbana e espacos verdes"},
 ]
