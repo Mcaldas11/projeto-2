@@ -1,3 +1,4 @@
+# python -m entities.trabalhador.generator
 from faker import Faker
 
 from .schema import TrabalhadorSchema

@@ -1,3 +1,4 @@
+# python -m entities.cidadao.generator
 import random
 
 from faker import Faker
