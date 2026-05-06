@@ -1,2 +1,55 @@
 # API planning files
 Back-End/plan api rest/
+
+# Dependency directories
+**/node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Build outputs
+dist/
+dist-ssr/
+build/
+out/
+coverage/
+.cache/
+.vite/
+*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor and IDE files
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.code-workspace
+
+# Misc
+*.tsbuildinfo
+.eslintcache
+test-results/
+playwright-report/
