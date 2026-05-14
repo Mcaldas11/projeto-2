@@ -1,3 +1,5 @@
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import { Cidadao } from "../models/index.js";
 import {
   genericError,
@@ -43,8 +45,21 @@ export const getCidadaoById = async (req, res, next) => {
 
 export const createCidadao = async (req, res, next) => {
   try {
-    const cidadao = await Cidadao.create(req.body);
-    res.status(201).json(cidadao);
+    const { password, ...rest } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const cidadao = await Cidadao.create({ ...rest, credenciais: hashedPassword });
+
+    const token = jwt.sign(
+      { userId: cidadao.idCidadao, email: cidadao.email, userType: "cidadao" },
+      "your_jwt_secret",
+      { expiresIn: "15min" }
+    );
+
+    res.status(201).json({
+      message: "Cidadao created successfully",
+      token,
+      userId: cidadao.idCidadao,
+    });
   } catch (error) {
     console.error("DEBUG:", error);
     if (handleSequelizeValidation(error, next)) {
@@ -52,6 +67,38 @@ export const createCidadao = async (req, res, next) => {
     }
 
     next(genericError("Error creating cidadao"));
+  }
+};
+
+export const loginCidadao = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    const cidadao = await Cidadao.findOne({ where: { email } });
+
+    if (!cidadao || !cidadao.credenciais) {
+      return res.status(401).json({ message: "Authentication failed. User not found or no password set." });
+    }
+
+    const isPasswordCorrect = await bcrypt.compare(password, cidadao.credenciais);
+    if (!isPasswordCorrect) {
+      return res.status(401).json({ message: "Authentication failed. Wrong password." });
+    }
+
+    const token = jwt.sign(
+      { userId: cidadao.idCidadao, email: cidadao.email, userType: "cidadao" },
+      "your_jwt_secret",
+      { expiresIn: "15m" }
+    );
+
+    res.status(200).json({
+      message: "Login successful",
+      token,
+      userId: cidadao.idCidadao,
+      userType: "cidadao",
+    });
+  } catch (error) {
+    next(genericError("Error during login"));
   }
 };
 

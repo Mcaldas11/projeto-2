@@ -19,5 +19,13 @@ export const errorHandlerMiddleware = (err, req, res, next) => {
     payload.errors = err.errors;
   }
 
+  console.error("ERROR:", {
+    method: req.method,
+    url: req.originalUrl,
+    status,
+    message: err.message,
+    errors: err.errors,
+  });
+
   res.status(status).json(payload);
 };
