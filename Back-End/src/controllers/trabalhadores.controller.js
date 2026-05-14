@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { Trabalhador } from "../models/index.js";
+import { Equipa, Trabalhador } from "../models/index.js";
 import {
   genericError,
   notFoundError,
@@ -45,32 +45,64 @@ export const getTrabalhadorById = async (req, res, next) => {
 
 export const createTrabalhador = async (req, res, next) => {
   try {
-    const { password, ...rest } = req.body;
+    const { nomeTrabalhador, emailTrabalhador, telemovelTrabalhador, idEquipa, password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({ message: "Password is required" });
+    }
+
+    if (!idEquipa) {
+      return res.status(400).json({ message: "idEquipa is required" });
+    }
+
+    const equipa = await Equipa.findByPk(idEquipa);
+    if (!equipa) {
+      return res.status(400).json({ message: "Invalid idEquipa" });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
-    // Ensure the request body matches the model fields
-    const trabalhadorData = {
-      nomeTrabalhador: rest.nome,
-      emailTrabalhador: rest.email,
-      telemovelTrabalhador: rest.nrTelemovel,
-      idEquipa: rest.idEquipa,
+    const trabalhador = await Trabalhador.create({
+      nomeTrabalhador,
+      emailTrabalhador,
+      telemovelTrabalhador,
+      idEquipa,
       credenciaisTrabalhadores: hashedPassword,
-    };
-    const trabalhador = await Trabalhador.create(trabalhadorData);
-    res.status(201).json(trabalhador);
+    });
+
+    const token = jwt.sign(
+      { userId: trabalhador.idTrabalhador, email: trabalhador.emailTrabalhador, userType: "trabalhador" },
+      "your_jwt_secret",
+      { expiresIn: "15m" }
+    );
+
+    res.status(201).json({
+      message: "Trabalhador created successfully",
+      token,
+      userId: trabalhador.idTrabalhador,
+    });
   } catch (error) {
+    if (error.name === "SequelizeUniqueConstraintError") {
+      return res.status(409).json({ message: "Conflict: Email already in use." });
+    }
     if (handleSequelizeValidation(error, next)) {
       return;
     }
 
-    next(genericError("Error creating trabalhador"));
+    console.error("Create trabalhador failed:", error);
+    return next(error);
   }
 };
 
 export const loginTrabalhador = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { email, emailTrabalhador, password } = req.body;
+    const loginEmail = emailTrabalhador || email;
 
-    const trabalhador = await Trabalhador.findOne({ where: { emailTrabalhador: email } });
+    if (!loginEmail || !password) {
+      return res.status(400).json({ message: "Email and password are required." });
+    }
+
+    const trabalhador = await Trabalhador.findOne({ where: { emailTrabalhador: loginEmail } });
 
     if (!trabalhador || !trabalhador.credenciaisTrabalhadores) {
       return res.status(401).json({ message: "Authentication failed. User not found or no password set." });
@@ -82,14 +114,14 @@ export const loginTrabalhador = async (req, res, next) => {
     }
 
     const token = jwt.sign(
-      { userId: trabalhador.idTrabalhador, email: trabalhador.emailTrabalhador, userType: "trabalhador" }, // Assuming all are 'trabalhador' for now
+      { userId: trabalhador.idTrabalhador, email: trabalhador.emailTrabalhador, userType: "trabalhador" },
       "your_jwt_secret",
-      { expiresIn: "15min" }
+      { expiresIn: "15m" }
     );
 
     res.status(200).json({
+      message: "Login realizado com sucesso",
       token,
-      expiresIn: 900,
       userId: trabalhador.idTrabalhador,
       userType: "trabalhador",
     });
