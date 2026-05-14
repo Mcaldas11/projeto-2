@@ -14,6 +14,8 @@ router.post(
   trabalhadoresControllers.createTrabalhador,
 );
 
+router.post("/login", trabalhadoresControllers.loginTrabalhador);
+
 router.get("/:id", validateIntegerParam("id"), trabalhadoresControllers.getTrabalhadorById);
 router.put(
   "/:id",

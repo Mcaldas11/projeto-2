@@ -24,9 +24,14 @@ const CidadaoModel = (sequelize) =>
       email: {
         type: DataTypes.STRING(150),
         allowNull: false,
+        unique: true,
         validate: {
           isEmail: true,
         },
+      },
+      credenciais: {
+        type: DataTypes.TEXT,
+        allowNull: true, // Assuming it can be null if not set
       },
     },
     {

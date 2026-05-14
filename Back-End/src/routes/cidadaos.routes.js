@@ -14,6 +14,8 @@ router.post(
   cidadaosControllers.createCidadao,
 );
 
+router.post("/login", cidadaosControllers.loginCidadao);
+
 router.get("/:id", validateIntegerParam("id"), cidadaosControllers.getCidadaoById);
 router.put(
   "/:id",

@@ -1,3 +1,5 @@
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import { Trabalhador } from "../models/index.js";
 import {
   genericError,
@@ -43,7 +45,17 @@ export const getTrabalhadorById = async (req, res, next) => {
 
 export const createTrabalhador = async (req, res, next) => {
   try {
-    const trabalhador = await Trabalhador.create(req.body);
+    const { password, ...rest } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    // Ensure the request body matches the model fields
+    const trabalhadorData = {
+      nomeTrabalhador: rest.nome,
+      emailTrabalhador: rest.email,
+      telemovelTrabalhador: rest.nrTelemovel,
+      idEquipa: rest.idEquipa,
+      credenciaisTrabalhadores: hashedPassword,
+    };
+    const trabalhador = await Trabalhador.create(trabalhadorData);
     res.status(201).json(trabalhador);
   } catch (error) {
     if (handleSequelizeValidation(error, next)) {
@@ -51,6 +63,38 @@ export const createTrabalhador = async (req, res, next) => {
     }
 
     next(genericError("Error creating trabalhador"));
+  }
+};
+
+export const loginTrabalhador = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    const trabalhador = await Trabalhador.findOne({ where: { emailTrabalhador: email } });
+
+    if (!trabalhador || !trabalhador.credenciaisTrabalhadores) {
+      return res.status(401).json({ message: "Authentication failed. User not found or no password set." });
+    }
+
+    const isPasswordCorrect = await bcrypt.compare(password, trabalhador.credenciaisTrabalhadores);
+    if (!isPasswordCorrect) {
+      return res.status(401).json({ message: "Authentication failed. Wrong password." });
+    }
+
+    const token = jwt.sign(
+      { userId: trabalhador.idTrabalhador, email: trabalhador.emailTrabalhador, userType: "trabalhador" }, // Assuming all are 'trabalhador' for now
+      "your_jwt_secret",
+      { expiresIn: "15min" }
+    );
+
+    res.status(200).json({
+      token,
+      expiresIn: 900,
+      userId: trabalhador.idTrabalhador,
+      userType: "trabalhador",
+    });
+  } catch (error) {
+    next(genericError("Error during login"));
   }
 };
 

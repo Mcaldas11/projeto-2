@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS `projeto2`.`cidadao` (
   `munCidadao` INT NULL DEFAULT NULL,
   `nrTelemovel` VARCHAR(20) NULL DEFAULT NULL,
   `email` VARCHAR(150) NOT NULL,
+  `credenciais` TEXT NULL DEFAULT NULL,
   PRIMARY KEY (`idCidadao`),
   UNIQUE INDEX `email` (`email` ASC) VISIBLE,
   INDEX `munCidadao` (`munCidadao` ASC) VISIBLE,
