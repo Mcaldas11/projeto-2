@@ -1,7 +1,7 @@
 export default {
-  username: process.env.DB_USER || "root",
-  password: process.env.DB_PASS || null,
-  database: process.env.DB_NAME || "projeto2",
-  host: process.env.DB_HOST || "127.0.0.1",
+  username: process.env.DB_USER || "g04",
+  password: process.env.DB_PASS || "gXj6>DWtsF",
+  database: process.env.DB_NAME || "Grupo04",
+  host: process.env.DB_HOST || "172.22.0.201",
   dialect: "mysql",
 };
