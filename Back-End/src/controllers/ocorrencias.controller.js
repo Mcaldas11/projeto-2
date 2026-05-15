@@ -1,4 +1,4 @@
-import { Ocorrencia } from "../models/index.js";
+import { Ocorrencia, Cidadao } from "../models/index.js";
 import {
   genericError,
   notFoundError,
@@ -43,6 +43,36 @@ export const getOcorrenciaById = async (req, res, next) => {
 
 export const createOcorrencia = async (req, res, next) => {
   try {
+    const ocorrencia = await Ocorrencia.create(req.body);
+    res.status(201).json(ocorrencia);
+  } catch (error) {
+    if (handleSequelizeValidation(error, next)) {
+      return;
+    }
+
+    next(genericError("Error creating ocorrencia"));
+  }
+};
+
+export const createOcorrenciaForCidadao = async (req, res, next) => {
+  try {
+    // Ensure the idCidadao comes from the authenticated token, not the client
+    if (req.userData && req.userData.userId) {
+      const userId = req.userData.userId;
+      req.body.idCidadao = userId;
+
+      // Populate author name and phone from the authenticated cidadao record
+      try {
+        const cidadao = await Cidadao.findByPk(userId);
+        if (cidadao) {
+          req.body.nomeAutor = cidadao.nome;
+          req.body.nrTelemovelAutor = cidadao.nrTelemovel;
+        }
+      } catch (err) {
+        // ignore and continue; validation/creation will surface issues
+      }
+    }
+
     const ocorrencia = await Ocorrencia.create(req.body);
     res.status(201).json(ocorrencia);
   } catch (error) {
