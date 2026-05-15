@@ -47,9 +47,22 @@ const testConnection = async () => {
   await sequelize.authenticate();
 };
 
+const syncDatabase = async () => {
+  const shouldSync = process.env.DB_SYNC === "true";
+  const forceSync = process.env.DB_SYNC_FORCE === "true";
+
+  if (!shouldSync && !forceSync) {
+    return false;
+  }
+
+  await sequelize.sync({ force: forceSync });
+  return true;
+};
+
 export {
   sequelize,
   testConnection,
+  syncDatabase,
   Cidadao,
   Municipio,
   Equipa,

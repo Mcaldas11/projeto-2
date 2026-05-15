@@ -26,6 +26,13 @@ router.put(
   requireFields(requiredFieldsByResource.ocorrencias),
   ocorrenciasControllers.updateOcorrencia,
 );
+// Equipa resolution endpoint: only trabalhadores can call
+router.patch(
+  "/:id/resolve",
+  validateIntegerParam("id"),
+  requireJsonObject,
+  ocorrenciasControllers.resolveOcorrenciaByEquipa,
+);
 router.delete("/:id", validateIntegerParam("id"), ocorrenciasControllers.deleteOcorrencia);
 
 export default router;
