@@ -46,6 +46,7 @@ export const createMunicipio = async (req, res, next) => {
     const municipio = await Municipio.create(req.body);
     res.status(201).json(municipio);
   } catch (error) {
+    console.error("Create municipio failed:", error);
     if (handleSequelizeValidation(error, next)) {
       return;
     }

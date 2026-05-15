@@ -8,19 +8,19 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,N
 -- Schema mydb
 -- -----------------------------------------------------
 -- -----------------------------------------------------
--- Schema projeto2
+-- Schema Grupo04
 -- -----------------------------------------------------
 
 -- -----------------------------------------------------
--- Schema projeto2
+-- Schema Grupo04
 -- -----------------------------------------------------
-CREATE SCHEMA IF NOT EXISTS `projeto2` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci ;
-USE `projeto2` ;
+CREATE SCHEMA IF NOT EXISTS `Grupo04` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci ;
+USE `Grupo04` ;
 
 -- -----------------------------------------------------
--- Table `projeto2`.`municipio`
+-- Table `Grupo04`.`municipio`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `projeto2`.`municipio` (
+CREATE TABLE IF NOT EXISTS `Grupo04`.`municipio` (
   `idMunicipio` INT NOT NULL AUTO_INCREMENT,
   `nome` VARCHAR(120) NOT NULL,
   `responsavel` VARCHAR(120) NULL DEFAULT NULL,
@@ -31,9 +31,9 @@ COLLATE = utf8mb4_0900_ai_ci;
 
 
 -- -----------------------------------------------------
--- Table `projeto2`.`cidadao`
+-- Table `Grupo04`.`cidadao`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `projeto2`.`cidadao` (
+CREATE TABLE IF NOT EXISTS `Grupo04`.`cidadao` (
   `idCidadao` INT NOT NULL AUTO_INCREMENT,
   `nome` VARCHAR(120) NOT NULL,
   `munCidadao` INT NULL DEFAULT NULL,
@@ -45,16 +45,16 @@ CREATE TABLE IF NOT EXISTS `projeto2`.`cidadao` (
   INDEX `munCidadao` (`munCidadao` ASC) VISIBLE,
   CONSTRAINT `cidadao_ibfk_1`
     FOREIGN KEY (`munCidadao`)
-    REFERENCES `projeto2`.`municipio` (`idMunicipio`))
+    REFERENCES `Grupo04`.`municipio` (`idMunicipio`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
 
 -- -----------------------------------------------------
--- Table `projeto2`.`equipa`
+-- Table `Grupo04`.`equipa`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `projeto2`.`equipa` (
+CREATE TABLE IF NOT EXISTS `Grupo04`.`equipa` (
   `idEquipa` INT NOT NULL AUTO_INCREMENT,
   `especializacao` VARCHAR(150) NULL DEFAULT NULL,
   `munEquipa` INT NULL DEFAULT NULL,
@@ -62,16 +62,16 @@ CREATE TABLE IF NOT EXISTS `projeto2`.`equipa` (
   INDEX `munEquipa` (`munEquipa` ASC) VISIBLE,
   CONSTRAINT `equipa_ibfk_1`
     FOREIGN KEY (`munEquipa`)
-    REFERENCES `projeto2`.`municipio` (`idMunicipio`))
+    REFERENCES `Grupo04`.`municipio` (`idMunicipio`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
 
 -- -----------------------------------------------------
--- Table `projeto2`.`ocorrencia`
+-- Table `Grupo04`.`ocorrencia`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `projeto2`.`ocorrencia` (
+CREATE TABLE IF NOT EXISTS `Grupo04`.`ocorrencia` (
   `idOcorrencia` INT NOT NULL AUTO_INCREMENT,
   `foto` VARCHAR(255) NULL DEFAULT NULL,
   `descricao` TEXT NULL DEFAULT NULL,
@@ -94,22 +94,22 @@ CREATE TABLE IF NOT EXISTS `projeto2`.`ocorrencia` (
   INDEX `idEquipa` (`idEquipa` ASC) VISIBLE,
   CONSTRAINT `ocorrencia_ibfk_1`
     FOREIGN KEY (`idCidadao`)
-    REFERENCES `projeto2`.`cidadao` (`idCidadao`),
+    REFERENCES `Grupo04`.`cidadao` (`idCidadao`),
   CONSTRAINT `ocorrencia_ibfk_2`
     FOREIGN KEY (`idMunicipio`)
-    REFERENCES `projeto2`.`municipio` (`idMunicipio`),
+    REFERENCES `Grupo04`.`municipio` (`idMunicipio`),
   CONSTRAINT `ocorrencia_ibfk_3`
     FOREIGN KEY (`idEquipa`)
-    REFERENCES `projeto2`.`equipa` (`idEquipa`))
+    REFERENCES `Grupo04`.`equipa` (`idEquipa`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
 
 -- -----------------------------------------------------
--- Table `projeto2`.`mensagem`
+-- Table `Grupo04`.`mensagem`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `projeto2`.`mensagem` (
+CREATE TABLE IF NOT EXISTS `Grupo04`.`mensagem` (
   `idMensagem` INT NOT NULL AUTO_INCREMENT,
   `texto` TEXT NULL DEFAULT NULL,
   `dataMensagem` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
@@ -121,19 +121,19 @@ CREATE TABLE IF NOT EXISTS `projeto2`.`mensagem` (
   INDEX `idOcorrencia` (`idOcorrencia` ASC) VISIBLE,
   CONSTRAINT `mensagem_ibfk_1`
     FOREIGN KEY (`idCidadao`)
-    REFERENCES `projeto2`.`cidadao` (`idCidadao`),
+    REFERENCES `Grupo04`.`cidadao` (`idCidadao`),
   CONSTRAINT `mensagem_ibfk_2`
     FOREIGN KEY (`idOcorrencia`)
-    REFERENCES `projeto2`.`ocorrencia` (`idOcorrencia`))
+    REFERENCES `Grupo04`.`ocorrencia` (`idOcorrencia`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
 
 -- -----------------------------------------------------
--- Table `projeto2`.`recurso`
+-- Table `Grupo04`.`recurso`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `projeto2`.`recurso` (
+CREATE TABLE IF NOT EXISTS `Grupo04`.`recurso` (
   `idRecurso` INT NOT NULL AUTO_INCREMENT,
   `tipo` VARCHAR(106) NULL DEFAULT NULL,
   `estado` VARCHAR(50) NULL DEFAULT NULL,
@@ -144,16 +144,16 @@ CREATE TABLE IF NOT EXISTS `projeto2`.`recurso` (
   INDEX `equipaResponsavel` (`equipaResponsavel` ASC) VISIBLE,
   CONSTRAINT `recurso_ibfk_1`
     FOREIGN KEY (`equipaResponsavel`)
-    REFERENCES `projeto2`.`equipa` (`idEquipa`))
+    REFERENCES `Grupo04`.`equipa` (`idEquipa`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
 
 -- -----------------------------------------------------
--- Table `projeto2`.`trabalhador`
+-- Table `Grupo04`.`trabalhador`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `projeto2`.`trabalhador` (
+CREATE TABLE IF NOT EXISTS `Grupo04`.`trabalhador` (
   `idTrabalhador` INT NOT NULL AUTO_INCREMENT,
   `nomeTrabalhador` VARCHAR(120) NOT NULL,
   `emailTrabalhador` VARCHAR(150) NOT NULL,
@@ -165,7 +165,7 @@ CREATE TABLE IF NOT EXISTS `projeto2`.`trabalhador` (
   INDEX `idEquipa` (`idEquipa` ASC) VISIBLE,
   CONSTRAINT `trabalhador_ibfk_1`
     FOREIGN KEY (`idEquipa`)
-    REFERENCES `projeto2`.`equipa` (`idEquipa`))
+    REFERENCES `Grupo04`.`equipa` (`idEquipa`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
