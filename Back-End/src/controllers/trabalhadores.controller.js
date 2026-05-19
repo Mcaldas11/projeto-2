@@ -79,6 +79,7 @@ export const createTrabalhador = async (req, res, next) => {
       message: "Trabalhador created successfully",
       token,
       userId: trabalhador.idTrabalhador,
+      userType: "trabalhador",
     });
   } catch (error) {
     if (error.name === "SequelizeUniqueConstraintError") {

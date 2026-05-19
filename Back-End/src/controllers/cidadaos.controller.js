@@ -52,13 +52,14 @@ export const createCidadao = async (req, res, next) => {
     const token = jwt.sign(
       { userId: cidadao.idCidadao, email: cidadao.email, userType: "cidadao" },
       "your_jwt_secret",
-      { expiresIn: "15min" }
+      { expiresIn: "15m" }
     );
 
     res.status(201).json({
       message: "Cidadao created successfully",
       token,
       userId: cidadao.idCidadao,
+      userType: "cidadao",
     });
   } catch (error) {
     console.error("DEBUG:", error);
