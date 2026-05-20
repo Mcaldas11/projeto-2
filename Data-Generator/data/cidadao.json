@@ -1,0 +1,242 @@
+[
+  {
+    "nome": "Rúben Soares",
+    "email": "rúben.soares@example.pt",
+    "nrTelemovel": "910139234",
+    "freguesias": "Bagunte, Ferreiró, Outeiro Maior e Parada"
+  },
+  {
+    "nome": "Gaspar Gaspar",
+    "email": "gaspar.gaspar@example.pt",
+    "nrTelemovel": "927684891",
+    "freguesias": "Vila do Conde"
+  },
+  {
+    "nome": "Rafaela da Amorim",
+    "email": "rafaela.da.amorim@example.pt",
+    "nrTelemovel": "932165227",
+    "freguesias": "Vilar e Mosteiró"
+  },
+  {
+    "nome": "João Fernandes",
+    "email": "joão.fernandes@example.pt",
+    "nrTelemovel": "912398451",
+    "freguesias": "Vila do Conde"
+  },
+  {
+    "nome": "Soraia Nascimento",
+    "email": "soraia.nascimento@example.pt",
+    "nrTelemovel": "935792582",
+    "freguesias": "Vila do Conde"
+  },
+  {
+    "nome": "Alexandre Miranda",
+    "email": "alexandre.miranda@example.pt",
+    "nrTelemovel": "938691709",
+    "freguesias": "Vila Chã"
+  },
+  {
+    "nome": "Eduarda Domingues",
+    "email": "eduarda.domingues@example.pt",
+    "nrTelemovel": "929164731",
+    "freguesias": "Árvore"
+  },
+  {
+    "nome": "Carlota Matos",
+    "email": "carlota.matos@example.pt",
+    "nrTelemovel": "926113032",
+    "freguesias": "Vila do Conde"
+  },
+  {
+    "nome": "Lucas Magalhães-Sousa",
+    "email": "lucas.magalhães-sousa@example.pt",
+    "nrTelemovel": "932067873",
+    "freguesias": "Vila do Conde"
+  },
+  {
+    "nome": "Martim Brito",
+    "email": "martim.brito@example.pt",
+    "nrTelemovel": "915470488",
+    "freguesias": "Vila do Conde"
+  },
+  {
+    "nome": "Joana Domingues",
+    "email": "joana.domingues@example.pt",
+    "nrTelemovel": "920680316",
+    "freguesias": "Vila do Conde"
+  },
+  {
+    "nome": "Rui Maia",
+    "email": "rui.maia@example.pt",
+    "nrTelemovel": "919467603",
+    "freguesias": "Macieira da Maia"
+  },
+  {
+    "nome": "Leonardo Mendes",
+    "email": "leonardo.mendes@example.pt",
+    "nrTelemovel": "931453726",
+    "freguesias": "Canidelo"
+  },
+  {
+    "nome": "Ana Moreira",
+    "email": "ana.moreira@example.pt",
+    "nrTelemovel": "919441917",
+    "freguesias": "Guilhabreu"
+  },
+  {
+    "nome": "Gonçalo Henriques",
+    "email": "gonçalo.henriques@example.pt",
+    "nrTelemovel": "917047842",
+    "freguesias": "Canidelo"
+  },
+  {
+    "nome": "Rita Guerreiro",
+    "email": "rita.guerreiro@example.pt",
+    "nrTelemovel": "932228482",
+    "freguesias": "Vilar de Pinheiro"
+  },
+  {
+    "nome": "Leonor Vaz",
+    "email": "leonor.vaz@example.pt",
+    "nrTelemovel": "920042063",
+    "freguesias": "Mindelo"
+  },
+  {
+    "nome": "Soraia Anjos",
+    "email": "soraia.anjos@example.pt",
+    "nrTelemovel": "928093658",
+    "freguesias": "Vila do Conde"
+  },
+  {
+    "nome": "Kyara-Raquel Guerreiro",
+    "email": "kyara-raquel.guerreiro@example.pt",
+    "nrTelemovel": "939665143",
+    "freguesias": "Mindelo"
+  },
+  {
+    "nome": "Lourenço Amorim",
+    "email": "lourenço.amorim@example.pt",
+    "nrTelemovel": "930774784",
+    "freguesias": "Macieira da Maia"
+  },
+  {
+    "nome": "Rafael Amorim-Batista",
+    "email": "rafael.amorim-batista@example.pt",
+    "nrTelemovel": "933099596",
+    "freguesias": "Touguinha e Touguinhó"
+  },
+  {
+    "nome": "Inês de Alves",
+    "email": "inês.de.alves@example.pt",
+    "nrTelemovel": "913560697",
+    "freguesias": "Vila Chã"
+  },
+  {
+    "nome": "Madalena de Martins",
+    "email": "madalena.de.martins@example.pt",
+    "nrTelemovel": "914688500",
+    "freguesias": "Azurara"
+  },
+  {
+    "nome": "Valentina de Andrade",
+    "email": "valentina.de.andrade@example.pt",
+    "nrTelemovel": "910201292",
+    "freguesias": "Macieira da Maia"
+  },
+  {
+    "nome": "Diego Amaral",
+    "email": "diego.amaral@example.pt",
+    "nrTelemovel": "913755349",
+    "freguesias": "Vila do Conde"
+  },
+  {
+    "nome": "Fabiana-Alice Soares",
+    "email": "fabiana-alice.soares@example.pt",
+    "nrTelemovel": "938904551",
+    "freguesias": "Vilar e Mosteiró"
+  },
+  {
+    "nome": "Mafalda da Pinho",
+    "email": "mafalda.da.pinho@example.pt",
+    "nrTelemovel": "937762322",
+    "freguesias": "Tougues"
+  },
+  {
+    "nome": "Larissa Pinto",
+    "email": "larissa.pinto@example.pt",
+    "nrTelemovel": "936881237",
+    "freguesias": "Vila do Conde"
+  },
+  {
+    "nome": "Naiara-Erica Neto",
+    "email": "naiara-erica.neto@example.pt",
+    "nrTelemovel": "927766274",
+    "freguesias": "Árvore"
+  },
+  {
+    "nome": "Luciana Anjos",
+    "email": "luciana.anjos@example.pt",
+    "nrTelemovel": "933470302",
+    "freguesias": "Vila do Conde"
+  },
+  {
+    "nome": "Caetana Macedo",
+    "email": "caetana.macedo@example.pt",
+    "nrTelemovel": "939655375",
+    "freguesias": "Junqueira"
+  },
+  {
+    "nome": "Catarina-Flor Esteves",
+    "email": "catarina-flor.esteves@example.pt",
+    "nrTelemovel": "918199000",
+    "freguesias": "Bagunte, Ferreiró, Outeiro Maior e Parada"
+  },
+  {
+    "nome": "Madalena Abreu",
+    "email": "madalena.abreu@example.pt",
+    "nrTelemovel": "935798282",
+    "freguesias": "Vila do Conde"
+  },
+  {
+    "nome": "Tomé Borges",
+    "email": "tomé.borges@example.pt",
+    "nrTelemovel": "936395288",
+    "freguesias": "Vila do Conde"
+  },
+  {
+    "nome": "Jéssica Barros",
+    "email": "jéssica.barros@example.pt",
+    "nrTelemovel": "929922650",
+    "freguesias": "Modivas"
+  },
+  {
+    "nome": "Valentina Barros",
+    "email": "valentina.barros@example.pt",
+    "nrTelemovel": "938341819",
+    "freguesias": "Vila do Conde"
+  },
+  {
+    "nome": "Mélanie Rodrigues-Fonseca",
+    "email": "mélanie.rodrigues-fonseca@example.pt",
+    "nrTelemovel": "930878855",
+    "freguesias": "Touguinha e Touguinhó"
+  },
+  {
+    "nome": "Hugo Neves-Neto",
+    "email": "hugo.neves-neto@example.pt",
+    "nrTelemovel": "910038377",
+    "freguesias": "Vila do Conde"
+  },
+  {
+    "nome": "Mariana Anjos",
+    "email": "mariana.anjos@example.pt",
+    "nrTelemovel": "917867593",
+    "freguesias": "Canidelo"
+  },
+  {
+    "nome": "Joaquim Amaral",
+    "email": "joaquim.amaral@example.pt",
+    "nrTelemovel": "918174923",
+    "freguesias": "Vila do Conde"
+  }
+]

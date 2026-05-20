@@ -1,12 +1,12 @@
 import sequelize from "../config/sequelize.js";
 
-import CidadaoModel from "./cidadao.model.js";
-import MunicipioModel from "./municipio.model.js";
-import EquipaModel from "./equipa.model.js";
-import TrabalhadorModel from "./trabalhador.model.js";
-import RecursoModel from "./recurso.model.js";
-import OcorrenciaModel from "./ocorrencia.model.js";
-import MensagemModel from "./mensagem.model.js";
+import CidadaoModel from "../models/cidadao.model.js";
+import MunicipioModel from "../models/municipio.model.js";
+import EquipaModel from "../models/equipa.model.js";
+import TrabalhadorModel from "../models/trabalhador.model.js";
+import RecursoModel from "../models/recurso.model.js";
+import OcorrenciaModel from "../models/ocorrencia.model.js";
+import MensagemModel from "../models/mensagem.model.js";
 
 const Cidadao = CidadaoModel(sequelize);
 const Municipio = MunicipioModel(sequelize);
@@ -41,7 +41,10 @@ Cidadao.hasMany(Mensagem, { foreignKey: "idCidadao", as: "mensagens" });
 Mensagem.belongsTo(Cidadao, { foreignKey: "idCidadao", as: "cidadao" });
 
 Ocorrencia.hasMany(Mensagem, { foreignKey: "idOcorrencia", as: "mensagens" });
-Mensagem.belongsTo(Ocorrencia, { foreignKey: "idOcorrencia", as: "ocorrencia" });
+Mensagem.belongsTo(Ocorrencia, {
+  foreignKey: "idOcorrencia",
+  as: "ocorrencia",
+});
 
 const testConnection = async () => {
   await sequelize.authenticate();
@@ -59,6 +62,20 @@ const syncDatabase = async () => {
   return true;
 };
 
+/* delete data from the table (municipio) before seeding to avoid duplicates and maintain data integrity */
+/* try {
+  if (sequelize.getDialect() === "mysql")
+    await sequelize.query("SET FOREIGN_KEY_CHECKS = 0");
+  await Municipio.destroy({ truncate: true });
+  if (sequelize.getDialect() === "mysql")
+    await sequelize.query("SET FOREIGN_KEY_CHECKS = 1");
+} catch (err) {
+  console.error(err);
+  if (sequelize.getDialect() === "mysql")
+    await sequelize.query("SET FOREIGN_KEY_CHECKS = 1");
+  process.exit(1);
+}
+ */
 export {
   sequelize,
   testConnection,
