@@ -82,7 +82,7 @@
 
         <section class="info-sidebar">
           <div class="category-header">
-            <span class="icon-yellow">💡</span>
+            <img src="@/assets/iluminacao.svg" alt="Iluminação" class="icon-yellow" />
             <h3>Iluminação</h3>
           </div>
 
@@ -113,7 +113,7 @@
 
       <section class="team-section">
         <div class="section-title">
-          <span class="team-icon">👷</span>
+          <img src="@/assets/trabalhador.svg" alt="trabalhador-icon" class="team-icon" />
           <h3>Informação da equipa:</h3>
         </div>
 
@@ -255,8 +255,10 @@ const reportError = () => {
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
 .page-container {
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', Arial, Helvetica, sans-serif;
   color: #1a1a1a;
 }
 
@@ -409,12 +411,22 @@ const reportError = () => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.08s ease;
+  transition:
+    background 0.15s ease,
+    transform 0.08s ease;
   padding: 0;
 }
-.gallery-nav button:hover { background: #f3f4f6; transform: translateY(-1px); }
-.gallery-nav button:active { transform: translateY(0); }
-.gallery-nav button:disabled { opacity: 0.5; cursor: not-allowed; }
+.gallery-nav button:hover {
+  background: #f3f4f6;
+  transform: translateY(-1px);
+}
+.gallery-nav button:active {
+  transform: translateY(0);
+}
+.gallery-nav button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 .thumbnails img {
   width: 60px;
   height: 45px;
@@ -461,14 +473,28 @@ const reportError = () => {
   margin-top: 5px;
 }
 .avatar-xs {
-  width: 28px;
-  height: 28px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
 }
 
 .team-section {
   border-top: 1px solid #f1f5f9;
   padding-top: 30px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.team-icon {
+  background: #c2d9d3;
+  padding: 8px;
+  border-radius: 8px;
+  width: 44px;
+  height: 44px;
 }
 .workers-grid {
   display: flex;
@@ -487,7 +513,9 @@ const reportError = () => {
   border-radius: 50%;
 }
 
-.worker-actions { margin-top: 16px }
+.worker-actions {
+  margin-top: 16px;
+}
 .report-btn {
   background: #730000;
   color: #fff;
@@ -497,7 +525,6 @@ const reportError = () => {
   font-weight: 700;
   cursor: pointer;
 }
-
 
 /* FOOTER (Styles da Home) */
 .main-footer {

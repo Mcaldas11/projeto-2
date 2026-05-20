@@ -14,22 +14,29 @@
         />
         <span class="icon" @click="toggleMenu">☰</span>
 
-        <div v-if="showMenu" class="hamburger-menu">
-          <div class="menu-list">
-            <router-link to="/" class="menu-item" @click.prevent="navigateHome">
-              <span class="menu-label">Home</span>
-              <img src="@/assets/home.png" alt="home" class="menu-icon" />
-            </router-link>
-            <router-link to="/ocorrencias" class="menu-item">
-              <span class="menu-label">Ocorrências</span>
-              <img src="@/assets/ocorrencias.png" alt="ocorrencias" class="menu-icon" />
-            </router-link>
-            <router-link to="/conta" class="menu-item">
-              <span class="menu-label">Conta</span>
-              <img src="@/assets/conta.png" alt="conta" class="menu-icon" />
-            </router-link>
+        <!-- Sidebar Menu Overlay -->
+        <div v-if="showMenu" class="sidebar-overlay" @click="showMenu = false"></div>
+        <Transition name="slide">
+          <div v-if="showMenu" class="sidebar-menu">
+            <button class="sidebar-close" @click="showMenu = false">✕</button>
+            <div class="sidebar-top">
+              <router-link to="/" class="sidebar-item" @click.prevent="navigateHome">
+                <span class="sidebar-label">Home</span>
+                <img src="@/assets/home.png" alt="home" class="sidebar-icon" />
+              </router-link>
+              <router-link to="/ocorrencias" class="sidebar-item" @click="showMenu = false">
+                <span class="sidebar-label">Ocorrências</span>
+                <img src="@/assets/ocorrencias.png" alt="ocorrencias" class="sidebar-icon" />
+              </router-link>
+            </div>
+            <div class="sidebar-bottom">
+              <router-link to="/conta" class="sidebar-item" @click="showMenu = false">
+                <span class="sidebar-label">Conta</span>
+                <img src="@/assets/conta.png" alt="conta" class="sidebar-icon" />
+              </router-link>
+            </div>
           </div>
-        </div>
+        </Transition>
 
         <div v-if="showNotif" class="notifications">
           <h4>Notificações</h4>
@@ -112,7 +119,21 @@
           </table>
         </div>
       </section>
+
+      <button class="btn-logout" @click="showLogoutModal = true">Terminar Sessão</button>
     </main>
+
+    <!-- Logout Confirmation Modal -->
+    <div v-if="showLogoutModal" class="modal-overlay" @click.self="showLogoutModal = false">
+      <div class="modal-card">
+        <h3>Terminar Sessão</h3>
+        <p>Tens a certeza que queres terminar sessão?</p>
+        <div class="modal-actions">
+          <button class="modal-btn cancel" @click="showLogoutModal = false">Cancelar</button>
+          <button class="modal-btn confirm" @click="handleLogout">Sim, sair</button>
+        </div>
+      </div>
+    </div>
 
     <footer class="main-footer">
       <div class="footer-links">
@@ -171,6 +192,14 @@ function navigateHome(e) {
 }
 
 // Dados das Ocorrências (Baseado na captura image_eb9c7e.png)
+const showLogoutModal = ref(false)
+
+function handleLogout() {
+  localStorage.removeItem('role')
+  showLogoutModal.value = false
+  router.push({ name: 'home' })
+}
+
 const userOccurrences = ref([
   {
     id: 1,
@@ -257,33 +286,91 @@ const userOccurrences = ref([
   object-fit: contain;
 }
 
-/* MENUS & NOTIFICAÇÕES (Estilo HomeView) */
-.hamburger-menu,
-.notifications {
-  position: absolute;
-  top: 44px;
+/* SIDEBAR MENU */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 90;
+}
+
+.sidebar-menu {
+  position: fixed;
+  top: 0;
   right: 0;
-  background: #fff;
-  border-radius: 12px;
-  padding: 12px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-  z-index: 70;
+  width: 320px;
+  height: 100vh;
+  background: #ffffff;
+  color: #0b2b2b;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  padding: 30px 24px;
+  box-shadow: -8px 0 30px rgba(0, 0, 0, 0.12);
 }
-.hamburger-menu {
-  width: 200px;
+
+.sidebar-close {
+  align-self: flex-end;
+  background: none;
+  border: none;
+  font-size: 22px;
+  color: #1a1a1a;
+  cursor: pointer;
+  padding: 4px 8px;
+  margin-bottom: 20px;
+  transition: opacity 0.15s;
 }
-.menu-item {
+
+.sidebar-close:hover {
+  opacity: 0.6;
+}
+
+.sidebar-top {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sidebar-bottom {
+  margin-top: auto;
+}
+
+.sidebar-item {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
-  padding: 8px 10px;
+  gap: 10px;
+  padding: 14px 12px;
   text-decoration: none;
   color: #0b2b2b;
   font-weight: 700;
+  font-size: 16px;
+  border-radius: 10px;
+  transition: background 0.15s;
 }
-.menu-icon {
-  width: 14px;
+
+.sidebar-item:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.sidebar-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+/* Slide transition */
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform 0.3s ease;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  transform: translateX(100%);
 }
 .notif-item {
   background: #dff3ec;
@@ -488,5 +575,125 @@ const userOccurrences = ref([
   color: #64748b;
   font-size: 12px;
   margin-top: 10px;
+}
+
+/* LOGOUT BUTTON */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600&display=swap');
+
+.btn-logout {
+  width: 100%;
+  padding: 16px;
+  margin-top: 50px;
+  background: #FF383C;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.btn-logout:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 56, 60, 0.4);
+  background: #e0292d;
+}
+
+.btn-logout:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(255, 56, 60, 0.3);
+}
+
+/* MODAL */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 40px;
+  max-width: 420px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: scaleIn 0.25s ease;
+}
+
+.modal-card h3 {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: 22px;
+  margin: 0 0 12px 0;
+  color: #1e293b;
+}
+
+.modal-card p {
+  color: #64748b;
+  font-size: 15px;
+  margin: 0 0 30px 0;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.modal-btn {
+  padding: 12px 28px;
+  border-radius: 10px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.modal-btn:hover {
+  transform: translateY(-1px);
+}
+
+.modal-btn.cancel {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.modal-btn.cancel:hover {
+  background: #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.modal-btn.confirm {
+  background: #FF383C;
+  color: #fff;
+}
+
+.modal-btn.confirm:hover {
+  background: #e0292d;
+  box-shadow: 0 4px 16px rgba(255, 56, 60, 0.35);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
 </style>
