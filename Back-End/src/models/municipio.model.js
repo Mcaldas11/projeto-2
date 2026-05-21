@@ -4,7 +4,7 @@ const MunicipioModel = (sequelize) =>
   sequelize.define(
     "Municipio",
     {
-      idMunicipio: {
+      idFreguesia: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,

@@ -3,7 +3,7 @@ module.exports = (sequelize, DataTypes) => {
   const Municipio = sequelize.define(
     "Municipio",
     {
-      idMunicipio: {
+      idFreguesia: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,

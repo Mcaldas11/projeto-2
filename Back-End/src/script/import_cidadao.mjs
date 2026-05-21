@@ -40,7 +40,7 @@ async function importCidadaos() {
     // Try to map freguesias -> munCidadao using existing municipios in DB
     const municipios = await Municipio.findAll();
     const municipioMap = new Map(
-      municipios.map((m) => [normalizeText(m.nome), m.idMunicipio]),
+      municipios.map((m) => [normalizeText(m.nome), m.idFreguesia]),
     );
 
     const payload = cidadaos.map((c) => {

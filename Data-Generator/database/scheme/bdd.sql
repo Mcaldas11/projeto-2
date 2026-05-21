@@ -21,10 +21,10 @@ USE `Grupo04` ;
 -- Table `Grupo04`.`municipio`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `Grupo04`.`municipio` (
-  `idMunicipio` INT NOT NULL AUTO_INCREMENT,
+  `idFreguesia` INT NOT NULL AUTO_INCREMENT,
   `nome` VARCHAR(120) NOT NULL,
   `responsavel` VARCHAR(120) NULL DEFAULT NULL,
-  PRIMARY KEY (`idMunicipio`))
+  PRIMARY KEY (`idFreguesia`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS `Grupo04`.`cidadao` (
   INDEX `munCidadao` (`munCidadao` ASC) VISIBLE,
   CONSTRAINT `cidadao_ibfk_1`
     FOREIGN KEY (`munCidadao`)
-    REFERENCES `Grupo04`.`municipio` (`idMunicipio`))
+    REFERENCES `Grupo04`.`municipio` (`idFreguesia`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS `Grupo04`.`equipa` (
   INDEX `munEquipa` (`munEquipa` ASC) VISIBLE,
   CONSTRAINT `equipa_ibfk_1`
     FOREIGN KEY (`munEquipa`)
-    REFERENCES `Grupo04`.`municipio` (`idMunicipio`))
+    REFERENCES `Grupo04`.`municipio` (`idFreguesia`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
@@ -97,7 +97,7 @@ CREATE TABLE IF NOT EXISTS `Grupo04`.`ocorrencia` (
     REFERENCES `Grupo04`.`cidadao` (`idCidadao`),
   CONSTRAINT `ocorrencia_ibfk_2`
     FOREIGN KEY (`idMunicipio`)
-    REFERENCES `Grupo04`.`municipio` (`idMunicipio`),
+    REFERENCES `Grupo04`.`municipio` (`idFreguesia`),
   CONSTRAINT `ocorrencia_ibfk_3`
     FOREIGN KEY (`idEquipa`)
     REFERENCES `Grupo04`.`equipa` (`idEquipa`))
