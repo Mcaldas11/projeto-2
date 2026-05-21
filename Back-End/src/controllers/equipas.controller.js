@@ -1,4 +1,4 @@
-import { Equipa } from "../models/index.js";
+import { Equipa } from "../config/db.config.js";
 import {
   genericError,
   notFoundError,

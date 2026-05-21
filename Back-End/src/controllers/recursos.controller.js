@@ -1,4 +1,4 @@
-import { Recurso } from "../models/index.js";
+import { Recurso } from "../config/db.config.js";
 import {
   genericError,
   notFoundError,

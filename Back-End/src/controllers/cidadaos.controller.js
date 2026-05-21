@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { Cidadao } from "../models/index.js";
+import { Cidadao } from "../config/db.config.js";
 import {
   genericError,
   notFoundError,

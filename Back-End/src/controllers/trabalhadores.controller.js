@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { Equipa, Trabalhador } from "../models/index.js";
+import { Equipa, Trabalhador } from "../config/db.config.js";
 import {
   genericError,
   notFoundError,

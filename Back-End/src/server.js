@@ -1,7 +1,7 @@
 import "./config/env.js";
 
 import app from "./app.js";
-import { syncDatabase, testConnection } from "./models/index.js";
+import { syncDatabase, testConnection } from "./config/db.config.js";
 
 const HOST = process.env.HOST || "127.0.0.1";
 const PORT = Number(process.env.PORT) || 3000;

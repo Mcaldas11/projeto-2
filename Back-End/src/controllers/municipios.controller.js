@@ -1,4 +1,4 @@
-import { Municipio } from "../models/index.js";
+import { Municipio } from "../config/db.config.js";
 import {
   genericError,
   notFoundError,

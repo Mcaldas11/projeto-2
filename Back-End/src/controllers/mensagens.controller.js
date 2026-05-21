@@ -1,4 +1,4 @@
-import { Mensagem } from "../models/index.js";
+import { Mensagem } from "../config/db.config.js";
 import {
   genericError,
   notFoundError,

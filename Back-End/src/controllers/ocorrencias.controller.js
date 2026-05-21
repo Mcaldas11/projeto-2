@@ -1,5 +1,5 @@
-import { Ocorrencia, Cidadao } from "../models/index.js";
-import { Trabalhador } from "../models/index.js";
+import { Ocorrencia, Cidadao } from "../config/db.config.js";
+import { Trabalhador } from "../config/db.config.js";
 import {
   genericError,
   notFoundError,
