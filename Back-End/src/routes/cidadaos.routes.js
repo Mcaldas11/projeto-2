@@ -25,7 +25,11 @@ router.post(
   requireJsonObject,
   requireFields(
     requiredFieldsByResource.ocorrencias.filter(
-      (f) => f !== "idCidadao" && f !== "nomeAutor" && f !== "nrTelemovelAutor",
+      (f) =>
+        f !== "idCidadao" &&
+        f !== "nomeAutor" &&
+        f !== "nrTelemovelAutor" &&
+        f !== "idMunicipio",
     ),
   ),
   ocorrenciasControllers.createOcorrenciaForCidadao,

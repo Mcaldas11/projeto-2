@@ -68,6 +68,10 @@ export const createOcorrenciaForCidadao = async (req, res, next) => {
         if (cidadao) {
           req.body.nomeAutor = cidadao.nome;
           req.body.nrTelemovelAutor = cidadao.nrTelemovel;
+          // Auto-fill municipality id from the citizen if not provided
+          if (!req.body.idMunicipio && cidadao.munCidadao) {
+            req.body.idMunicipio = cidadao.munCidadao;
+          }
         }
       } catch (err) {
         // ignore and continue; validation/creation will surface issues
