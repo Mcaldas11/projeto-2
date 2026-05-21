@@ -25,7 +25,7 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-app.use("/api", apiRoutes);
+app.use("/", apiRoutes);
 
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
