@@ -29,7 +29,8 @@ router.post(
         f !== "idCidadao" &&
         f !== "nomeAutor" &&
         f !== "nrTelemovelAutor" &&
-        f !== "idMunicipio",
+        f !== "idMunicipio" &&
+        f !== "estado",
     ),
   ),
   ocorrenciasControllers.createOcorrenciaForCidadao,
