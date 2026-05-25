@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { Equipa, Trabalhador } from "../config/db.config.js";
 import {
+  conflictError,
   genericError,
   notFoundError,
   sequelizeValidationError,
@@ -143,6 +144,11 @@ export const updateTrabalhador = async (req, res, next) => {
     await trabalhador.update(req.body);
     res.json(trabalhador);
   } catch (error) {
+    if (error?.name === "SequelizeUniqueConstraintError") {
+      return next(
+        conflictError({ emailTrabalhador: ["Email already in use"] }, "Conflict: Email already in use."),
+      );
+    }
     if (handleSequelizeValidation(error, next)) {
       return;
     }

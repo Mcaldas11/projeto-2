@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { Cidadao } from "../config/db.config.js";
 import {
+  conflictError,
   genericError,
   notFoundError,
   sequelizeValidationError,
@@ -63,6 +64,9 @@ export const createCidadao = async (req, res, next) => {
     });
   } catch (error) {
     console.error("DEBUG:", error);
+    if (error?.name === "SequelizeUniqueConstraintError") {
+      return next(conflictError({ email: ["Email already in use"] }, "Conflict: Email already in use."));
+    }
     if (handleSequelizeValidation(error, next)) {
       return;
     }
@@ -115,6 +119,9 @@ export const updateCidadao = async (req, res, next) => {
     await cidadao.update(req.body);
     res.json(cidadao);
   } catch (error) {
+    if (error?.name === "SequelizeUniqueConstraintError") {
+      return next(conflictError({ email: ["Email already in use"] }, "Conflict: Email already in use."));
+    }
     if (handleSequelizeValidation(error, next)) {
       return;
     }
