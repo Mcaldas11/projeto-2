@@ -104,24 +104,7 @@
       </div>
     </section>
 
-    <footer class="main-footer">
-      <div class="footer-links">
-        <div class="col">
-          <a href="#">Home</a>
-          <a href="#">Ocorrências</a>
-          <a href="#">Mapa Ocorrências</a>
-        </div>
-        <div class="col">
-          <a href="#">Sobre</a>
-          <a href="#">Conta</a>
-        </div>
-      </div>
-      <div class="footer-brand">
-        <div class="logo-area">
-          <img src="@/assets/logo_footer.png" alt="Logo" class="logo-img-small">
-        </div>
-      </div>
-    </footer>
+    <Footer/>
   </div>
 </template>
 
@@ -452,6 +435,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
+import Footer from '@/components/footer.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 

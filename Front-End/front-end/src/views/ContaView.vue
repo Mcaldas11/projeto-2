@@ -14,22 +14,29 @@
         />
         <span class="icon" @click="toggleMenu">☰</span>
 
-        <div v-if="showMenu" class="hamburger-menu">
-          <div class="menu-list">
-            <router-link to="/" class="menu-item" @click.prevent="navigateHome">
-              <span class="menu-label">Home</span>
-              <img src="@/assets/home.png" alt="home" class="menu-icon" />
-            </router-link>
-            <router-link to="/ocorrencias" class="menu-item">
-              <span class="menu-label">Ocorrências</span>
-              <img src="@/assets/ocorrencias.png" alt="ocorrencias" class="menu-icon" />
-            </router-link>
-            <router-link to="/conta" class="menu-item">
-              <span class="menu-label">Conta</span>
-              <img src="@/assets/conta.png" alt="conta" class="menu-icon" />
-            </router-link>
+        <!-- Sidebar Menu Overlay -->
+        <div v-if="showMenu" class="sidebar-overlay" @click="showMenu = false"></div>
+        <Transition name="slide">
+          <div v-if="showMenu" class="sidebar-menu">
+            <button class="sidebar-close" @click="showMenu = false">✕</button>
+            <div class="sidebar-top">
+              <router-link to="/" class="sidebar-item" @click.prevent="navigateHome">
+                <span class="sidebar-label">Home</span>
+                <img src="@/assets/home.png" alt="home" class="sidebar-icon" />
+              </router-link>
+              <router-link to="/ocorrencias" class="sidebar-item" @click="showMenu = false">
+                <span class="sidebar-label">Ocorrências</span>
+                <img src="@/assets/ocorrencias.png" alt="ocorrencias" class="sidebar-icon" />
+              </router-link>
+            </div>
+            <div class="sidebar-bottom">
+              <router-link to="/conta" class="sidebar-item" @click="showMenu = false">
+                <span class="sidebar-label">Conta</span>
+                <img src="@/assets/conta.png" alt="conta" class="sidebar-icon" />
+              </router-link>
+            </div>
           </div>
-        </div>
+        </Transition>
 
         <div v-if="showNotif" class="notifications">
           <h4>Notificações</h4>
@@ -56,30 +63,32 @@
         <div class="user-info">
           <img src="@/assets/avatar.png" alt="Avatar" class="profile-avatar" />
           <div class="user-text">
-            <h2>Alexandra Reis</h2>
-            <p>alexandra.reis@gmail.com</p>
+            <h2>{{ userFirstName }} {{ userLastName }}</h2>
+            <p>{{ userEmail }}</p>
           </div>
         </div>
-        <button class="btn-edit">Edit</button>
+        <button @click="editarNome" class="btn-edit">Edit</button>
       </section>
 
       <section class="profile-details">
         <div class="details-grid">
           <div class="detail-field">
-            <label>Nome</label>
-            <div class="display-box">Alexandra</div>
-          </div>
-          <div class="detail-field">
-            <label>Apelido</label>
-            <div class="display-box">Reis</div>
-          </div>
-          <div class="detail-field">
             <label>Género</label>
-            <div class="display-box select-box">Feminino</div>
+            <div >
+              <select name="genero" class="display-box select-box">
+                <option value="Masculino">Masculino</option>
+                <option value="Feminino">Feminino</option>
+                <option value="Não Binario">Não Binario</option>
+              </select>
+            </div>
           </div>
           <div class="detail-field">
             <label>Município</label>
-            <div class="display-box select-box">Vila do Conde</div>
+            <div >
+              <select name="freguesia" class="display-box select-box">
+                <option v-for="freguesia in freguesias" :key="freguesia.id" :value="freguesia.nome">{{ freguesia.nome }}</option>
+              </select>
+            </div>
           </div>
         </div>
       </section>
@@ -112,31 +121,49 @@
           </table>
         </div>
       </section>
+
+      <button class="btn-logout" @click="showLogoutModal = true">Terminar Sessão</button>
     </main>
 
-    <footer class="main-footer">
-      <div class="footer-links">
-        <div class="col">
-          <router-link to="/">Home</router-link>
-          <router-link to="/ocorrencias">Ocorrências</router-link>
-          <router-link to="/mapa">Mapa Ocorrências</router-link>
+    <!-- Edit Profile Modal -->
+    <div v-if="showEditModal" class="modal-overlay" @click.self="showEditModal = false">
+      <div class="modal-card">
+        <h3>Editar Perfil</h3>
+        <div style="margin:16px 0; display:flex; flex-direction:column; gap:10px;">
+          <label style="font-weight:700; color:#475569">Nome</label>
+          <input v-model="editFirstName" class="display-box" />
+          <label style="font-weight:700; color:#475569">Apelido</label>
+          <input v-model="editLastName" class="display-box" />
+          <label style="font-weight:700; color:#475569">Email</label>
+          <input v-model="editEmail" class="display-box" />
         </div>
-        <div class="col">
-          <router-link to="/sobre">Sobre</router-link>
-          <router-link to="/conta">Conta</router-link>
+        <div class="modal-actions">
+          <button class="modal-btn cancel" @click="handleCancelEdit">Cancelar</button>
+          <button class="modal-btn confirm" @click="handleSaveEdit">Guardar</button>
         </div>
       </div>
-      <div class="footer-brand">
-        <img src="@/assets/logo_footer.png" alt="Logo" class="logo-img-small" />
-        <p class="copyright">© 2026 VC Comunica All rights reserved.</p>
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div v-if="showLogoutModal" class="modal-overlay" @click.self="showLogoutModal = false">
+      <div class="modal-card">
+        <h3>Terminar Sessão</h3>
+        <p>Tens a certeza que queres terminar sessão?</p>
+        <div class="modal-actions">
+          <button class="modal-btn cancel" @click="showLogoutModal = false">Cancelar</button>
+          <button class="modal-btn confirm" @click="handleLogout">Sim, sair</button>
+        </div>
       </div>
-    </footer>
+    </div>
+
+    <Footer />
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import Footer from '@/components/footer.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 
@@ -149,6 +176,43 @@ const notifications = ref([
     body: 'O estado foi alterado para <strong>Resolvido</strong>',
   },
 ])
+
+const freguesias = ref([
+  {
+    id: 1,
+    nome: 'Vila do Conde',
+  },
+  {
+    id: 2,
+    nome: 'Azurara',
+  },
+  {
+    id: 3,
+    nome: 'Argivai',
+  },
+  {
+    id: 4,
+    nome: 'Mindelo',
+  }
+])
+
+
+
+// User profile (reactive) - initialize from localStorage if present
+const storedProfile = JSON.parse(localStorage.getItem('userProfile') || 'null')
+const userFirstName = ref(storedProfile?.firstName || 'Alexandra')
+const userLastName = ref(storedProfile?.lastName || 'Reis')
+const userEmail = ref(storedProfile?.email || 'alexandra.reis@gmail.com')
+
+const showEditModal = ref(false)
+const editFirstName = ref('')
+const editLastName = ref('')
+const editEmail = ref('')
+
+function validarEmail(email) {
+  const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(".+"))@(([^<>()[\]\\.,;:\s@\"]+\.)+[^<>()[\]\\.,;:\s@\"]{2,})$/i
+  return re.test(String(email).toLowerCase())
+}
 
 const toggleNotif = () => {
   showNotif.value = !showNotif.value
@@ -170,7 +234,42 @@ function navigateHome(e) {
   showMenu.value = false
 }
 
+const editarNome = () => {
+  editFirstName.value = userFirstName.value
+  editLastName.value = userLastName.value
+  editEmail.value = userEmail.value
+  showEditModal.value = true
+}
+
+function handleCancelEdit() {
+  showEditModal.value = false
+}
+
+function handleSaveEdit() {
+  if (!editFirstName.value.trim() || !editLastName.value.trim()) {
+    alert('Nome e apelido não podem ficar vazios.')
+    return
+  }
+  if (!validarEmail(editEmail.value)) {
+    alert('Por favor insere um email válido.')
+    return
+  }
+  userFirstName.value = editFirstName.value.trim()
+  userLastName.value = editLastName.value.trim()
+  userEmail.value = editEmail.value.trim()
+  localStorage.setItem('userProfile', JSON.stringify({ firstName: userFirstName.value, lastName: userLastName.value, email: userEmail.value }))
+  showEditModal.value = false
+}
+
 // Dados das Ocorrências (Baseado na captura image_eb9c7e.png)
+const showLogoutModal = ref(false)
+
+function handleLogout() {
+  localStorage.removeItem('role')
+  showLogoutModal.value = false
+  router.push({ name: 'home' })
+}
+
 const userOccurrences = ref([
   {
     id: 1,
@@ -257,33 +356,91 @@ const userOccurrences = ref([
   object-fit: contain;
 }
 
-/* MENUS & NOTIFICAÇÕES (Estilo HomeView) */
-.hamburger-menu,
-.notifications {
-  position: absolute;
-  top: 44px;
+/* SIDEBAR MENU */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 90;
+}
+
+.sidebar-menu {
+  position: fixed;
+  top: 0;
   right: 0;
-  background: #fff;
-  border-radius: 12px;
-  padding: 12px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-  z-index: 70;
+  width: 320px;
+  height: 100vh;
+  background: #ffffff;
+  color: #0b2b2b;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  padding: 30px 24px;
+  box-shadow: -8px 0 30px rgba(0, 0, 0, 0.12);
 }
-.hamburger-menu {
-  width: 200px;
+
+.sidebar-close {
+  align-self: flex-end;
+  background: none;
+  border: none;
+  font-size: 22px;
+  color: #1a1a1a;
+  cursor: pointer;
+  padding: 4px 8px;
+  margin-bottom: 20px;
+  transition: opacity 0.15s;
 }
-.menu-item {
+
+.sidebar-close:hover {
+  opacity: 0.6;
+}
+
+.sidebar-top {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sidebar-bottom {
+  margin-top: auto;
+}
+
+.sidebar-item {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
-  padding: 8px 10px;
+  gap: 10px;
+  padding: 14px 12px;
   text-decoration: none;
   color: #0b2b2b;
   font-weight: 700;
+  font-size: 16px;
+  border-radius: 10px;
+  transition: background 0.15s;
 }
-.menu-icon {
-  width: 14px;
+
+.sidebar-item:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.sidebar-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+/* Slide transition */
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform 0.3s ease;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  transform: translateX(100%);
 }
 .notif-item {
   background: #dff3ec;
@@ -355,10 +512,24 @@ const userOccurrences = ref([
   margin-bottom: 8px;
   font-size: 14px;
 }
-.display-box {
-  background: #f8fafc;
+
+/* select.display-box {
+  width: 100%;
   padding: 14px;
   border-radius: 10px;
+  border-color: #64748b;
+  color: #94a3b8;
+  font-weight: 500;
+  appearance: none;
+  background: #f8fafc url("@/assets/arrow-down.png") no-repeat right 12px center;
+} */
+
+.display-box {
+  background: #f8fafc;
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  border-color: #F9F9F9;
   color: #94a3b8;
   font-weight: 500;
 }
@@ -488,5 +659,126 @@ const userOccurrences = ref([
   color: #64748b;
   font-size: 12px;
   margin-top: 10px;
+}
+
+/* LOGOUT BUTTON */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600&display=swap');
+
+.btn-logout {
+  width: 100%;
+  padding: 16px;
+  margin-top: 50px;
+  background: #FF383C;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.btn-logout:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 56, 60, 0.4);
+  background: #e0292d;
+}
+
+.btn-logout:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(255, 56, 60, 0.3);
+}
+
+/* MODAL */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 40px;
+  max-width: 420px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: scaleIn 0.25s ease;
+}
+
+.modal-card h3 {
+  font-family: 'Montserrat', sans-serif;
+  align-self: left;
+  font-weight: 600;
+  font-size: 22px;
+  margin: 0 0 12px 0;
+  color: #1e293b;
+}
+
+.modal-card p {
+  color: #64748b;
+  font-size: 15px;
+  margin: 0 0 30px 0;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.modal-btn {
+  padding: 12px 28px;
+  border-radius: 10px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.modal-btn:hover {
+  transform: translateY(-1px);
+}
+
+.modal-btn.cancel {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.modal-btn.cancel:hover {
+  background: #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.modal-btn.confirm {
+  background: #FF383C;
+  color: #fff;
+}
+
+.modal-btn.confirm:hover {
+  background: #e0292d;
+  box-shadow: 0 4px 16px rgba(255, 56, 60, 0.35);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
 </style>

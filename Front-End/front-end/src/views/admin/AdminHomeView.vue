@@ -186,32 +186,30 @@
       </section>
     </main>
 
-    <footer class="main-footer">
-      <div class="footer-links">
-        <div class="col">
-          <router-link to="/admin">Home</router-link>
-          <router-link to="/admin">Ocorrências</router-link>
-          <router-link to="/admin/rotas">Rotas</router-link>
-          <router-link to="/admin/equipas">Equipas</router-link>
-          <router-link to="/admin/trabalhadores">Funcionarios</router-link>
-        </div>
-        <div class="col">
-          <router-link to="/sobre">Sobre</router-link>
-        </div>
-      </div>
-      <div class="footer-brand">
-        <img src="@/assets/logo_footer.png" alt="Logo" class="logo-img-small" />
-        <p class="copyright">© 2026 VC Comunica All rights reserved.</p>
-      </div>
-    </footer>
+    <Footer :columns="adminFooterColumns" :logo-src="adminFooterLogo" />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import Footer from '@/components/footer.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import avatarImg from '@/assets/avatar.png'
+import adminFooterLogo from '@/assets/logo_footer.png'
+
+const adminFooterColumns = [
+  [
+    { label: 'Home', to: '/admin' },
+    { label: 'Ocorrências', to: '/admin' },
+    { label: 'Rotas', to: '/admin/rotas' },
+    { label: 'Equipas', to: '/admin/equipas' },
+    { label: 'Funcionarios', to: '/admin/trabalhadores' },
+  ],
+  [
+    { label: 'Sobre', to: '/sobre' },
+  ],
+]
 
 const showNotif = ref(false)
 const showMenu = ref(false)

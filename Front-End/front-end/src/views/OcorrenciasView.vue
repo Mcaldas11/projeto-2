@@ -1,9 +1,12 @@
 <template>
   <div class="page-container">
     <nav class="navbar">
-      <div class="logo-area">
-        <img src="@/assets/logoP.png" alt="VC Comunica Logo" class="logo-img" />
+      <router-link to="/">
+        <div class="logo-area">
+        <img src="@/assets/logo.svg" alt="VC Comunica Logo" class="logo-img"/>
       </div>
+      </router-link>
+      
       <div class="nav-icons" ref="navIcons">
         <router-link to="/new-ocorrencia" class="icon add">+</router-link>
         <img
@@ -145,29 +148,14 @@
       </section>
     </main>
 
-    <footer class="main-footer">
-      <div class="footer-links">
-        <div class="col">
-          <router-link to="/">Home</router-link>
-          <router-link to="/ocorrencias">Ocorrências</router-link>
-          <router-link to="/mapa">Mapa Ocorrências</router-link>
-        </div>
-        <div class="col">
-          <router-link to="/sobre">Sobre</router-link>
-          <router-link to="/conta">Conta</router-link>
-        </div>
-      </div>
-      <div class="footer-brand">
-        <img src="@/assets/logo_footer.png" alt="Logo" class="logo-img-small" />
-        <p class="copyright">© 2026 VC Comunica All rights reserved.</p>
-      </div>
-    </footer>
+    <Footer />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
+import Footer from '@/components/footer.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 
@@ -523,35 +511,6 @@ function navigateHome(e) {
   color: #9a3412;
 }
 
-/* FOOTER (Styles da Home) */
-.main-footer {
-  padding: 60px 80px;
-  background-color: #f5f1e9;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-top: 60px;
-}
-.footer-links {
-  display: flex;
-  gap: 60px;
-}
-.col {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.col a {
-  text-decoration: none;
-  color: #2d5a27;
-  font-weight: 600;
-}
-.logo-img-small {
-  height: 80px;
-}
-.copyright {
-  font-size: 0.8rem;
-  color: #888;
-  margin-top: 10px;
-}
+
+
 </style>

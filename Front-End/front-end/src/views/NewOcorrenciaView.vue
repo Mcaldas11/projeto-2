@@ -52,7 +52,7 @@
     <main class="content-wrapper">
       <div class="title-section">
         <div class="icon-bg">
-          <img src="@/assets/ocorrencias.png" alt="ocorrências" class="title-icon" />
+          <img src="@/assets/ocorrencias.svg" alt="ocorrências" class="title-icon" />
         </div>
         <h1 class="main-title">Nova Ocorrência</h1>
       </div>
@@ -64,17 +64,8 @@
         </div>
 
         <div class="form-row">
-          <label class="field-label">Local:</label>
-          <div class="options-group">
-            <label class="checkbox-container">
-              <input type="checkbox" v-model="form.useGeo" />
-               Usar localização geográfica
-            </label>
-            <label class="checkbox-container">
-              <input type="checkbox" v-model="form.manualLoc" />
-               Introduzir localização
-            </label>
-          </div>
+          <label class="field-label">Localização:</label>
+          <input type="text" v-model="form.location" class="custom-select" placeholder="Ex: Rua Dom Sancho I" />
         </div>
 
         <div class="form-row">
@@ -114,29 +105,14 @@
       </form>
     </main>
 
-    <footer class="main-footer">
-      <div class="footer-links">
-        <div class="col">
-          <router-link to="/">Home</router-link>
-          <router-link to="/ocorrencias">Ocorrências</router-link>
-          <router-link to="/mapa">Mapa Ocorrências</router-link>
-        </div>
-        <div class="col">
-          <router-link to="/sobre">Sobre</router-link>
-          <router-link to="/conta">Conta</router-link>
-        </div>
-      </div>
-      <div class="footer-brand">
-        <img src="@/assets/logo_footer.png" alt="Logo" class="logo-img-small" />
-        <p class="copyright">© 2026 VC Comunica All rights reserved.</p>
-      </div>
-    </footer>
+    <Footer />
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import Footer from '@/components/footer.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 
@@ -177,6 +153,7 @@ const fileInput = ref(null)
 const form = ref({
   useGeo: false,
   manualLoc: false,
+  location: '',
   type: '',
   description: '',
   files: [],
@@ -244,7 +221,9 @@ const handleSubmit = () => console.log('Dados enviados:', form.value)
   display: flex;
   flex-direction: column;
   gap: 6px;
-  transition: transform 0.18s ease, opacity 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    opacity 0.18s ease;
   transform-origin: top right;
 }
 
@@ -258,7 +237,7 @@ const handleSubmit = () => console.log('Dados enviados:', form.value)
 }
 
 .menu-item:hover {
-  background: rgba(0,0,0,0.05);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .menu-list {
@@ -277,8 +256,15 @@ const handleSubmit = () => console.log('Dados enviados:', form.value)
   padding: 8px 10px;
 }
 
-.menu-label { font-size: 13px; margin-right: 8px }
-.menu-icon { width: 14px; height: 14px; object-fit: contain }
+.menu-label {
+  font-size: 13px;
+  margin-right: 8px;
+}
+.menu-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+}
 
 .notifications {
   position: absolute;
@@ -307,17 +293,37 @@ const handleSubmit = () => console.log('Dados enviados:', form.value)
   gap: 8px;
   font-size: 18px;
 }
-.notif-list { display: flex; flex-direction: column; gap: 12px }
-.notif-item { background: #dff3ec; padding: 12px; border-radius: 8px; cursor: pointer }
-.notif-title { font-weight: 700; margin-bottom: 6px }
-.notif-body { color: rgba(0,0,0,0.7); font-size: 14px }
-.notif-empty { color: #666; font-size: 14px; text-align: center; padding: 12px }
+.notif-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.notif-item {
+  background: #dff3ec;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.notif-title {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.notif-body {
+  color: rgba(0, 0, 0, 0.7);
+  font-size: 14px;
+}
+.notif-empty {
+  color: #666;
+  font-size: 14px;
+  text-align: center;
+  padding: 12px;
+}
 
 /* ESPECÍFICOS DA OCORRÊNCIA */
 .content-wrapper {
   max-width: 900px;
   margin: 40px auto;
-  padding: 0 20px;
+  /* padding: 0 20px; */
 }
 .title-section {
   display: flex;
@@ -398,7 +404,7 @@ const handleSubmit = () => console.log('Dados enviados:', form.value)
 .button-group {
   display: flex;
   gap: 15px;
-  margin-top: 30px;
+  margin-top: 50px;
 }
 .btn-submit {
   background: #b9f397;
@@ -406,6 +412,7 @@ const handleSubmit = () => console.log('Dados enviados:', form.value)
   border: none;
   padding: 12px 25px;
   border-radius: 8px;
+  font-size: 20px;
   font-weight: 800;
   cursor: pointer;
 }
@@ -415,7 +422,8 @@ const handleSubmit = () => console.log('Dados enviados:', form.value)
   background: white;
   padding: 12px 25px;
   border-radius: 8px;
-  font-weight: 800;
+  font-weight: 700;
+  font-size: 20px;
   cursor: pointer;
 }
 
