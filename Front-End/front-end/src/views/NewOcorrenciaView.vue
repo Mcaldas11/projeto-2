@@ -64,17 +64,8 @@
         </div>
 
         <div class="form-row">
-          <label class="field-label">Local:</label>
-          <div class="options-group">
-            <label class="checkbox-container">
-              <input type="checkbox" v-model="form.useGeo" />
-              Usar localização geográfica
-            </label>
-            <label class="checkbox-container">
-              <input type="checkbox" v-model="form.manualLoc" />
-              Introduzir localização
-            </label>
-          </div>
+          <label class="field-label">Localização:</label>
+          <input type="text" v-model="form.location" class="custom-select" placeholder="Ex: Rua Dom Sancho I" />
         </div>
 
         <div class="form-row">
@@ -114,29 +105,14 @@
       </form>
     </main>
 
-    <footer class="main-footer">
-      <div class="footer-links">
-        <div class="col">
-          <router-link to="/">Home</router-link>
-          <router-link to="/ocorrencias">Ocorrências</router-link>
-          <router-link to="/mapa">Mapa Ocorrências</router-link>
-        </div>
-        <div class="col">
-          <router-link to="/sobre">Sobre</router-link>
-          <router-link to="/conta">Conta</router-link>
-        </div>
-      </div>
-      <div class="footer-brand">
-        <img src="@/assets/logo_footer.png" alt="Logo" class="logo-img-small" />
-        <p class="copyright">© 2026 VC Comunica All rights reserved.</p>
-      </div>
-    </footer>
+    <Footer />
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import Footer from '@/components/footer.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 
@@ -177,6 +153,7 @@ const fileInput = ref(null)
 const form = ref({
   useGeo: false,
   manualLoc: false,
+  location: '',
   type: '',
   description: '',
   files: [],

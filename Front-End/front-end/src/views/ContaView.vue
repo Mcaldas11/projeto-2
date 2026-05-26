@@ -63,30 +63,32 @@
         <div class="user-info">
           <img src="@/assets/avatar.png" alt="Avatar" class="profile-avatar" />
           <div class="user-text">
-            <h2>Alexandra Reis</h2>
-            <p>alexandra.reis@gmail.com</p>
+            <h2>{{ userFirstName }} {{ userLastName }}</h2>
+            <p>{{ userEmail }}</p>
           </div>
         </div>
-        <button class="btn-edit">Edit</button>
+        <button @click="editarNome" class="btn-edit">Edit</button>
       </section>
 
       <section class="profile-details">
         <div class="details-grid">
           <div class="detail-field">
-            <label>Nome</label>
-            <div class="display-box">Alexandra</div>
-          </div>
-          <div class="detail-field">
-            <label>Apelido</label>
-            <div class="display-box">Reis</div>
-          </div>
-          <div class="detail-field">
             <label>Género</label>
-            <div class="display-box select-box">Feminino</div>
+            <div >
+              <select name="genero" class="display-box select-box">
+                <option value="Masculino">Masculino</option>
+                <option value="Feminino">Feminino</option>
+                <option value="Não Binario">Não Binario</option>
+              </select>
+            </div>
           </div>
           <div class="detail-field">
             <label>Município</label>
-            <div class="display-box select-box">Vila do Conde</div>
+            <div >
+              <select name="freguesia" class="display-box select-box">
+                <option v-for="freguesia in freguesias" :key="freguesia.id" :value="freguesia.nome">{{ freguesia.nome }}</option>
+              </select>
+            </div>
           </div>
         </div>
       </section>
@@ -123,6 +125,25 @@
       <button class="btn-logout" @click="showLogoutModal = true">Terminar Sessão</button>
     </main>
 
+    <!-- Edit Profile Modal -->
+    <div v-if="showEditModal" class="modal-overlay" @click.self="showEditModal = false">
+      <div class="modal-card">
+        <h3>Editar Perfil</h3>
+        <div style="margin:16px 0; display:flex; flex-direction:column; gap:10px;">
+          <label style="font-weight:700; color:#475569">Nome</label>
+          <input v-model="editFirstName" class="display-box" />
+          <label style="font-weight:700; color:#475569">Apelido</label>
+          <input v-model="editLastName" class="display-box" />
+          <label style="font-weight:700; color:#475569">Email</label>
+          <input v-model="editEmail" class="display-box" />
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn cancel" @click="handleCancelEdit">Cancelar</button>
+          <button class="modal-btn confirm" @click="handleSaveEdit">Guardar</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Logout Confirmation Modal -->
     <div v-if="showLogoutModal" class="modal-overlay" @click.self="showLogoutModal = false">
       <div class="modal-card">
@@ -135,29 +156,14 @@
       </div>
     </div>
 
-    <footer class="main-footer">
-      <div class="footer-links">
-        <div class="col">
-          <router-link to="/">Home</router-link>
-          <router-link to="/ocorrencias">Ocorrências</router-link>
-          <router-link to="/mapa">Mapa Ocorrências</router-link>
-        </div>
-        <div class="col">
-          <router-link to="/sobre">Sobre</router-link>
-          <router-link to="/conta">Conta</router-link>
-        </div>
-      </div>
-      <div class="footer-brand">
-        <img src="@/assets/logo_footer.png" alt="Logo" class="logo-img-small" />
-        <p class="copyright">© 2026 VC Comunica All rights reserved.</p>
-      </div>
-    </footer>
+    <Footer />
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import Footer from '@/components/footer.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 
@@ -170,6 +176,43 @@ const notifications = ref([
     body: 'O estado foi alterado para <strong>Resolvido</strong>',
   },
 ])
+
+const freguesias = ref([
+  {
+    id: 1,
+    nome: 'Vila do Conde',
+  },
+  {
+    id: 2,
+    nome: 'Azurara',
+  },
+  {
+    id: 3,
+    nome: 'Argivai',
+  },
+  {
+    id: 4,
+    nome: 'Mindelo',
+  }
+])
+
+
+
+// User profile (reactive) - initialize from localStorage if present
+const storedProfile = JSON.parse(localStorage.getItem('userProfile') || 'null')
+const userFirstName = ref(storedProfile?.firstName || 'Alexandra')
+const userLastName = ref(storedProfile?.lastName || 'Reis')
+const userEmail = ref(storedProfile?.email || 'alexandra.reis@gmail.com')
+
+const showEditModal = ref(false)
+const editFirstName = ref('')
+const editLastName = ref('')
+const editEmail = ref('')
+
+function validarEmail(email) {
+  const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(".+"))@(([^<>()[\]\\.,;:\s@\"]+\.)+[^<>()[\]\\.,;:\s@\"]{2,})$/i
+  return re.test(String(email).toLowerCase())
+}
 
 const toggleNotif = () => {
   showNotif.value = !showNotif.value
@@ -189,6 +232,33 @@ function navigateHome(e) {
   if (role === 'trabalhador') router.push({ name: 'trabalhador-home' })
   else router.push({ name: 'home' })
   showMenu.value = false
+}
+
+const editarNome = () => {
+  editFirstName.value = userFirstName.value
+  editLastName.value = userLastName.value
+  editEmail.value = userEmail.value
+  showEditModal.value = true
+}
+
+function handleCancelEdit() {
+  showEditModal.value = false
+}
+
+function handleSaveEdit() {
+  if (!editFirstName.value.trim() || !editLastName.value.trim()) {
+    alert('Nome e apelido não podem ficar vazios.')
+    return
+  }
+  if (!validarEmail(editEmail.value)) {
+    alert('Por favor insere um email válido.')
+    return
+  }
+  userFirstName.value = editFirstName.value.trim()
+  userLastName.value = editLastName.value.trim()
+  userEmail.value = editEmail.value.trim()
+  localStorage.setItem('userProfile', JSON.stringify({ firstName: userFirstName.value, lastName: userLastName.value, email: userEmail.value }))
+  showEditModal.value = false
 }
 
 // Dados das Ocorrências (Baseado na captura image_eb9c7e.png)
@@ -442,10 +512,24 @@ const userOccurrences = ref([
   margin-bottom: 8px;
   font-size: 14px;
 }
-.display-box {
-  background: #f8fafc;
+
+/* select.display-box {
+  width: 100%;
   padding: 14px;
   border-radius: 10px;
+  border-color: #64748b;
+  color: #94a3b8;
+  font-weight: 500;
+  appearance: none;
+  background: #f8fafc url("@/assets/arrow-down.png") no-repeat right 12px center;
+} */
+
+.display-box {
+  background: #f8fafc;
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  border-color: #F9F9F9;
   color: #94a3b8;
   font-weight: 500;
 }
@@ -623,7 +707,7 @@ const userOccurrences = ref([
 
 .modal-card {
   background: #fff;
-  border-radius: 16px;
+  border-radius: 12px;
   padding: 40px;
   max-width: 420px;
   width: 90%;
@@ -634,6 +718,7 @@ const userOccurrences = ref([
 
 .modal-card h3 {
   font-family: 'Montserrat', sans-serif;
+  align-self: left;
   font-weight: 600;
   font-size: 22px;
   margin: 0 0 12px 0;

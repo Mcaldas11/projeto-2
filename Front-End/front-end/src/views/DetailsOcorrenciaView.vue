@@ -140,30 +140,16 @@
       </section>
     </main>
 
-    <footer class="main-footer">
-      <div class="footer-links">
-        <div class="col">
-          <router-link to="/">Home</router-link>
-          <router-link to="/ocorrencias">Ocorrências</router-link>
-          <router-link to="/mapa">Mapa Ocorrências</router-link>
-        </div>
-        <div class="col">
-          <router-link to="/sobre">Sobre</router-link>
-          <router-link to="/conta">Conta</router-link>
-        </div>
-      </div>
-      <div class="footer-brand">
-        <img src="@/assets/logo_footer.png" alt="Logo" class="logo-img-small" />
-      </div>
-    </footer>
+    <Footer />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref} from 'vue'
 import { useRouter } from 'vue-router'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
+import Footer from '@/components/footer.vue'
 
 // Estados do Header
 const showNotif = ref(false)
@@ -172,6 +158,7 @@ const notifPanel = ref(null)
 const notifIcon = ref(null)
 const menuPanel = ref(null)
 const menuIcon = ref(null)
+const gallery = ref(null)
 
 const notifications = ref([
   {
@@ -214,22 +201,6 @@ function handleDocClick(e) {
     showMenu.value = false
   }
 }
-
-onMounted(() => document.addEventListener('click', handleDocClick))
-onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
-
-// Galeria
-const gallery = ['/img/iluminacao1.jpg', '/img/iluminacao2.jpg', '/img/iluminacao3.jpg']
-const activeImage = ref(gallery[0])
-
-const isWorker = ref(false)
-
-onMounted(() => {
-  // existing onMounted already used to register click handler earlier; ensure role check runs after mount
-  isWorker.value = localStorage.getItem('role') === 'trabalhador'
-})
-
-const router = useRouter()
 
 const navigateHome = (e) => {
   if (e && e.preventDefault) e.preventDefault()

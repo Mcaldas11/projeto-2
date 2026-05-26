@@ -107,31 +107,17 @@
       </div>
     </main>
 
-    <footer class="main-footer">
-      <div class="footer-links">
-        <div class="col">
-          <a href="#">Home</a>
-          <a href="#">Ocorrências</a>
-          <a href="#">Mapa Ocorrências</a>
-        </div>
-        <div class="col">
-          <a href="#">Sobre</a>
-          <a href="#">Conta</a>
-        </div>
-      </div>
-      <div class="footer-brand">
-        <img src="@/assets/logoP.png" alt="Logo" class="logo-img-small" />
-        <p class="copyright">© 2026 VC Comunica All rights reserved.</p>
-      </div>
-    </footer>
+    <Footer :logo-src="workerFooterLogo" />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
+import Footer from '@/components/footer.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
+import workerFooterLogo from '@/assets/logoP.png'
 
 const showNotif = ref(false)
 const showMenu = ref(false)
