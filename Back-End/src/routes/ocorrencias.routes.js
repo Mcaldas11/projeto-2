@@ -1,8 +1,5 @@
 import express from "express";
-import fs from "fs";
 import multer from "multer";
-import path from "path";
-import { fileURLToPath } from "url";
 
 import * as ocorrenciasControllers from "../controllers/ocorrencias.controller.js";
 import { requireFields, requireJsonObject, validateIntegerParam } from "../middlewares/validation.middleware.js";
@@ -11,26 +8,8 @@ import authMiddleware from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const ensureDir = (dir) => {
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-};
-
 const uploadFotos = multer({
-  storage: multer.diskStorage({
-    destination: (req, _file, cb) => {
-      const dir = path.join(__dirname, "..", "..", "uploads", "ocorrencias", String(req.params.id));
-      ensureDir(dir);
-      cb(null, dir);
-    },
-    filename: (_req, file, cb) => {
-      const timestamp = Date.now();
-      const safeName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
-      cb(null, `${timestamp}_${safeName}`);
-    },
-  }),
+  storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     const allowed = ["image/jpeg", "image/png", "image/gif", "image/webp"];

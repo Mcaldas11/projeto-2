@@ -1,8 +1,7 @@
-import fs from "fs/promises";
-import path from "path";
-import { fileURLToPath } from "url";
+import { Readable } from "stream";
 import { Ocorrencia, Cidadao } from "../config/db.config.js";
 import { Trabalhador } from "../config/db.config.js";
+import cloudinary from "../config/cloudinary.js";
 import {
   genericError,
   notFoundError,
@@ -21,27 +20,45 @@ const handleSequelizeValidation = (error, next) => {
   return false;
 };
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const ocorrenciasUploadsDir = path.join(__dirname, "..", "..", "uploads", "ocorrencias");
+const parseFotosField = (value) => {
+  if (!value) return [];
+  if (Array.isArray(value)) return value;
+  if (typeof value !== "string") return [];
 
-const listOcorrenciaFotos = async (id) => {
-  const dir = path.join(ocorrenciasUploadsDir, String(id));
   try {
-    const files = await fs.readdir(dir);
-    return files.sort().map((name) => `/uploads/ocorrencias/${id}/${name}`);
-  } catch (error) {
-    if (error?.code === "ENOENT") return [];
-    throw error;
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [value];
+  } catch {
+    return [value];
   }
 };
+
+const uploadToCloudinary = (file, folder) =>
+  new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder,
+        resource_type: "image",
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      },
+    );
+
+    Readable.from(file.buffer).pipe(stream);
+  });
 
 const DEFAULT_ESTADO = "À espera de equipa";
 
 export const getAllOcorrencias = async (req, res, next) => {
   try {
     const ocorrencias = await Ocorrencia.findAll();
-    res.json(ocorrencias);
+    const data = ocorrencias.map((ocorrencia) => {
+      const fotos = parseFotosField(ocorrencia.foto);
+      return { ...ocorrencia.toJSON(), foto: fotos[0] || null, fotos };
+    });
+    res.json(data);
   } catch (error) {
     next(genericError("Error fetching ocorrencias"));
   }
@@ -56,8 +73,8 @@ export const getOcorrenciaById = async (req, res, next) => {
       return next(notFoundError("ocorrencia", id));
     }
 
-    const fotos = await listOcorrenciaFotos(id);
-    res.json({ ...ocorrencia.toJSON(), fotos });
+    const fotos = parseFotosField(ocorrencia.foto);
+    res.json({ ...ocorrencia.toJSON(), foto: fotos[0] || null, fotos });
   } catch (error) {
     next(genericError("Error fetching ocorrencia"));
   }
@@ -203,11 +220,14 @@ export const addOcorrenciaFotos = async (req, res, next) => {
       return next(notFoundError("ocorrencia", id));
     }
 
-    const fotos = req.files.map((file) => `/uploads/ocorrencias/${id}/${file.filename}`);
+    const uploads = await Promise.all(
+      req.files.map((file) => uploadToCloudinary(file, `ocorrencias/${id}`)),
+    );
+    const newFotos = uploads.map((result) => result.secure_url || result.url).filter(Boolean);
+    const existingFotos = parseFotosField(ocorrencia.foto);
+    const fotos = [...existingFotos, ...newFotos];
 
-    if (!ocorrencia.foto && fotos.length) {
-      await ocorrencia.update({ foto: fotos[0] });
-    }
+    await ocorrencia.update({ foto: JSON.stringify(fotos) });
 
     res.status(201).json({ success: true, fotos });
   } catch (error) {

@@ -16,12 +16,16 @@ Base URL: http://127.0.0.1:3000
 Allowed image types: JPG, PNG, GIF, WEBP
 Max files: 10
 Max size per file: 5MB
+Storage: Cloudinary (no local uploads folder)
 
 ## Health
 - GET /health
 
-## Static uploads
-- GET /uploads/ocorrencias/:id/:filename
+## Cloudinary
+Set these env vars:
+- CLOUDINARY_CLOUD_NAME
+- CLOUDINARY_API_KEY
+- CLOUDINARY_API_SECRET
 
 ## Cidadaos
 - GET /cidadaos
@@ -83,7 +87,7 @@ Max size per file: 5MB
   - JSON fields: descricao, localizacao, dataOcorrencia, nomeAutor, nrTelemovelAutor, severidade, idCidadao, idMunicipio, tipo_ocorrencia
   - estado is set automatically to "À espera de equipa"
 - GET /ocorrencias/:id
-  - Response includes fotos: ["/uploads/ocorrencias/:id/<file>", ...]
+  - Response includes fotos: ["https://res.cloudinary.com/...", ...]
 - POST /ocorrencias/:id/fotos
   - multipart/form-data, files[]
 - PUT /ocorrencias/:id
