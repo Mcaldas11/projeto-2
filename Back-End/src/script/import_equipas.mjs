@@ -1,16 +1,38 @@
 import fs from "fs/promises";
 import "dotenv/config";
-import { sequelize, Equipa } from "../config/db.config.js";
+import { sequelize, Equipa, Municipio } from "../config/db.config.js";
 
 const dataPath = new URL(
   "../../../Data-Generator/data/equipa.json",
   import.meta.url,
 );
+const seedPath = new URL(
+  "../../../Data-Generator/database/seeds/seed_equipas.py",
+  import.meta.url,
+);
+
+const parseEquipasFromSeed = (seedContent) => {
+  const objectMatches = seedContent.match(/\{[^{}]+\}/g) || [];
+  return objectMatches.map((entry) => JSON.parse(entry));
+};
+
+const loadEquipasSource = async () => {
+  const seedRaw = await fs.readFile(seedPath, "utf8");
+  const fromSeed = parseEquipasFromSeed(seedRaw).filter(
+    (e) => e.idEquipa != null && e.especializacao && e.fregEquipa != null,
+  );
+
+  if (fromSeed.length > 0) {
+    return fromSeed;
+  }
+
+  const raw = await fs.readFile(dataPath, "utf8");
+  return JSON.parse(raw);
+};
 
 async function importEquipas() {
   try {
-    const raw = await fs.readFile(dataPath, "utf8");
-    const equipas = JSON.parse(raw);
+    const equipas = await loadEquipasSource();
 
     try {
       console.log(
@@ -29,10 +51,27 @@ async function importEquipas() {
     await Equipa.sync({ alter: true });
 
     const payload = equipas.map((e, index) => ({
-      idEquipa: index + 1,
+      idEquipa: e.idEquipa ?? index + 1,
       especializacao: e.especializacao,
       fregEquipa: e.fregEquipa,
     }));
+
+    const municipioIds = new Set(
+      (await Municipio.findAll({ attributes: ["idFreguesia"] })).map(
+        (m) => m.idFreguesia,
+      ),
+    );
+    const missingMunicipios = [
+      ...new Set(
+        payload.map((e) => e.fregEquipa).filter((id) => !municipioIds.has(id)),
+      ),
+    ];
+
+    if (missingMunicipios.length > 0) {
+      throw new Error(
+        `Missing municipios for idFreguesia: ${missingMunicipios.join(", ")}. Import municipios first.`,
+      );
+    }
 
     const chunkSize = 500;
     const transaction = await sequelize.transaction();
