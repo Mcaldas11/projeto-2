@@ -39,6 +39,13 @@ async function importResponsaveis() {
       credenciaisTrabalhadores: r.credenciaisTrabalhadores ?? null,
     }));
 
+    await sequelize.query("SET FOREIGN_KEY_CHECKS = 0");
+    try {
+      await Municipio.destroy({ truncate: true });
+    } finally {
+      await sequelize.query("SET FOREIGN_KEY_CHECKS = 1");
+    }
+
     const chunkSize = 500;
     const transaction = await sequelize.transaction();
     try {
