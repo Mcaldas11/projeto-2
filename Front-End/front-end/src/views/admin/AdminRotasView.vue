@@ -60,37 +60,13 @@
       <section class="rotas-ativas">
         <div class="rotas-grid">
           <div class="map-placeholder">
-            <svg viewBox="0 0 500 400" class="route-map-svg">
-              <!-- Background grid / streets -->
-              <rect width="500" height="400" fill="#e8ede4" />
-              <!-- Park areas -->
-              <rect x="0" y="0" width="120" height="80" fill="#c5ddb8" rx="5" />
-              <rect x="350" y="280" width="150" height="120" fill="#c5ddb8" rx="5" />
-              <rect x="0" y="280" width="100" height="120" fill="#c5ddb8" rx="5" />
-              <!-- Streets -->
-              <line x1="0" y1="120" x2="500" y2="120" stroke="#d4d4d4" stroke-width="3" />
-              <line x1="0" y1="250" x2="500" y2="250" stroke="#d4d4d4" stroke-width="3" />
-              <line x1="160" y1="0" x2="160" y2="400" stroke="#d4d4d4" stroke-width="3" />
-              <line x1="320" y1="0" x2="320" y2="400" stroke="#d4d4d4" stroke-width="3" />
-              <!-- Water -->
-              <line x1="100" y1="0" x2="200" y2="400" stroke="#bfdbfe" stroke-width="4" opacity="0.6" />
-
-              <!-- Route: Engenharia e vias (orange) -->
-              <polyline points="50,80 100,55 150,70" fill="none" stroke="#f59e0b" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
-              <rect x="58" y="42" width="14" height="14" fill="#f59e0b" rx="3" />
-
-              <!-- Route: Higiene Urbana (green) -->
-              <polyline points="140,130 220,100 310,120 380,100" fill="none" stroke="#22c55e" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
-              <polygon points="390,95 396,108 384,108" fill="#22c55e" />
-
-              <!-- Route: Iluminação pública (purple) -->
-              <polyline points="130,200 200,170 290,215 350,185" fill="none" stroke="#8b5cf6" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
-              <rect x="347" y="178" width="14" height="14" fill="#8b5cf6" rx="3" />
-
-              <!-- Route: Espaços Verdes (red/dark) -->
-              <polyline points="200,280 310,310 410,340 460,350" fill="none" stroke="#730000" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
-              <polygon points="460,345 466,358 454,358" fill="#730000" />
-            </svg>
+            <iframe
+              class="map-embed"
+              title="Mapa - Junta de Freguesia de Vila do Conde"
+              src="https://www.openstreetmap.org/export/embed.html?bbox=-8.74894%2C41.35405%2C-8.72894%2C41.37405&amp;layer=mapnik&amp;marker=41.36405%2C-8.73894"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+            ></iframe>
           </div>
 
           <div class="rotas-legend">
@@ -310,6 +286,12 @@ const gerarRotas = () => {
   border-radius: 20px;
   overflow: hidden;
   aspect-ratio: 5/4;
+}
+.map-embed {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
 }
 .route-map-svg {
   width: 100%;

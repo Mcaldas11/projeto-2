@@ -118,9 +118,13 @@
       <section v-else class="map-view">
         <div class="map-container">
           <div class="map-placeholder">
-            <div class="marker red" style="top: 40%; left: 45%">3</div>
-            <div class="marker red-large" style="top: 55%; left: 25%">6</div>
-            <div class="marker green" style="top: 75%; left: 75%">1</div>
+            <iframe
+              class="map-embed"
+              title="Mapa - Junta de Freguesia de Vila do Conde"
+              src="https://www.openstreetmap.org/export/embed.html?bbox=-8.74894%2C41.35405%2C-8.72894%2C41.37405&amp;layer=mapnik&amp;marker=41.36405%2C-8.73894"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+            ></iframe>
           </div>
 
           <div class="map-info-card">
@@ -436,6 +440,13 @@ function navigateHome(e) {
   background: #e2e8f0;
   border-radius: 15px;
   overflow: hidden;
+  height: 100%;
+}
+.map-embed {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
 }
 .marker {
   position: absolute;

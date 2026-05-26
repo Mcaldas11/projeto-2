@@ -93,14 +93,13 @@
 
           <div class="map-wrapper">
             <div class="map-placeholder">
-              <div class="route-line"></div>
-              <div class="marker start-point" style="top: 70%; left: 55%"></div>
-              <div class="marker task-node red" style="top: 45%; left: 60%"></div>
-              <div class="marker task-node red" style="top: 35%; left: 63%"></div>
-              <div class="marker task-node green" style="top: 32%; left: 70%"></div>
-              <div class="marker task-node green" style="top: 25%; left: 82%"></div>
-              <div class="marker task-node yellow" style="top: 20%; left: 85%"></div>
-              <div class="marker end-point" style="top: 20%; left: 88%"></div>
+              <iframe
+                class="map-embed"
+                title="Mapa - Junta de Freguesia de Vila do Conde"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-8.74894%2C41.35405%2C-8.72894%2C41.37405&amp;layer=mapnik&amp;marker=41.36405%2C-8.73894"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+              ></iframe>
             </div>
           </div>
         </section>
@@ -406,6 +405,12 @@ h2 {
     linear-gradient(90deg, #e0e0e0 1px, transparent 1px);
   background-size: 40px 40px;
   background-color: #e5e9e0; /* Tom esverdeado leve como no figma */
+}
+.map-embed {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
 }
 .route-line {
   position: absolute;

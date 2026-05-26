@@ -132,24 +132,13 @@
         <h2 class="section-title">Rotas</h2>
         <div class="rotas-grid">
           <div class="map-placeholder">
-            <!-- Stylized map with route lines -->
-            <svg viewBox="0 0 500 350" class="route-map-svg">
-              <!-- Background streets -->
-              <line x1="0" y1="100" x2="500" y2="100" stroke="#ddd" stroke-width="2" />
-              <line x1="0" y1="200" x2="500" y2="200" stroke="#ddd" stroke-width="2" />
-              <line x1="150" y1="0" x2="150" y2="350" stroke="#ddd" stroke-width="2" />
-              <line x1="350" y1="0" x2="350" y2="350" stroke="#ddd" stroke-width="2" />
-              <!-- Route lines -->
-              <polyline points="50,80 120,60 180,80" fill="none" stroke="#f59e0b" stroke-width="4" stroke-linecap="round" />
-              <polyline points="180,80 250,120 320,80 380,110" fill="none" stroke="#22c55e" stroke-width="4" stroke-linecap="round" />
-              <polyline points="120,180 200,160 300,200 350,180" fill="none" stroke="#8b5cf6" stroke-width="4" stroke-linecap="round" />
-              <polyline points="200,250 300,280 400,300 450,310" fill="none" stroke="#730000" stroke-width="4" stroke-linecap="round" />
-              <!-- Markers -->
-              <rect x="55" y="55" width="12" height="12" fill="#f59e0b" rx="2" />
-              <polygon points="385,100 390,115 380,115" fill="#22c55e" />
-              <rect x="345" y="170" width="12" height="12" fill="#8b5cf6" rx="2" />
-              <polygon points="450,305 455,318 445,318" fill="#730000" />
-            </svg>
+            <iframe
+              class="map-embed"
+              title="Mapa - Junta de Freguesia de Vila do Conde"
+              src="https://www.openstreetmap.org/export/embed.html?bbox=-8.74894%2C41.35405%2C-8.72894%2C41.37405&amp;layer=mapnik&amp;marker=41.36405%2C-8.73894"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+            ></iframe>
           </div>
           <div class="rotas-legend">
             <div class="legend-item">
@@ -595,6 +584,12 @@ const toggleSort = () => {
   border-radius: 20px;
   overflow: hidden;
   aspect-ratio: 4/3;
+}
+.map-embed {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
 }
 .route-map-svg {
   width: 100%;
