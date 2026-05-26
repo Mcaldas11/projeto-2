@@ -12,20 +12,17 @@ from .schema import TrabalhadorSchema
 fake = Faker("pt_PT")
 
 
-def choose_equipa(equipas):
-    # Escolhe uma equipa aleatoriamente a partir do seed.
-    if not equipas:
-        return None
+def build_equipa_pool(equipas):
+    equipa_pool = []
+    for equipa in equipas:
+        max_trabalhadores = equipa.get("max_trabalhadores", 5)
+        equipa_pool.extend([equipa] * max_trabalhadores)
 
-    return random.choice(equipas)
+    random.shuffle(equipa_pool)
+    return equipa_pool
 
 
-def generate_fake_trabalhador(equipas=None):
-    # Se não vier lista, usa as equipas definidas no seed.
-    if equipas is None:
-        equipas = TIPOS_EQUIPA
-
-    equipa_escolhida = choose_equipa(equipas)
+def generate_fake_trabalhador(equipa_escolhida=None):
 
     id_equipa = None
     especializacao_equipa = None
@@ -48,10 +45,15 @@ def generate_fake_trabalhador(equipas=None):
 
 
 if __name__ == "__main__":
-    def generate_fake_trabalhadores(count=40, equipas=None):
-        return [generate_fake_trabalhador(equipas) for _ in range(count)]
+    def generate_fake_trabalhadores(equipas=None):
+        # Cada equipa recebe no máximo o número definido em max_trabalhadores.
+        if equipas is None:
+            equipas = TIPOS_EQUIPA
+
+        equipa_pool = build_equipa_pool(equipas)
+        return [generate_fake_trabalhador(equipa_pool[i]) for i in range(len(equipa_pool))]
     
-    trabalhadores = generate_fake_trabalhadores(40)
+    trabalhadores = generate_fake_trabalhadores()
     for trabalhador, especializacao_equipa in trabalhadores:
         print({
             "nomeTrabalhador": trabalhador.nomeTrabalhador,
