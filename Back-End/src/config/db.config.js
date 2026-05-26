@@ -63,12 +63,10 @@ const syncDatabase = async () => {
 };
 
 /* delete data from the table (municipio) before seeding to avoid duplicates and maintain data integrity */
-/* try {
+/*try {
   if (sequelize.getDialect() === "mysql")
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 0");
-  await Cidadao.destroy({ truncate: true });
-  await Equipa.destroy({ truncate: true });
-  await Ocorrencia.destroy({ truncate: true });
+  await Municipio.destroy({ truncate: true });
   if (sequelize.getDialect() === "mysql")
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 1");
 } catch (err) {
@@ -77,7 +75,7 @@ const syncDatabase = async () => {
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 1");
   process.exit(1);
 }
-  */
+*/
 
 export {
   sequelize,

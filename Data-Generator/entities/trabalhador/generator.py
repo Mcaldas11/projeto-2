@@ -29,6 +29,10 @@ def build_email(prefix, *parts):
     return ".".join(email_parts) + "@example.pt"
 
 
+def build_responsavel_email(index):
+    return f"responsavel.{index}@vcc.pt"
+
+
 def generate_fake_trabalhador(equipa_escolhida=None, trabalhador_index=1):
 
     id_equipa = None
@@ -77,8 +81,9 @@ def generate_responsaveis_freguesia(freguesias=None):
             {
                 "nome": freguesia["nome"],
                 "responsavel": nome_responsavel,
-                "email": build_email("responsavel", index),
+                "email": build_responsavel_email(index),
                 "telemovel": fake.random_element(["91", "92", "93"]) + fake.numerify("#######"),
+                "credenciaisTrabalhadores": str(fake.random_int(min=0, max=99999)),
             },
         )
 
