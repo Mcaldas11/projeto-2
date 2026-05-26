@@ -108,9 +108,9 @@ export const createOcorrenciaForCidadao = async (req, res, next) => {
         if (cidadao) {
           req.body.nomeAutor = cidadao.nome;
           req.body.nrTelemovelAutor = cidadao.nrTelemovel;
-          // Auto-fill municipality id from the citizen if not provided
-          if (!req.body.idMunicipio && cidadao.fregCidadao) {
-            req.body.idMunicipio = cidadao.fregCidadao;
+          // Auto-fill freguesia id from the citizen if not provided
+          if (!req.body.idFreguesia && cidadao.fregCidadao) {
+            req.body.idFreguesia = cidadao.fregCidadao;
           }
         }
       } catch (err) {
@@ -171,11 +171,9 @@ export const resolveOcorrenciaByEquipa = async (req, res, next) => {
 
     // Only trabalhadores can resolve occurrences
     if (!req.userData || req.userData.userType !== "trabalhador") {
-      return res
-        .status(403)
-        .json({
-          message: "Forbidden: only trabalhadores can resolve ocorrencias",
-        });
+      return res.status(403).json({
+        message: "Forbidden: only trabalhadores can resolve ocorrencias",
+      });
     }
 
     const trabalhadorId = req.userData.userId;

@@ -31,8 +31,8 @@ Recurso.belongsTo(Equipa, { foreignKey: "equipaResponsavel", as: "equipa" });
 Cidadao.hasMany(Ocorrencia, { foreignKey: "idCidadao", as: "ocorrencias" });
 Ocorrencia.belongsTo(Cidadao, { foreignKey: "idCidadao", as: "cidadao" });
 
-Municipio.hasMany(Ocorrencia, { foreignKey: "idMunicipio", as: "ocorrencias" });
-Ocorrencia.belongsTo(Municipio, { foreignKey: "idMunicipio", as: "municipio" });
+Municipio.hasMany(Ocorrencia, { foreignKey: "idFreguesia", as: "ocorrencias" });
+Ocorrencia.belongsTo(Municipio, { foreignKey: "idFreguesia", as: "municipio" });
 
 Equipa.hasMany(Ocorrencia, { foreignKey: "idEquipa", as: "ocorrencias" });
 Ocorrencia.belongsTo(Equipa, { foreignKey: "idEquipa", as: "equipa" });
@@ -63,10 +63,12 @@ const syncDatabase = async () => {
 };
 
 /* delete data from the table (municipio) before seeding to avoid duplicates and maintain data integrity */
-try {
+/* try {
   if (sequelize.getDialect() === "mysql")
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 0");
-  await Municipio.destroy({ truncate: true });
+  await Cidadao.destroy({ truncate: true });
+  await Equipa.destroy({ truncate: true });
+  await Ocorrencia.destroy({ truncate: true });
   if (sequelize.getDialect() === "mysql")
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 1");
 } catch (err) {
@@ -75,6 +77,7 @@ try {
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 1");
   process.exit(1);
 }
+  */
 
 export {
   sequelize,

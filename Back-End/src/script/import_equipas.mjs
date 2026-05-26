@@ -25,7 +25,11 @@ async function importEquipas() {
       console.log("Could not read sequelize config:", e.message);
     }
 
-    const payload = equipas.map((e) => ({
+    // Garante apenas a tabela equipa antes do insert, sem tocar nas restantes FKs.
+    await Equipa.sync({ alter: true });
+
+    const payload = equipas.map((e, index) => ({
+      idEquipa: index + 1,
       especializacao: e.especializacao,
       fregEquipa: e.fregEquipa,
     }));
@@ -38,7 +42,7 @@ async function importEquipas() {
         await Equipa.bulkCreate(chunk, {
           transaction,
           validate: false,
-          ignoreDuplicates: true,
+          updateOnDuplicate: ["especializacao", "fregEquipa"],
         });
       }
 

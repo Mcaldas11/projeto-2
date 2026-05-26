@@ -42,7 +42,7 @@ Set these env vars:
 - POST /cidadaos/me/ocorrencias
   - Auth required
   - JSON fields: descricao, localizacao, dataOcorrencia, severidade, tipo_ocorrencia
-  - idCidadao, nomeAutor, nrTelemovelAutor, idMunicipio are auto-filled from token/user
+  - idCidadao, nomeAutor, nrTelemovelAutor, idFreguesia are auto-filled from token/user
   - estado is set automatically to "À espera de equipa"
 - GET /cidadaos/:id
 - PUT /cidadaos/:id
@@ -95,14 +95,14 @@ Set these env vars:
 
 - GET /ocorrencias
 - POST /ocorrencias
-  - JSON fields: descricao, localizacao, dataOcorrencia, nomeAutor, nrTelemovelAutor, severidade, idCidadao, idMunicipio, tipo_ocorrencia
+  - JSON fields: descricao, localizacao, dataOcorrencia, nomeAutor, nrTelemovelAutor, severidade, idCidadao, idFreguesia, tipo_ocorrencia
   - estado is set automatically to "À espera de equipa"
 - GET /ocorrencias/:id
   - Response includes fotos: ["https://res.cloudinary.com/...", ...]
 - POST /ocorrencias/:id/fotos
   - multipart/form-data, files[]
 - PUT /ocorrencias/:id
-  - JSON fields: descricao, localizacao, dataOcorrencia, nomeAutor, nrTelemovelAutor, severidade, estado, idCidadao, idMunicipio, tipo_ocorrencia
+  - JSON fields: descricao, localizacao, dataOcorrencia, nomeAutor, nrTelemovelAutor, severidade, estado, idCidadao, idFreguesia, tipo_ocorrencia
 - PATCH /ocorrencias/:id/resolve
   - JSON fields (optional): dataAgendada, feedback, dataResolucao, estado
   - Only trabalhadores can resolve

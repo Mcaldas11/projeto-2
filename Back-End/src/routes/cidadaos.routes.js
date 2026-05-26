@@ -2,7 +2,11 @@ import express from "express";
 
 import * as cidadaosControllers from "../controllers/cidadaos.controller.js";
 import * as ocorrenciasControllers from "../controllers/ocorrencias.controller.js";
-import { requireFields, requireJsonObject, validateIntegerParam } from "../middlewares/validation.middleware.js";
+import {
+  requireFields,
+  requireJsonObject,
+  validateIntegerParam,
+} from "../middlewares/validation.middleware.js";
 import { requiredFieldsByResource } from "../utils/required-fields.utils.js";
 import authMiddleware from "../middlewares/auth.middleware.js";
 
@@ -29,14 +33,18 @@ router.post(
         f !== "idCidadao" &&
         f !== "nomeAutor" &&
         f !== "nrTelemovelAutor" &&
-        f !== "idMunicipio" &&
+        f !== "idFreguesia" &&
         f !== "estado",
     ),
   ),
   ocorrenciasControllers.createOcorrenciaForCidadao,
 );
 
-router.get("/:id", validateIntegerParam("id"), cidadaosControllers.getCidadaoById);
+router.get(
+  "/:id",
+  validateIntegerParam("id"),
+  cidadaosControllers.getCidadaoById,
+);
 router.put(
   "/:id",
   validateIntegerParam("id"),
@@ -44,6 +52,10 @@ router.put(
   requireFields(requiredFieldsByResource.cidadaos),
   cidadaosControllers.updateCidadao,
 );
-router.delete("/:id", validateIntegerParam("id"), cidadaosControllers.deleteCidadao);
+router.delete(
+  "/:id",
+  validateIntegerParam("id"),
+  cidadaosControllers.deleteCidadao,
+);
 
 export default router;

@@ -45,7 +45,7 @@ const OcorrenciaModel = (sequelize) =>
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      idMunicipio: {
+      idFreguesia: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },

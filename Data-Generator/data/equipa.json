@@ -1,10 +1,10 @@
 [
-  { "especializacao": "estradas e passeios", "fregEquipa": 1 },
-  { "especializacao": "sinalizacao de transito", "fregEquipa": 2 },
-  { "especializacao": "iluminacao urbana", "fregEquipa": 3 },
-  { "especializacao": "higiene e limpeza urbana", "fregEquipa": 4 },
-  { "especializacao": "parques e jardins", "fregEquipa": 5 },
-  { "especializacao": "estradas e passeios", "fregEquipa": 6 },
-  { "especializacao": "sinalizacao de transito", "fregEquipa": 7 },
-  { "especializacao": "higiene e limpeza urbana", "fregEquipa": 8 }
+  { "especializacao": "Estradas e passeios", "fregEquipa": 1 },
+  { "especializacao": "Sinalizacao de transito", "fregEquipa": 2 },
+  { "especializacao": "Iluminacao urbana", "fregEquipa": 3 },
+  { "especializacao": "Higiene e limpeza urbana", "fregEquipa": 4 },
+  { "especializacao": "Parques e jardins", "fregEquipa": 5 },
+  { "especializacao": "Estradas e passeios", "fregEquipa": 6 },
+  { "especializacao": "Sinalizacao de transito", "fregEquipa": 7 },
+  { "especializacao": "Higiene e limpeza urbana", "fregEquipa": 8 }
 ]

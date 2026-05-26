@@ -18,7 +18,7 @@ export const requiredFieldsByResource = {
     "severidade",
     "estado",
     "idCidadao",
-    "idMunicipio",
+    "idFreguesia",
     "tipo_ocorrencia",
   ],
   mensagens: ["texto", "dataMensagem", "idCidadao", "idOcorrencia"],
