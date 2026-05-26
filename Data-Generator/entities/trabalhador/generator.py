@@ -1,4 +1,7 @@
 # python -m entities.trabalhador.generator
+from dataclasses import asdict
+import json
+from pathlib import Path
 import random
 
 from faker import Faker
@@ -45,12 +48,25 @@ def generate_fake_trabalhador(equipas=None):
 
 
 if __name__ == "__main__":
-    trabalhador, especializacao_equipa = generate_fake_trabalhador()
-    print({
-        "nomeTrabalhador": trabalhador.nomeTrabalhador,
-        "emailTrabalhador": trabalhador.emailTrabalhador,
-        "telemovelTrabalhador": trabalhador.telemovelTrabalhador,
-        "idEquipa": trabalhador.idEquipa,
-        "especializacao": especializacao_equipa,
-        "credenciaisTrabalhadores": trabalhador.credenciaisTrabalhadores,
-    })
+    def generate_fake_trabalhadores(count=40, equipas=None):
+        return [generate_fake_trabalhador(equipas) for _ in range(count)]
+    
+    trabalhadores = generate_fake_trabalhadores(40)
+    for trabalhador, especializacao_equipa in trabalhadores:
+        print({
+            "nomeTrabalhador": trabalhador.nomeTrabalhador,
+            "emailTrabalhador": trabalhador.emailTrabalhador,
+            "telemovelTrabalhador": trabalhador.telemovelTrabalhador,
+            "idEquipa": trabalhador.idEquipa,
+            "especializacao": especializacao_equipa,
+            "credenciaisTrabalhadores": trabalhador.credenciaisTrabalhadores,
+        })
+
+    data = [asdict(t) for t in trabalhadores]
+
+    base = Path(__file__).resolve().parents[2]
+    out = base / "data" / "trabalhador.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
+
+    with out.open("w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
