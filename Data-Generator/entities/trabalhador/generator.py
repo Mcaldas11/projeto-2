@@ -18,7 +18,6 @@ def build_equipa_pool(equipas):
         max_trabalhadores = equipa.get("max_trabalhadores", 5)
         equipa_pool.extend([equipa] * max_trabalhadores)
 
-    random.shuffle(equipa_pool)
     return equipa_pool
 
 
@@ -51,7 +50,7 @@ if __name__ == "__main__":
             equipas = TIPOS_EQUIPA
 
         equipa_pool = build_equipa_pool(equipas)
-        return [generate_fake_trabalhador(equipa_pool[i]) for i in range(len(equipa_pool))]
+        return [generate_fake_trabalhador(equipa) for equipa in equipa_pool]
     
     trabalhadores = generate_fake_trabalhadores()
     for trabalhador, especializacao_equipa in trabalhadores:

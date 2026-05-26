@@ -1,282 +1,282 @@
 [
     {
-        "nomeTrabalhador": "Carolina Leite",
-        "emailTrabalhador": "carolina.leite@example.pt",
-        "telemovelTrabalhador": "918813128",
-        "idEquipa": 4,
-        "credenciaisTrabalhadores": "41112"
-    },
-    {
-        "nomeTrabalhador": "Andreia Castro-Valente",
-        "emailTrabalhador": "andreia.castro-valente@example.pt",
-        "telemovelTrabalhador": "921753423",
-        "idEquipa": 7,
-        "credenciaisTrabalhadores": "73054"
-    },
-    {
-        "nomeTrabalhador": "Andreia Rocha",
-        "emailTrabalhador": "andreia.rocha@example.pt",
-        "telemovelTrabalhador": "931243937",
-        "idEquipa": 6,
-        "credenciaisTrabalhadores": "36166"
-    },
-    {
-        "nomeTrabalhador": "Bryan Sousa",
-        "emailTrabalhador": "bryan.sousa@example.pt",
-        "telemovelTrabalhador": "932549002",
-        "idEquipa": 3,
-        "credenciaisTrabalhadores": "17860"
-    },
-    {
-        "nomeTrabalhador": "Margarida-Constança Costa",
-        "emailTrabalhador": "margarida-constança.costa@example.pt",
-        "telemovelTrabalhador": "918216022",
-        "idEquipa": 6,
-        "credenciaisTrabalhadores": "78349"
-    },
-    {
-        "nomeTrabalhador": "Eduarda da Santos",
-        "emailTrabalhador": "eduarda.da.santos@example.pt",
-        "telemovelTrabalhador": "934885396",
+        "nomeTrabalhador": "Lia Baptista",
+        "emailTrabalhador": "lia.baptista@example.pt",
+        "telemovelTrabalhador": "930741951",
         "idEquipa": 1,
-        "credenciaisTrabalhadores": "37451"
+        "credenciaisTrabalhadores": "22850"
     },
     {
-        "nomeTrabalhador": "Sebastião Nunes",
-        "emailTrabalhador": "sebastião.nunes@example.pt",
-        "telemovelTrabalhador": "922591284",
-        "idEquipa": 3,
-        "credenciaisTrabalhadores": "92459"
-    },
-    {
-        "nomeTrabalhador": "Carlota Guerreiro",
-        "emailTrabalhador": "carlota.guerreiro@example.pt",
-        "telemovelTrabalhador": "933558393",
-        "idEquipa": 7,
-        "credenciaisTrabalhadores": "21108"
-    },
-    {
-        "nomeTrabalhador": "Luna-Luana Monteiro",
-        "emailTrabalhador": "luna-luana.monteiro@example.pt",
-        "telemovelTrabalhador": "939570674",
+        "nomeTrabalhador": "Diana Torres",
+        "emailTrabalhador": "diana.torres@example.pt",
+        "telemovelTrabalhador": "935260179",
         "idEquipa": 1,
-        "credenciaisTrabalhadores": "72813"
+        "credenciaisTrabalhadores": "9073"
     },
     {
-        "nomeTrabalhador": "Mário Campos-Faria",
-        "emailTrabalhador": "mário.campos-faria@example.pt",
-        "telemovelTrabalhador": "936692685",
-        "idEquipa": 4,
-        "credenciaisTrabalhadores": "10337"
+        "nomeTrabalhador": "Lia-Isabel Carvalho",
+        "emailTrabalhador": "lia-isabel.carvalho@example.pt",
+        "telemovelTrabalhador": "910068027",
+        "idEquipa": 1,
+        "credenciaisTrabalhadores": "32202"
     },
     {
-        "nomeTrabalhador": "Lourenço Andrade",
-        "emailTrabalhador": "lourenço.andrade@example.pt",
-        "telemovelTrabalhador": "938216872",
-        "idEquipa": 4,
-        "credenciaisTrabalhadores": "30065"
+        "nomeTrabalhador": "Luana Leal",
+        "emailTrabalhador": "luana.leal@example.pt",
+        "telemovelTrabalhador": "926953765",
+        "idEquipa": 1,
+        "credenciaisTrabalhadores": "78272"
     },
     {
-        "nomeTrabalhador": "Denis Nascimento",
-        "emailTrabalhador": "denis.nascimento@example.pt",
-        "telemovelTrabalhador": "917667450",
+        "nomeTrabalhador": "Alexandra Henriques",
+        "emailTrabalhador": "alexandra.henriques@example.pt",
+        "telemovelTrabalhador": "928127048",
+        "idEquipa": 1,
+        "credenciaisTrabalhadores": "40822"
+    },
+    {
+        "nomeTrabalhador": "Melissa Amaral-Barros",
+        "emailTrabalhador": "melissa.amaral-barros@example.pt",
+        "telemovelTrabalhador": "933431998",
+        "idEquipa": 2,
+        "credenciaisTrabalhadores": "92046"
+    },
+    {
+        "nomeTrabalhador": "Rui Vaz",
+        "emailTrabalhador": "rui.vaz@example.pt",
+        "telemovelTrabalhador": "928348781",
+        "idEquipa": 2,
+        "credenciaisTrabalhadores": "72031"
+    },
+    {
+        "nomeTrabalhador": "Adriana Matos",
+        "emailTrabalhador": "adriana.matos@example.pt",
+        "telemovelTrabalhador": "938103103",
+        "idEquipa": 2,
+        "credenciaisTrabalhadores": "98175"
+    },
+    {
+        "nomeTrabalhador": "Cláudio Moreira",
+        "emailTrabalhador": "cláudio.moreira@example.pt",
+        "telemovelTrabalhador": "921618162",
+        "idEquipa": 2,
+        "credenciaisTrabalhadores": "24586"
+    },
+    {
+        "nomeTrabalhador": "Mateus Andrade",
+        "emailTrabalhador": "mateus.andrade@example.pt",
+        "telemovelTrabalhador": "918846171",
+        "idEquipa": 2,
+        "credenciaisTrabalhadores": "27373"
+    },
+    {
+        "nomeTrabalhador": "Letícia Rodrigues",
+        "emailTrabalhador": "letícia.rodrigues@example.pt",
+        "telemovelTrabalhador": "910622842",
         "idEquipa": 3,
-        "credenciaisTrabalhadores": "52874"
+        "credenciaisTrabalhadores": "90485"
     },
     {
-        "nomeTrabalhador": "Ana Mendes",
-        "emailTrabalhador": "ana.mendes@example.pt",
-        "telemovelTrabalhador": "913945269",
+        "nomeTrabalhador": "Fabiana Morais",
+        "emailTrabalhador": "fabiana.morais@example.pt",
+        "telemovelTrabalhador": "935125706",
+        "idEquipa": 3,
+        "credenciaisTrabalhadores": "62104"
+    },
+    {
+        "nomeTrabalhador": "Rita Monteiro",
+        "emailTrabalhador": "rita.monteiro@example.pt",
+        "telemovelTrabalhador": "916888926",
+        "idEquipa": 3,
+        "credenciaisTrabalhadores": "82870"
+    },
+    {
+        "nomeTrabalhador": "Matilde Pinho-Soares",
+        "emailTrabalhador": "matilde.pinho-soares@example.pt",
+        "telemovelTrabalhador": "921503808",
+        "idEquipa": 3,
+        "credenciaisTrabalhadores": "58572"
+    },
+    {
+        "nomeTrabalhador": "Victória Teixeira",
+        "emailTrabalhador": "victória.teixeira@example.pt",
+        "telemovelTrabalhador": "935992992",
+        "idEquipa": 3,
+        "credenciaisTrabalhadores": "70145"
+    },
+    {
+        "nomeTrabalhador": "Fabiana Soares-Pinho",
+        "emailTrabalhador": "fabiana.soares-pinho@example.pt",
+        "telemovelTrabalhador": "926168825",
         "idEquipa": 4,
-        "credenciaisTrabalhadores": "13143"
+        "credenciaisTrabalhadores": "99978"
     },
     {
-        "nomeTrabalhador": "Samuel Neves",
-        "emailTrabalhador": "samuel.neves@example.pt",
-        "telemovelTrabalhador": "936748688",
+        "nomeTrabalhador": "Gonçalo da Oliveira",
+        "emailTrabalhador": "gonçalo.da.oliveira@example.pt",
+        "telemovelTrabalhador": "935917561",
+        "idEquipa": 4,
+        "credenciaisTrabalhadores": "13674"
+    },
+    {
+        "nomeTrabalhador": "Gaspar Vieira",
+        "emailTrabalhador": "gaspar.vieira@example.pt",
+        "telemovelTrabalhador": "934048901",
+        "idEquipa": 4,
+        "credenciaisTrabalhadores": "90254"
+    },
+    {
+        "nomeTrabalhador": "Ricardo Monteiro",
+        "emailTrabalhador": "ricardo.monteiro@example.pt",
+        "telemovelTrabalhador": "912421037",
+        "idEquipa": 4,
+        "credenciaisTrabalhadores": "80618"
+    },
+    {
+        "nomeTrabalhador": "Diana Machado-Alves",
+        "emailTrabalhador": "diana.machado-alves@example.pt",
+        "telemovelTrabalhador": "936436699",
+        "idEquipa": 4,
+        "credenciaisTrabalhadores": "31952"
+    },
+    {
+        "nomeTrabalhador": "Emanuel Martins",
+        "emailTrabalhador": "emanuel.martins@example.pt",
+        "telemovelTrabalhador": "910171179",
+        "idEquipa": 5,
+        "credenciaisTrabalhadores": "18638"
+    },
+    {
+        "nomeTrabalhador": "Eduarda Teixeira",
+        "emailTrabalhador": "eduarda.teixeira@example.pt",
+        "telemovelTrabalhador": "914221841",
+        "idEquipa": 5,
+        "credenciaisTrabalhadores": "65720"
+    },
+    {
+        "nomeTrabalhador": "Vicente Nunes",
+        "emailTrabalhador": "vicente.nunes@example.pt",
+        "telemovelTrabalhador": "930292813",
+        "idEquipa": 5,
+        "credenciaisTrabalhadores": "76702"
+    },
+    {
+        "nomeTrabalhador": "Mara Lourenço",
+        "emailTrabalhador": "mara.lourenço@example.pt",
+        "telemovelTrabalhador": "925204532",
+        "idEquipa": 5,
+        "credenciaisTrabalhadores": "10313"
+    },
+    {
+        "nomeTrabalhador": "Lorena Vaz",
+        "emailTrabalhador": "lorena.vaz@example.pt",
+        "telemovelTrabalhador": "919728324",
+        "idEquipa": 5,
+        "credenciaisTrabalhadores": "53232"
+    },
+    {
+        "nomeTrabalhador": "Tiago de Macedo",
+        "emailTrabalhador": "tiago.de.macedo@example.pt",
+        "telemovelTrabalhador": "937189880",
         "idEquipa": 6,
-        "credenciaisTrabalhadores": "12702"
+        "credenciaisTrabalhadores": "16672"
     },
     {
-        "nomeTrabalhador": "Rafaela Reis",
-        "emailTrabalhador": "rafaela.reis@example.pt",
-        "telemovelTrabalhador": "935385658",
-        "idEquipa": 8,
-        "credenciaisTrabalhadores": "53502"
-    },
-    {
-        "nomeTrabalhador": "Bianca Cardoso",
-        "emailTrabalhador": "bianca.cardoso@example.pt",
-        "telemovelTrabalhador": "925878528",
-        "idEquipa": 8,
-        "credenciaisTrabalhadores": "70017"
-    },
-    {
-        "nomeTrabalhador": "Micael Baptista",
-        "emailTrabalhador": "micael.baptista@example.pt",
-        "telemovelTrabalhador": "912332745",
-        "idEquipa": 7,
-        "credenciaisTrabalhadores": "18411"
-    },
-    {
-        "nomeTrabalhador": "Paulo Coelho",
-        "emailTrabalhador": "paulo.coelho@example.pt",
-        "telemovelTrabalhador": "914748565",
-        "idEquipa": 2,
-        "credenciaisTrabalhadores": "26340"
-    },
-    {
-        "nomeTrabalhador": "Nádia Soares",
-        "emailTrabalhador": "nádia.soares@example.pt",
-        "telemovelTrabalhador": "920963267",
-        "idEquipa": 7,
-        "credenciaisTrabalhadores": "11254"
-    },
-    {
-        "nomeTrabalhador": "Nair Cruz",
-        "emailTrabalhador": "nair.cruz@example.pt",
-        "telemovelTrabalhador": "925462601",
-        "idEquipa": 3,
-        "credenciaisTrabalhadores": "76111"
-    },
-    {
-        "nomeTrabalhador": "Íris Borges",
-        "emailTrabalhador": "íris.borges@example.pt",
-        "telemovelTrabalhador": "932479347",
-        "idEquipa": 2,
-        "credenciaisTrabalhadores": "7833"
-    },
-    {
-        "nomeTrabalhador": "Joel de Borges",
-        "emailTrabalhador": "joel.de.borges@example.pt",
-        "telemovelTrabalhador": "928695096",
-        "idEquipa": 5,
-        "credenciaisTrabalhadores": "11607"
-    },
-    {
-        "nomeTrabalhador": "Edgar Guerreiro",
-        "emailTrabalhador": "edgar.guerreiro@example.pt",
-        "telemovelTrabalhador": "925373970",
-        "idEquipa": 5,
-        "credenciaisTrabalhadores": "99940"
-    },
-    {
-        "nomeTrabalhador": "Débora Matias",
-        "emailTrabalhador": "débora.matias@example.pt",
-        "telemovelTrabalhador": "924948168",
-        "idEquipa": 8,
-        "credenciaisTrabalhadores": "49043"
-    },
-    {
-        "nomeTrabalhador": "Juliana Fernandes-Moreira",
-        "emailTrabalhador": "juliana.fernandes-moreira@example.pt",
-        "telemovelTrabalhador": "912659621",
+        "nomeTrabalhador": "Igor Nogueira-Henriques",
+        "emailTrabalhador": "igor.nogueira-henriques@example.pt",
+        "telemovelTrabalhador": "916398415",
         "idEquipa": 6,
-        "credenciaisTrabalhadores": "43900"
+        "credenciaisTrabalhadores": "79236"
     },
     {
-        "nomeTrabalhador": "Petra Neto",
-        "emailTrabalhador": "petra.neto@example.pt",
-        "telemovelTrabalhador": "921520449",
-        "idEquipa": 7,
-        "credenciaisTrabalhadores": "79368"
-    },
-    {
-        "nomeTrabalhador": "Camila da Araújo",
-        "emailTrabalhador": "camila.da.araújo@example.pt",
-        "telemovelTrabalhador": "932530160",
-        "idEquipa": 1,
-        "credenciaisTrabalhadores": "41388"
-    },
-    {
-        "nomeTrabalhador": "Edgar Vaz",
-        "emailTrabalhador": "edgar.vaz@example.pt",
-        "telemovelTrabalhador": "923868998",
-        "idEquipa": 2,
-        "credenciaisTrabalhadores": "46767"
-    },
-    {
-        "nomeTrabalhador": "Lúcia Ferreira",
-        "emailTrabalhador": "lúcia.ferreira@example.pt",
-        "telemovelTrabalhador": "923324849",
-        "idEquipa": 5,
-        "credenciaisTrabalhadores": "23502"
-    },
-    {
-        "nomeTrabalhador": "William do Maia",
-        "emailTrabalhador": "william.do.maia@example.pt",
-        "telemovelTrabalhador": "915006559",
-        "idEquipa": 5,
-        "credenciaisTrabalhadores": "41530"
-    },
-    {
-        "nomeTrabalhador": "Amélia Correia",
-        "emailTrabalhador": "amélia.correia@example.pt",
-        "telemovelTrabalhador": "935304573",
-        "idEquipa": 8,
-        "credenciaisTrabalhadores": "75905"
-    },
-    {
-        "nomeTrabalhador": "Brian do Nogueira",
-        "emailTrabalhador": "brian.do.nogueira@example.pt",
-        "telemovelTrabalhador": "929067314",
-        "idEquipa": 8,
-        "credenciaisTrabalhadores": "12885"
-    },
-    {
-        "nomeTrabalhador": "Igor Abreu-Borges",
-        "emailTrabalhador": "igor.abreu-borges@example.pt",
-        "telemovelTrabalhador": "921845861",
-        "idEquipa": 2,
-        "credenciaisTrabalhadores": "97247"
-    },
-    {
-        "nomeTrabalhador": "Cristiano de Paiva",
-        "emailTrabalhador": "cristiano.de.paiva@example.pt",
-        "telemovelTrabalhador": "918546157",
+        "nomeTrabalhador": "Núria Carvalho-Rocha",
+        "emailTrabalhador": "núria.carvalho-rocha@example.pt",
+        "telemovelTrabalhador": "923438801",
         "idEquipa": 6,
-        "credenciaisTrabalhadores": "83239"
+        "credenciaisTrabalhadores": "13439"
     },
     {
-        "nomeTrabalhador": "Soraia Cardoso",
-        "emailTrabalhador": "soraia.cardoso@example.pt",
-        "telemovelTrabalhador": "911417120",
-        "idEquipa": 5,
-        "credenciaisTrabalhadores": "75150"
+        "nomeTrabalhador": "Guilherme Teixeira",
+        "emailTrabalhador": "guilherme.teixeira@example.pt",
+        "telemovelTrabalhador": "910242478",
+        "idEquipa": 6,
+        "credenciaisTrabalhadores": "57626"
     },
     {
-        "nomeTrabalhador": "Jorge Coelho",
-        "emailTrabalhador": "jorge.coelho@example.pt",
-        "telemovelTrabalhador": "938288828",
-        "idEquipa": 1,
-        "credenciaisTrabalhadores": "354"
+        "nomeTrabalhador": "Diego do Pinheiro",
+        "emailTrabalhador": "diego.do.pinheiro@example.pt",
+        "telemovelTrabalhador": "912947797",
+        "idEquipa": 6,
+        "credenciaisTrabalhadores": "20451"
     },
     {
-        "nomeTrabalhador": "Camila Cardoso",
-        "emailTrabalhador": "camila.cardoso@example.pt",
-        "telemovelTrabalhador": "935205264",
-        "idEquipa": 2,
-        "credenciaisTrabalhadores": "92148"
+        "nomeTrabalhador": "Victória Lopes",
+        "emailTrabalhador": "victória.lopes@example.pt",
+        "telemovelTrabalhador": "921240056",
+        "idEquipa": 7,
+        "credenciaisTrabalhadores": "26607"
     },
     {
-        "nomeTrabalhador": "Eva-Andreia Machado",
-        "emailTrabalhador": "eva-andreia.machado@example.pt",
-        "telemovelTrabalhador": "933216065",
-        "idEquipa": 4,
-        "credenciaisTrabalhadores": "21473"
+        "nomeTrabalhador": "Sofia Azevedo-Batista",
+        "emailTrabalhador": "sofia.azevedo-batista@example.pt",
+        "telemovelTrabalhador": "929499554",
+        "idEquipa": 7,
+        "credenciaisTrabalhadores": "61601"
     },
     {
-        "nomeTrabalhador": "Jaime Cunha",
-        "emailTrabalhador": "jaime.cunha@example.pt",
-        "telemovelTrabalhador": "934367401",
-        "idEquipa": 3,
-        "credenciaisTrabalhadores": "28065"
+        "nomeTrabalhador": "Lúcia Freitas",
+        "emailTrabalhador": "lúcia.freitas@example.pt",
+        "telemovelTrabalhador": "912339485",
+        "idEquipa": 7,
+        "credenciaisTrabalhadores": "92852"
     },
     {
-        "nomeTrabalhador": "Nelson Pinho",
-        "emailTrabalhador": "nelson.pinho@example.pt",
-        "telemovelTrabalhador": "914467421",
-        "idEquipa": 1,
-        "credenciaisTrabalhadores": "21014"
+        "nomeTrabalhador": "Gabriel Vaz",
+        "emailTrabalhador": "gabriel.vaz@example.pt",
+        "telemovelTrabalhador": "912203492",
+        "idEquipa": 7,
+        "credenciaisTrabalhadores": "99819"
+    },
+    {
+        "nomeTrabalhador": "Matilde Amorim",
+        "emailTrabalhador": "matilde.amorim@example.pt",
+        "telemovelTrabalhador": "938092648",
+        "idEquipa": 7,
+        "credenciaisTrabalhadores": "55475"
+    },
+    {
+        "nomeTrabalhador": "Diana Ribeiro",
+        "emailTrabalhador": "diana.ribeiro@example.pt",
+        "telemovelTrabalhador": "923527773",
+        "idEquipa": 8,
+        "credenciaisTrabalhadores": "26278"
+    },
+    {
+        "nomeTrabalhador": "Lara-Ariana Simões",
+        "emailTrabalhador": "lara-ariana.simões@example.pt",
+        "telemovelTrabalhador": "922030111",
+        "idEquipa": 8,
+        "credenciaisTrabalhadores": "19753"
+    },
+    {
+        "nomeTrabalhador": "Mário da Batista",
+        "emailTrabalhador": "mário.da.batista@example.pt",
+        "telemovelTrabalhador": "911943196",
+        "idEquipa": 8,
+        "credenciaisTrabalhadores": "57532"
+    },
+    {
+        "nomeTrabalhador": "Caetana Gonçalves",
+        "emailTrabalhador": "caetana.gonçalves@example.pt",
+        "telemovelTrabalhador": "930042606",
+        "idEquipa": 8,
+        "credenciaisTrabalhadores": "57246"
+    },
+    {
+        "nomeTrabalhador": "Marcos Moura",
+        "emailTrabalhador": "marcos.moura@example.pt",
+        "telemovelTrabalhador": "938799236",
+        "idEquipa": 8,
+        "credenciaisTrabalhadores": "92404"
     }
 ]

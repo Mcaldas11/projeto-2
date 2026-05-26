@@ -1,0 +1,10 @@
+[
+  { "especializacao": "Estradas e passeios", "munEquipa": 1 },
+  { "especializacao": "Sinalizacao de transito", "munEquipa": 2 },
+  { "especializacao": "Iluminacao urbana", "munEquipa": 3 },
+  { "especializacao": "Higiene e limpeza urbana", "munEquipa": 4 },
+  { "especializacao": "Parques e jardins", "munEquipa": 5 },
+  { "especializacao": "Estradas e passeios", "munEquipa": 6 },
+  { "especializacao": "Sinalizacao de transito", "munEquipa": 7 },
+  { "especializacao": "Higiene e limpeza urbana", "munEquipa": 8 }
+]
