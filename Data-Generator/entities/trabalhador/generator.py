@@ -62,7 +62,9 @@ if __name__ == "__main__":
             "credenciaisTrabalhadores": trabalhador.credenciaisTrabalhadores,
         })
 
-    data = [asdict(t) for t in trabalhadores]
+    # 'trabalhadores' é uma lista de tuplas (trabalhador, especializacao).
+    # O asdict() espera receber o dataclass; usar o primeiro elemento.
+    data = [asdict(trabalhador) for trabalhador, _ in trabalhadores]
 
     base = Path(__file__).resolve().parents[2]
     out = base / "data" / "trabalhador.json"
