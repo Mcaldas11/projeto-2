@@ -13,7 +13,7 @@ const CidadaoModel = (sequelize) =>
         type: DataTypes.STRING(120),
         allowNull: false,
       },
-      munCidadao: {
+      fregCidadao: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },

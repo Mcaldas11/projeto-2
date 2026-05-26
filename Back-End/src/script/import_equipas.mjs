@@ -27,7 +27,7 @@ async function importEquipas() {
 
     const payload = equipas.map((e) => ({
       especializacao: e.especializacao,
-      munEquipa: e.munEquipa,
+      fregEquipa: e.fregEquipa,
     }));
 
     const chunkSize = 500;

@@ -16,11 +16,11 @@ const Recurso = RecursoModel(sequelize);
 const Ocorrencia = OcorrenciaModel(sequelize);
 const Mensagem = MensagemModel(sequelize);
 
-Municipio.hasMany(Cidadao, { foreignKey: "munCidadao", as: "cidadaos" });
-Cidadao.belongsTo(Municipio, { foreignKey: "munCidadao", as: "municipio" });
+Municipio.hasMany(Cidadao, { foreignKey: "fregCidadao", as: "cidadaos" });
+Cidadao.belongsTo(Municipio, { foreignKey: "fregCidadao", as: "municipio" });
 
-Municipio.hasMany(Equipa, { foreignKey: "munEquipa", as: "equipas" });
-Equipa.belongsTo(Municipio, { foreignKey: "munEquipa", as: "municipio" });
+Municipio.hasMany(Equipa, { foreignKey: "fregEquipa", as: "equipas" });
+Equipa.belongsTo(Municipio, { foreignKey: "fregEquipa", as: "municipio" });
 
 Equipa.hasMany(Trabalhador, { foreignKey: "idEquipa", as: "trabalhadores" });
 Trabalhador.belongsTo(Equipa, { foreignKey: "idEquipa", as: "equipa" });
@@ -63,7 +63,7 @@ const syncDatabase = async () => {
 };
 
 /* delete data from the table (municipio) before seeding to avoid duplicates and maintain data integrity */
-/* try {
+try {
   if (sequelize.getDialect() === "mysql")
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 0");
   await Municipio.destroy({ truncate: true });
@@ -75,7 +75,7 @@ const syncDatabase = async () => {
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 1");
   process.exit(1);
 }
- */
+
 export {
   sequelize,
   testConnection,

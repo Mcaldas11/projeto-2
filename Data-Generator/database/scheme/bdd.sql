@@ -36,15 +36,15 @@ COLLATE = utf8mb4_0900_ai_ci;
 CREATE TABLE IF NOT EXISTS `Grupo04`.`cidadao` (
   `idCidadao` INT NOT NULL AUTO_INCREMENT,
   `nome` VARCHAR(120) NOT NULL,
-  `munCidadao` INT NULL DEFAULT NULL,
+  `fregCidadao` INT NULL DEFAULT NULL,
   `nrTelemovel` VARCHAR(20) NULL DEFAULT NULL,
   `email` VARCHAR(150) NOT NULL,
   `credenciais` TEXT NULL DEFAULT NULL,
   PRIMARY KEY (`idCidadao`),
   UNIQUE INDEX `email` (`email` ASC) VISIBLE,
-  INDEX `munCidadao` (`munCidadao` ASC) VISIBLE,
+  INDEX `fregCidadao` (`fregCidadao` ASC) VISIBLE,
   CONSTRAINT `cidadao_ibfk_1`
-    FOREIGN KEY (`munCidadao`)
+    FOREIGN KEY (`fregCidadao`)
     REFERENCES `Grupo04`.`municipio` (`idFreguesia`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
@@ -57,11 +57,11 @@ COLLATE = utf8mb4_0900_ai_ci;
 CREATE TABLE IF NOT EXISTS `Grupo04`.`equipa` (
   `idEquipa` INT NOT NULL AUTO_INCREMENT,
   `especializacao` VARCHAR(150) NULL DEFAULT NULL,
-  `munEquipa` INT NULL DEFAULT NULL,
+  `fregEquipa` INT NULL DEFAULT NULL,
   PRIMARY KEY (`idEquipa`),
-  INDEX `munEquipa` (`munEquipa` ASC) VISIBLE,
+  INDEX `fregEquipa` (`fregEquipa` ASC) VISIBLE,
   CONSTRAINT `equipa_ibfk_1`
-    FOREIGN KEY (`munEquipa`)
+    FOREIGN KEY (`fregEquipa`)
     REFERENCES `Grupo04`.`municipio` (`idFreguesia`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4

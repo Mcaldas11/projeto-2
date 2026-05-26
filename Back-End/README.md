@@ -3,14 +3,16 @@
 Base URL: http://127.0.0.1:3000
 
 ## Auth
+
 - Most routes are public. Only ocorrencias routes require auth.
 - Use header: Authorization: Bearer <TOKEN>
 - Tokens come from /cidadaos/login or /trabalhadores/login.
 
 ## Quick guide: ocorrencia with photos (2 steps)
-1) Create ocorrencia as cidadao:
+
+1. Create ocorrencia as cidadao:
    POST /cidadaos/me/ocorrencias (JSON)
-2) Upload photos:
+2. Upload photos:
    POST /ocorrencias/:id/fotos (multipart/form-data, field name: files)
 
 Allowed image types: JPG, PNG, GIF, WEBP
@@ -19,18 +21,22 @@ Max size per file: 5MB
 Storage: Cloudinary (no local uploads folder)
 
 ## Health
+
 - GET /health
 
 ## Cloudinary
+
 Set these env vars:
+
 - CLOUDINARY_CLOUD_NAME
 - CLOUDINARY_API_KEY
 - CLOUDINARY_API_SECRET
 
 ## Cidadaos
+
 - GET /cidadaos
 - POST /cidadaos
-  - JSON fields: nome, munCidadao, nrTelemovel, email, password
+  - JSON fields: nome, fregCidadao, nrTelemovel, email, password
 - POST /cidadaos/login
   - JSON fields: email, password
 - POST /cidadaos/me/ocorrencias
@@ -40,10 +46,11 @@ Set these env vars:
   - estado is set automatically to "À espera de equipa"
 - GET /cidadaos/:id
 - PUT /cidadaos/:id
-  - JSON fields: nome, munCidadao, nrTelemovel, email
+  - JSON fields: nome, fregCidadao, nrTelemovel, email
 - DELETE /cidadaos/:id
 
 ## Trabalhadores
+
 - GET /trabalhadores
 - POST /trabalhadores
   - JSON fields: nomeTrabalhador, emailTrabalhador, telemovelTrabalhador, idEquipa, password
@@ -55,6 +62,7 @@ Set these env vars:
 - DELETE /trabalhadores/:id
 
 ## Municipios
+
 - GET /municipios
 - POST /municipios
   - JSON fields: nome
@@ -64,15 +72,17 @@ Set these env vars:
 - DELETE /municipios/:id
 
 ## Equipas
+
 - GET /equipas
 - POST /equipas
-  - JSON fields: especializacao, munEquipa
+  - JSON fields: especializacao, fregEquipa
 - GET /equipas/:id
 - PUT /equipas/:id
-  - JSON fields: especializacao, munEquipa
+  - JSON fields: especializacao, fregEquipa
 - DELETE /equipas/:id
 
 ## Recursos
+
 - GET /recursos
 - POST /recursos
   - JSON fields: tipo, estado, localizacao, equipaResponsavel
@@ -82,6 +92,7 @@ Set these env vars:
 - DELETE /recursos/:id
 
 ## Ocorrencias (auth required for all)
+
 - GET /ocorrencias
 - POST /ocorrencias
   - JSON fields: descricao, localizacao, dataOcorrencia, nomeAutor, nrTelemovelAutor, severidade, idCidadao, idMunicipio, tipo_ocorrencia
@@ -98,6 +109,7 @@ Set these env vars:
 - DELETE /ocorrencias/:id
 
 ## Mensagens
+
 - GET /mensagens
 - POST /mensagens
   - JSON fields: texto, dataMensagem, idCidadao, idOcorrencia

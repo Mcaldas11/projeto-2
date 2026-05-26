@@ -37,7 +37,7 @@ async function importCidadaos() {
       console.log("Could not read sequelize config:", e.message);
     }
 
-    // Try to map freguesias -> munCidadao using existing municipios in DB
+    // Try to map freguesias -> fregCidadao using existing municipios in DB
     const municipios = await Municipio.findAll();
     const municipioMap = new Map(
       municipios.map((m) => [normalizeText(m.nome), m.idFreguesia]),
@@ -54,7 +54,7 @@ async function importCidadaos() {
         nome: c.nome,
         email: c.email,
         nrTelemovel: c.nrTelemovel ?? null,
-        munCidadao: munCid,
+        fregCidadao: munCid,
       };
     });
 

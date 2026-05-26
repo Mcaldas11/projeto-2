@@ -13,7 +13,7 @@ const EquipaModel = (sequelize) =>
         type: DataTypes.STRING(150),
         allowNull: false,
       },
-      munEquipa: {
+      fregEquipa: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },

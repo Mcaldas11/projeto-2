@@ -109,8 +109,8 @@ export const createOcorrenciaForCidadao = async (req, res, next) => {
           req.body.nomeAutor = cidadao.nome;
           req.body.nrTelemovelAutor = cidadao.nrTelemovel;
           // Auto-fill municipality id from the citizen if not provided
-          if (!req.body.idMunicipio && cidadao.munCidadao) {
-            req.body.idMunicipio = cidadao.munCidadao;
+          if (!req.body.idMunicipio && cidadao.fregCidadao) {
+            req.body.idMunicipio = cidadao.fregCidadao;
           }
         }
       } catch (err) {
@@ -171,13 +171,19 @@ export const resolveOcorrenciaByEquipa = async (req, res, next) => {
 
     // Only trabalhadores can resolve occurrences
     if (!req.userData || req.userData.userType !== "trabalhador") {
-      return res.status(403).json({ message: "Forbidden: only trabalhadores can resolve ocorrencias" });
+      return res
+        .status(403)
+        .json({
+          message: "Forbidden: only trabalhadores can resolve ocorrencias",
+        });
     }
 
     const trabalhadorId = req.userData.userId;
     const trabalhador = await Trabalhador.findByPk(trabalhadorId);
     if (!trabalhador) {
-      return res.status(403).json({ message: "Forbidden: trabalhador not found" });
+      return res
+        .status(403)
+        .json({ message: "Forbidden: trabalhador not found" });
     }
 
     const ocorrencia = await Ocorrencia.findByPk(id);
@@ -223,7 +229,9 @@ export const addOcorrenciaFotos = async (req, res, next) => {
     const uploads = await Promise.all(
       req.files.map((file) => uploadToCloudinary(file, `ocorrencias/${id}`)),
     );
-    const newFotos = uploads.map((result) => result.secure_url || result.url).filter(Boolean);
+    const newFotos = uploads
+      .map((result) => result.secure_url || result.url)
+      .filter(Boolean);
     const existingFotos = parseFotosField(ocorrencia.foto);
     const fotos = [...existingFotos, ...newFotos];
 
