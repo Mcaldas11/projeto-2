@@ -22,6 +22,15 @@ Cidadao.belongsTo(Municipio, { foreignKey: "fregCidadao", as: "municipio" });
 Municipio.hasMany(Equipa, { foreignKey: "fregEquipa", as: "equipas" });
 Equipa.belongsTo(Municipio, { foreignKey: "fregEquipa", as: "municipio" });
 
+Municipio.hasMany(Trabalhador, {
+  foreignKey: "idFreguesia",
+  as: "trabalhadores",
+});
+Trabalhador.belongsTo(Municipio, {
+  foreignKey: "idFreguesia",
+  as: "municipio",
+});
+
 Equipa.hasMany(Trabalhador, { foreignKey: "idEquipa", as: "trabalhadores" });
 Trabalhador.belongsTo(Equipa, { foreignKey: "idEquipa", as: "equipa" });
 

@@ -36,6 +36,7 @@ async function importResponsaveis() {
       emailTrabalhador: r.email,
       telemovelTrabalhador: r.telemovel,
       idEquipa: null,
+      idFreguesia: r.idFreguesia ?? null,
       credenciaisTrabalhadores: r.credenciaisTrabalhadores ?? null,
     }));
 
@@ -78,6 +79,7 @@ async function importResponsaveis() {
             "nomeTrabalhador",
             "telemovelTrabalhador",
             "idEquipa",
+            "idFreguesia",
             "credenciaisTrabalhadores",
           ],
         });

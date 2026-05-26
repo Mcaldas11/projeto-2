@@ -79,6 +79,7 @@ def generate_responsaveis_freguesia(freguesias=None):
         nome_responsavel = fake.name()
         responsaveis.append(
             {
+                "idFreguesia": index,
                 "nome": freguesia["nome"],
                 "responsavel": nome_responsavel,
                 "email": build_responsavel_email(index),
