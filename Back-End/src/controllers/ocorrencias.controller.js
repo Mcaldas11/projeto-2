@@ -49,7 +49,7 @@ const uploadToCloudinary = (file, folder) =>
     Readable.from(file.buffer).pipe(stream);
   });
 
-const DEFAULT_ESTADO = "À espera de equipa";
+const DEFAULT_ESTADO = "À espera da equipa";
 
 export const getAllOcorrencias = async (req, res, next) => {
   try {
