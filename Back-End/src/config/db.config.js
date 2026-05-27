@@ -75,10 +75,10 @@ const syncDatabase = async () => {
 /*try {
   if (sequelize.getDialect() === "mysql") {
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 0");
-    await sequelize.query("TRUNCATE TABLE `equipa`");
+    await sequelize.query("TRUNCATE TABLE `ocorrencia`");
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 1");
   } else {
-    await Equipa.destroy({ truncate: true });
+    await Ocorrencia.destroy({ truncate: true });
   }
 } catch (err) {
   console.error(err);
