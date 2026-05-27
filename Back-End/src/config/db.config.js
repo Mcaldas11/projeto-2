@@ -72,19 +72,21 @@ const syncDatabase = async () => {
 };
 
 /* delete data from the table (municipio) before seeding to avoid duplicates and maintain data integrity */
-/* try {
-  if (sequelize.getDialect() === "mysql")
+/*try {
+  if (sequelize.getDialect() === "mysql") {
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 0");
-  await Mensagem.destroy({ truncate: true });
-  if (sequelize.getDialect() === "mysql")
+    await sequelize.query("TRUNCATE TABLE `equipa`");
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 1");
+  } else {
+    await Equipa.destroy({ truncate: true });
+  }
 } catch (err) {
   console.error(err);
-  if (sequelize.getDialect() === "mysql")
+  if (sequelize.getDialect() === "mysql") {
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 1");
+  }
   process.exit(1);
-}
-  */
+}*/
 
 export {
   sequelize,
