@@ -13,19 +13,7 @@
         />
         <span class="icon menu-trigger" @click="toggleMenu($event)" ref="menuIcon">☰</span>
 
-        <div v-if="showMenu" class="hamburger-menu" ref="menuPanel">
-          <div class="menu-list">
-            <router-link to="/" class="menu-item" @click.prevent="navigateHome">
-              Home <img src="@/assets/home.png" class="menu-icon" />
-            </router-link>
-            <router-link to="/ocorrencias" class="menu-item" @click="setWorkerRole">
-              Ocorrências <img src="@/assets/ocorrencias.png" class="menu-icon" />
-            </router-link>
-            <router-link to="/conta" class="menu-item" @click="showMenu = false">
-              Conta <img src="@/assets/conta.png" class="menu-icon" />
-            </router-link>
-          </div>
-        </div>
+        <SidebarMenu v-model="showMenu" />
 
         <div v-if="showNotif" class="notifications-panel" ref="notifPanel">
           <h4>Notificações</h4>
@@ -115,6 +103,7 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import Footer from '@/components/footer.vue'
+import SidebarMenu from '@/components/SidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import workerFooterLogo from '@/assets/logoP.png'

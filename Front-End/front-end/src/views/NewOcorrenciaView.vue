@@ -14,22 +14,7 @@
         />
         <span class="icon" @click="toggleMenu">☰</span>
 
-        <div v-if="showMenu" class="hamburger-menu">
-          <div class="menu-list">
-            <router-link to="/" class="menu-item" @click.prevent="navigateHome">
-              <span class="menu-label">Home</span>
-              <img src="@/assets/home.png" alt="home" class="menu-icon" />
-            </router-link>
-            <router-link to="/ocorrencias" class="menu-item">
-              <span class="menu-label">Ocorrências</span>
-              <img src="@/assets/ocorrencias.png" alt="ocorrencias" class="menu-icon" />
-            </router-link>
-            <router-link to="/conta" class="menu-item">
-              <span class="menu-label">Conta</span>
-              <img src="@/assets/conta.png" alt="conta" class="menu-icon" />
-            </router-link>
-          </div>
-        </div>
+        <SidebarMenu v-model="showMenu" />
 
         <div v-if="showNotif" class="notifications" ref="notifPanel">
           <h4>Notificações</h4>
@@ -131,9 +116,11 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import Footer from '@/components/footer.vue'
+import SidebarMenu from '@/components/SidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
-import { addOccurrence, defaultOccurrenceAvatar } from '@/utils/occurrenceStorage'
+import { defaultOccurrenceAvatar } from '@/utils/occurrenceStorage'
+import { createOccurrence } from '@/services/occurrenceService'
 
 // Estados do Header
 const showNotif = ref(false)
@@ -157,14 +144,6 @@ const toggleMenu = () => {
 const removeNotif = (i) => notifications.value.splice(i, 1)
 
 const router = useRouter()
-
-function navigateHome(e) {
-  if (e && e.preventDefault) e.preventDefault()
-  const role = localStorage.getItem('role')
-  if (role === 'trabalhador') router.push({ name: 'trabalhador-home' })
-  else router.push({ name: 'home' })
-  showMenu.value = false
-}
 
 // Estados do Formulário
 const currentDate = '19 março 2026' // Podes tornar dinâmico com new Date()
@@ -199,7 +178,7 @@ const triggerFile = () => fileInput.value.click()
 const onFileChange = (e) => {
   form.value.files = e.target.files
 }
-const handleSubmit = () => {
+const handleSubmit = async () => {
   if (!validateForm()) return
 
   const profile = JSON.parse(localStorage.getItem('userProfile') || 'null')
@@ -211,7 +190,7 @@ const handleSubmit = () => {
     higiene: 'Higiene Pública',
   }
 
-  addOccurrence({
+  await createOccurrence({
     id: Date.now(),
     nome: userName,
     situacao: 'Em Resolução',

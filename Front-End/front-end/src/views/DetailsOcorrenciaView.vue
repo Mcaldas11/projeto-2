@@ -5,7 +5,7 @@
         <img src="@/assets/logoP.png" alt="VC Comunica Logo" class="logo-img" />
       </div>
       <div class="nav-icons" ref="navIcons">
-        <router-link to="/new-ocorrencia" class="icon add">+</router-link>
+        <router-link :to="newOccurrenceRoute" class="icon add">+</router-link>
         <img
           :src="notifications.length === 0 ? notifOff : notifOn"
           alt="notifications"
@@ -15,24 +15,7 @@
         />
         <span class="icon" ref="menuIcon" @click="toggleMenu">☰</span>
 
-        <div v-if="showMenu" class="hamburger-menu" ref="menuPanel">
-          <div class="menu-list">
-            <router-link to="/" class="menu-item" @click.prevent="navigateHome">
-              <span class="menu-label">Home</span>
-              <img src="@/assets/home.png" alt="home" class="menu-icon" />
-            </router-link>
-
-            <router-link to="/ocorrencias" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Ocorrências</span>
-              <img src="@/assets/ocorrencias.png" alt="ocorrencias" class="menu-icon" />
-            </router-link>
-
-            <router-link to="/conta" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Conta</span>
-              <img src="@/assets/conta.png" alt="conta" class="menu-icon" />
-            </router-link>
-          </div>
-        </div>
+        <SidebarMenu v-model="showMenu" />
 
         <div v-if="showNotif" class="notifications" ref="notifPanel">
           <h4>Notificações</h4>
@@ -83,8 +66,13 @@
 
           <section class="info-sidebar">
             <div class="category-header">
-              <img src="@/assets/ocorrencias.png" alt="Ocorrência" class="icon-yellow" />
-              <h3>{{ occurrenceTypeLabel }}</h3>
+              <img
+                :src="occurrenceTypeMeta.icon"
+                :alt="occurrenceTypeMeta.label"
+                class="icon-yellow icon-type"
+                :style="{ backgroundColor: occurrenceTypeMeta.backgroundColor }"
+              />
+              <h3>{{ occurrenceTypeMeta.label }}</h3>
             </div>
 
             <div class="info-group">
@@ -152,14 +140,18 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import Footer from '@/components/footer.vue'
+import SidebarMenu from '@/components/SidebarMenu.vue'
 import about1 from '@/assets/about1.png'
 import about2 from '@/assets/about2.png'
 import about3 from '@/assets/about3.png'
-import { defaultOccurrenceAvatar, readStoredOccurrences } from '@/utils/occurrenceStorage'
+import { defaultOccurrenceAvatar } from '@/utils/occurrenceStorage'
+import { getOccurrence } from '@/services/occurrenceService'
+import { getOccurrenceTypeMeta } from '@/utils/occurrenceTypes'
+import { getNewOccurrenceRoute } from '@/utils/auth'
 
 // Estados do Header
 const showNotif = ref(false)
@@ -169,21 +161,21 @@ const notifIcon = ref(null)
 const menuPanel = ref(null)
 const menuIcon = ref(null)
 const route = useRoute()
-const router = useRouter()
 const isWorker = ref(localStorage.getItem('role') === 'trabalhador')
+const newOccurrenceRoute = computed(() => getNewOccurrenceRoute())
 
-const occurrences = ref(readStoredOccurrences())
-const selectedOccurrence = computed(() => {
-  const occurrenceId = String(route.params.id)
-  return occurrences.value.find((occurrence) => String(occurrence.id) === occurrenceId) || null
-})
+const selectedOccurrence = ref(null)
+
+async function loadOccurrence() {
+  selectedOccurrence.value = await getOccurrence(route.params.id)
+}
 
 const occurrenceTitle = computed(() => {
   if (!selectedOccurrence.value) return 'Ocorrência'
   return `Ocorrência ${selectedOccurrence.value.id}`
 })
 
-const occurrenceTypeLabel = computed(() => selectedOccurrence.value?.tipo || 'Ocorrência')
+const occurrenceTypeMeta = computed(() => getOccurrenceTypeMeta(selectedOccurrence.value?.tipo))
 const occurrenceStatus = computed(() => selectedOccurrence.value?.situacao || 'Desconhecido')
 const occurrenceLocation = computed(() => selectedOccurrence.value?.location || 'Local não disponível')
 const occurrenceDescription = computed(
@@ -235,6 +227,14 @@ watch(
   { immediate: true }
 )
 
+watch(
+  () => route.params.id,
+  async () => {
+    await loadOccurrence()
+  },
+  { immediate: true }
+)
+
 // Fechar ao clicar fora
 function handleDocClick(e) {
   if (
@@ -253,13 +253,6 @@ function handleDocClick(e) {
   ) {
     showMenu.value = false
   }
-}
-
-const navigateHome = (e) => {
-  if (e && e.preventDefault) e.preventDefault()
-  if (isWorker.value) router.push({ name: 'trabalhador-home' })
-  else router.push({ name: 'home' })
-  showMenu.value = false
 }
 
 const nextImg = () => {
@@ -481,6 +474,14 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   background: #facc15;
   padding: 8px;
   border-radius: 8px;
+}
+.icon-type {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  padding: 6px;
+  border-radius: 8px;
+  background: #facc15;
 }
 .status-badge {
   padding: 4px 12px;

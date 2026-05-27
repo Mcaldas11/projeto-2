@@ -16,6 +16,7 @@ import AdminOcorrenciaDetailView from '../views/admin/AdminOcorrenciaDetailView.
 import AdminTrabalhadoresView from '../views/admin/AdminTrabalhadoresView.vue'
 import AdminEquipasView from '../views/admin/AdminEquipasView.vue'
 import AdminRotasView from '../views/admin/AdminRotasView.vue'
+import { isAuthenticated } from '../utils/auth'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -46,6 +47,9 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
+  if ((to.name === 'conta' || to.name === 'new-ocorrencia') && !isAuthenticated()) {
+    return next({ name: 'login', query: { redirect: to.fullPath } })
+  }
   if (to.meta && to.meta.requiresWorker) {
     const role = localStorage.getItem('role')
     if (role === 'trabalhador') return next()

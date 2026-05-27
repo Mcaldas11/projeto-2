@@ -5,7 +5,7 @@
         <img src="@/assets/logoP.png" alt="VC Comunica Logo" class="logo-img" />
       </div>
       <div class="nav-icons">
-        <router-link to="/nova-ocorrencia" class="icon add">+</router-link>
+        <router-link :to="newOccurrenceRoute" class="icon add">+</router-link>
         <img
           :src="notifications.length === 0 ? notifOff : notifOn"
           alt="notifications"
@@ -14,29 +14,7 @@
         />
         <span class="icon" @click="toggleMenu">☰</span>
 
-        <!-- Sidebar Menu Overlay -->
-        <div v-if="showMenu" class="sidebar-overlay" @click="showMenu = false"></div>
-        <Transition name="slide">
-          <div v-if="showMenu" class="sidebar-menu">
-            <button class="sidebar-close" @click="showMenu = false">✕</button>
-            <div class="sidebar-top">
-              <router-link to="/" class="sidebar-item" @click.prevent="navigateHome">
-                <span class="sidebar-label">Home</span>
-                <img src="@/assets/home.png" alt="home" class="sidebar-icon" />
-              </router-link>
-              <router-link to="/ocorrencias" class="sidebar-item" @click="showMenu = false">
-                <span class="sidebar-label">Ocorrências</span>
-                <img src="@/assets/ocorrencias.png" alt="ocorrencias" class="sidebar-icon" />
-              </router-link>
-            </div>
-            <div class="sidebar-bottom">
-              <router-link to="/conta" class="sidebar-item" @click="showMenu = false">
-                <span class="sidebar-label">Conta</span>
-                <img src="@/assets/conta.png" alt="conta" class="sidebar-icon" />
-              </router-link>
-            </div>
-          </div>
-        </Transition>
+        <SidebarMenu v-model="showMenu" />
 
         <div v-if="showNotif" class="notifications">
           <h4>Notificações</h4>
@@ -113,7 +91,9 @@
                 <td>{{ occ.tipo }}</td>
                 <td class="details-cell">{{ occ.detalhes }}</td>
                 <td class="actions-cell">
-                  <img src="@/assets/detalhes.png" alt="Detalhes" class="btn-table-info" />
+                  <router-link :to="`/ocorrencia/${occ.id}`" class="details-link" :aria-label="`Ver ocorrência ${occ.id}`">
+                    <img src="@/assets/detalhes.png" alt="Detalhes" class="btn-table-info" />
+                  </router-link>
                   <span class="star-icon" v-if="occ.favorite" @click="reviewOcorrencia">★</span>
                 </td>
               </tr>
@@ -180,12 +160,14 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import Footer from '@/components/footer.vue'
+import SidebarMenu from '@/components/SidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import { readStoredOccurrences } from '@/utils/occurrenceStorage'
+import { getNewOccurrenceRoute } from '@/utils/auth'
 
 const showNotif = ref(false)
 const showMenu = ref(false)
@@ -228,6 +210,8 @@ const showEditModal = ref(false)
 const editFirstName = ref('')
 const editLastName = ref('')
 const editEmail = ref('')
+const router = useRouter()
+const newOccurrenceRoute = computed(() => getNewOccurrenceRoute())
 
 function validarEmail(email) {
   const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(".+"))@(([^<>()[\]\\.,;:\s@\"]+\.)+[^<>()[\]\\.,;:\s@\"]{2,})$/i
@@ -247,16 +231,6 @@ const removeNotif = (i) => notifications.value.splice(i, 1)
 const reviewOcorrencia = () => {
   
   
-}
-
-const router = useRouter()
-
-function navigateHome(e) {
-  if (e && e.preventDefault) e.preventDefault()
-  const role = localStorage.getItem('role')
-  if (role === 'trabalhador') router.push({ name: 'trabalhador-home' })
-  else router.push({ name: 'home' })
-  showMenu.value = false
 }
 
 const editarNome = () => {
@@ -292,7 +266,7 @@ const showLogoutModal = ref(false)
 function handleLogout() {
   localStorage.removeItem('role')
   showLogoutModal.value = false
-  router.push({ name: 'home' })
+  router.replace({ name: 'home' })
 }
 
 const userOccurrences = ref(readStoredOccurrences())
@@ -606,6 +580,10 @@ const userOccurrences = ref(readStoredOccurrences())
   height: 24px;
   object-fit: contain;
   cursor: pointer;
+.details-link {
+  display: inline-flex;
+  align-items: center;
+}
   display: inline-block;
 }
 .star-icon {
