@@ -173,6 +173,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { useRoute } from 'vue-router'
 import Footer from '@/components/footer.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
@@ -197,6 +198,8 @@ const notifPanel = ref(null)
 const notifIcon = ref(null)
 const menuPanel = ref(null)
 const menuIcon = ref(null)
+const route = useRoute()
+const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 const notifications = ref([
   {
@@ -239,20 +242,56 @@ function handleDocClick(e) {
   }
 }
 
-onMounted(() => document.addEventListener('click', handleDocClick))
-onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
-
 // Gallery
-const gallery = ['/img/iluminacao1.jpg', '/img/iluminacao2.jpg', '/img/iluminacao3.jpg']
+const gallery = ref([])
 const activeImageIndex = ref(0)
-const activeImage = computed(() => gallery[activeImageIndex.value])
+const activeImage = computed(() => gallery.value[activeImageIndex.value] || '')
 
 const nextImg = () => {
-  activeImageIndex.value = (activeImageIndex.value + 1) % gallery.length
+  if (!gallery.value.length) return
+  activeImageIndex.value = (activeImageIndex.value + 1) % gallery.value.length
 }
 const prevImg = () => {
-  activeImageIndex.value = (activeImageIndex.value - 1 + gallery.length) % gallery.length
+  if (!gallery.value.length) return
+  activeImageIndex.value =
+    (activeImageIndex.value - 1 + gallery.value.length) % gallery.value.length
 }
+
+const mapFotoToUrls = (foto) => {
+  if (!Array.isArray(foto)) return []
+  return foto
+    .map((item) => {
+      if (!item) return null
+      if (typeof item === 'string') return item
+      if (typeof item === 'object') return item.url || null
+      return null
+    })
+    .filter(Boolean)
+}
+
+const loadOcorrenciaFotos = async () => {
+  try {
+    const token = localStorage.getItem('token')
+    const response = await fetch(`${apiBaseUrl}/ocorrencias/${route.params.id}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+
+    if (!response.ok) return
+
+    const data = await response.json()
+    const urls = mapFotoToUrls(data.foto)
+    gallery.value = urls
+    activeImageIndex.value = 0
+  } catch {
+    // keep gallery empty on errors
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleDocClick)
+  loadOcorrenciaFotos()
+})
+onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
 </script>
 
 <style scoped>

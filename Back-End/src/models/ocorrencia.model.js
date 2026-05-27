@@ -10,7 +10,7 @@ const OcorrenciaModel = (sequelize) =>
         primaryKey: true,
       },
       foto: {
-        type: DataTypes.STRING(255),
+        type: DataTypes.TEXT,
         allowNull: true,
       },
       descricao: {

@@ -145,8 +145,8 @@
 </template>
 
 <script setup>
-import { ref} from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import Footer from '@/components/footer.vue'
@@ -158,7 +158,13 @@ const notifPanel = ref(null)
 const notifIcon = ref(null)
 const menuPanel = ref(null)
 const menuIcon = ref(null)
-const gallery = ref(null)
+const gallery = ref([])
+const activeImageIndex = ref(0)
+const activeImage = computed(() => gallery.value[activeImageIndex.value] || '')
+const isWorker = ref(localStorage.getItem('role') === 'trabalhador')
+const router = useRouter()
+const route = useRoute()
+const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 const notifications = ref([
   {
@@ -211,18 +217,58 @@ const navigateHome = (e) => {
 }
 
 const nextImg = () => {
-  const idx = gallery.indexOf(activeImage.value)
-  activeImage.value = gallery[(idx + 1) % gallery.length]
+  if (!gallery.value.length) return
+  activeImageIndex.value = (activeImageIndex.value + 1) % gallery.value.length
 }
 const prevImg = () => {
-  const idx = gallery.indexOf(activeImage.value)
-  activeImage.value = gallery[(idx - 1 + gallery.length) % gallery.length]
+  if (!gallery.value.length) return
+  activeImageIndex.value =
+    (activeImageIndex.value - 1 + gallery.value.length) % gallery.value.length
 }
 const reportError = () => {
   // placeholder action for reporting an error from worker
   console.log('Reportar Erro clicked')
   alert('Reportar Erro: ação simulada (só visível a trabalhadores)')
 }
+
+const mapFotoToUrls = (foto) => {
+  if (!Array.isArray(foto)) return []
+  return foto
+    .map((item) => {
+      if (!item) return null
+      if (typeof item === 'string') return item
+      if (typeof item === 'object') return item.url || null
+      return null
+    })
+    .filter(Boolean)
+}
+
+const loadOcorrenciaFotos = async () => {
+  try {
+    const token = localStorage.getItem('token')
+    const response = await fetch(`${apiBaseUrl}/ocorrencias/${route.params.id}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+
+    if (!response.ok) return
+
+    const data = await response.json()
+    const urls = mapFotoToUrls(data.foto)
+    gallery.value = urls
+    activeImageIndex.value = 0
+  } catch {
+    // keep gallery empty on errors
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleDocClick)
+  loadOcorrenciaFotos()
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleDocClick)
+})
 </script>
 
 <style scoped>

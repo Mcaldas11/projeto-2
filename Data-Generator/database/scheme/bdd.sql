@@ -73,7 +73,7 @@ COLLATE = utf8mb4_0900_ai_ci;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `Grupo04`.`ocorrencia` (
   `idOcorrencia` INT NOT NULL AUTO_INCREMENT,
-  `foto` VARCHAR(255) NULL DEFAULT NULL,
+  `foto` TEXT NULL DEFAULT NULL,
   `descricao` TEXT NULL DEFAULT NULL,
   `localizacao` VARCHAR(255) NULL DEFAULT NULL,
   `dataOcorrencia` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,

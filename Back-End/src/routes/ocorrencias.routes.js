@@ -39,6 +39,22 @@ router.post(
   uploadFotos.array("files", 10),
   ocorrenciasControllers.addOcorrenciaFotos,
 );
+router.delete(
+  "/:id/fotos",
+  validateIntegerParam("id"),
+  ocorrenciasControllers.deleteOcorrenciaFotos,
+);
+router.delete(
+  "/:id/fotos/:fotoIndex",
+  validateIntegerParam("id"),
+  ocorrenciasControllers.deleteOcorrenciaFotoByIndex,
+);
+router.patch(
+  "/:id/fotos/:fotoIndex",
+  validateIntegerParam("id"),
+  uploadFotos.array("files", 1),
+  ocorrenciasControllers.replaceOcorrenciaFoto,
+);
 router.put(
   "/:id",
   validateIntegerParam("id"),
