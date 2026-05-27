@@ -46,19 +46,33 @@ export const getTrabalhadorById = async (req, res, next) => {
 
 export const createTrabalhador = async (req, res, next) => {
   try {
-    const { nomeTrabalhador, emailTrabalhador, telemovelTrabalhador, idEquipa, password } = req.body;
+    const {
+      nomeTrabalhador,
+      emailTrabalhador,
+      telemovelTrabalhador,
+      idEquipa,
+      password,
+    } = req.body;
 
     if (!password) {
       return res.status(400).json({ message: "Password is required" });
     }
 
-    if (!idEquipa) {
-      return res.status(400).json({ message: "idEquipa is required" });
-    }
+    const hasIdEquipa =
+      idEquipa !== undefined && idEquipa !== null && idEquipa !== "";
+    let normalizedIdEquipa = null;
 
-    const equipa = await Equipa.findByPk(idEquipa);
-    if (!equipa) {
-      return res.status(400).json({ message: "Invalid idEquipa" });
+    if (hasIdEquipa) {
+      normalizedIdEquipa = Number(idEquipa);
+
+      if (!Number.isInteger(normalizedIdEquipa) || normalizedIdEquipa <= 0) {
+        return res.status(400).json({ message: "Invalid idEquipa" });
+      }
+
+      const equipa = await Equipa.findByPk(normalizedIdEquipa);
+      if (!equipa) {
+        return res.status(400).json({ message: "Invalid idEquipa" });
+      }
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -66,14 +80,18 @@ export const createTrabalhador = async (req, res, next) => {
       nomeTrabalhador,
       emailTrabalhador,
       telemovelTrabalhador,
-      idEquipa,
+      idEquipa: normalizedIdEquipa,
       credenciaisTrabalhadores: hashedPassword,
     });
 
     const token = jwt.sign(
-      { userId: trabalhador.idTrabalhador, email: trabalhador.emailTrabalhador, userType: "trabalhador" },
+      {
+        userId: trabalhador.idTrabalhador,
+        email: trabalhador.emailTrabalhador,
+        userType: "trabalhador",
+      },
       "your_jwt_secret",
-      { expiresIn: "15m" }
+      { expiresIn: "15m" },
     );
 
     res.status(201).json({
@@ -84,7 +102,9 @@ export const createTrabalhador = async (req, res, next) => {
     });
   } catch (error) {
     if (error.name === "SequelizeUniqueConstraintError") {
-      return res.status(409).json({ message: "Conflict: Email already in use." });
+      return res
+        .status(409)
+        .json({ message: "Conflict: Email already in use." });
     }
     if (handleSequelizeValidation(error, next)) {
       return;
@@ -101,24 +121,41 @@ export const loginTrabalhador = async (req, res, next) => {
     const loginEmail = emailTrabalhador || email;
 
     if (!loginEmail || !password) {
-      return res.status(400).json({ message: "Email and password are required." });
+      return res
+        .status(400)
+        .json({ message: "Email and password are required." });
     }
 
-    const trabalhador = await Trabalhador.findOne({ where: { emailTrabalhador: loginEmail } });
+    const trabalhador = await Trabalhador.findOne({
+      where: { emailTrabalhador: loginEmail },
+    });
 
     if (!trabalhador || !trabalhador.credenciaisTrabalhadores) {
-      return res.status(401).json({ message: "Authentication failed. User not found or no password set." });
+      return res
+        .status(401)
+        .json({
+          message: "Authentication failed. User not found or no password set.",
+        });
     }
 
-    const isPasswordCorrect = await bcrypt.compare(password, trabalhador.credenciaisTrabalhadores);
+    const isPasswordCorrect = await bcrypt.compare(
+      password,
+      trabalhador.credenciaisTrabalhadores,
+    );
     if (!isPasswordCorrect) {
-      return res.status(401).json({ message: "Authentication failed. Wrong password." });
+      return res
+        .status(401)
+        .json({ message: "Authentication failed. Wrong password." });
     }
 
     const token = jwt.sign(
-      { userId: trabalhador.idTrabalhador, email: trabalhador.emailTrabalhador, userType: "trabalhador" },
+      {
+        userId: trabalhador.idTrabalhador,
+        email: trabalhador.emailTrabalhador,
+        userType: "trabalhador",
+      },
       "your_jwt_secret",
-      { expiresIn: "15m" }
+      { expiresIn: "15m" },
     );
 
     res.status(200).json({
@@ -141,12 +178,35 @@ export const updateTrabalhador = async (req, res, next) => {
       return next(notFoundError("trabalhador", id));
     }
 
+    if (Object.prototype.hasOwnProperty.call(req.body, "idEquipa")) {
+      const { idEquipa } = req.body;
+
+      if (idEquipa === "" || idEquipa === null) {
+        req.body.idEquipa = null;
+      } else {
+        const normalizedIdEquipa = Number(idEquipa);
+        if (!Number.isInteger(normalizedIdEquipa) || normalizedIdEquipa <= 0) {
+          return res.status(400).json({ message: "Invalid idEquipa" });
+        }
+
+        const equipa = await Equipa.findByPk(normalizedIdEquipa);
+        if (!equipa) {
+          return res.status(400).json({ message: "Invalid idEquipa" });
+        }
+
+        req.body.idEquipa = normalizedIdEquipa;
+      }
+    }
+
     await trabalhador.update(req.body);
     res.json(trabalhador);
   } catch (error) {
     if (error?.name === "SequelizeUniqueConstraintError") {
       return next(
-        conflictError({ emailTrabalhador: ["Email already in use"] }, "Conflict: Email already in use."),
+        conflictError(
+          { emailTrabalhador: ["Email already in use"] },
+          "Conflict: Email already in use.",
+        ),
       );
     }
     if (handleSequelizeValidation(error, next)) {

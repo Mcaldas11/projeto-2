@@ -26,7 +26,11 @@ const TrabalhadorModel = (sequelize) =>
       },
       idEquipa: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
+      },
+      idFreguesia: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
       },
       credenciaisTrabalhadores: {
         type: DataTypes.TEXT,

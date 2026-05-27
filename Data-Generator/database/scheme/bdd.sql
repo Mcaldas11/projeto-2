@@ -159,13 +159,18 @@ CREATE TABLE IF NOT EXISTS `Grupo04`.`trabalhador` (
   `emailTrabalhador` VARCHAR(150) NOT NULL,
   `telemovelTrabalhador` VARCHAR(20) NULL DEFAULT NULL,
   `idEquipa` INT NULL DEFAULT NULL,
+  `idFreguesia` INT NULL DEFAULT NULL,
   `credenciaisTrabalhadores` TEXT NULL DEFAULT NULL,
   PRIMARY KEY (`idTrabalhador`),
   UNIQUE INDEX `emailTrabalhador` (`emailTrabalhador` ASC) VISIBLE,
   INDEX `idEquipa` (`idEquipa` ASC) VISIBLE,
+  INDEX `idFreguesia` (`idFreguesia` ASC) VISIBLE,
   CONSTRAINT `trabalhador_ibfk_1`
     FOREIGN KEY (`idEquipa`)
-    REFERENCES `Grupo04`.`equipa` (`idEquipa`))
+    REFERENCES `Grupo04`.`equipa` (`idEquipa`),
+  CONSTRAINT `trabalhador_ibfk_2`
+    FOREIGN KEY (`idFreguesia`)
+    REFERENCES `Grupo04`.`municipio` (`idFreguesia`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
