@@ -2,10 +2,6 @@ import fs from "fs/promises";
 import "dotenv/config";
 import { sequelize, Equipa, Municipio } from "../config/db.config.js";
 
-const dataPath = new URL(
-  "../../../Data-Generator/data/equipa.json",
-  import.meta.url,
-);
 const seedPath = new URL(
   "../../../Data-Generator/database/seeds/seed_equipas.py",
   import.meta.url,
