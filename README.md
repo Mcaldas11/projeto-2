@@ -22,7 +22,7 @@ Plataforma municipal para reporte e gestao de ocorrencias. Os cidadaos submetem 
 
 ## Objetivos
 
-- Simplificar o reporte de problemas no espaco publico.
+- Simplificar a reportagem de problemas no espaco publico.
 - Dar visibilidade ao estado das ocorrencias.
 - Apoiar a operacao das equipas tecnicas.
 - Reunir dados para analise e melhoria continua.
