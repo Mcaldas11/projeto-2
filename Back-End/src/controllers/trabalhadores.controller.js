@@ -1,6 +1,8 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { Readable } from "stream";
 import { Equipa, Trabalhador } from "../config/db.config.js";
+import cloudinary from "../config/cloudinary.js";
 import {
   conflictError,
   genericError,
@@ -19,6 +21,41 @@ const handleSequelizeValidation = (error, next) => {
 
   return false;
 };
+
+const extractPublicIdFromUrl = (url) => {
+  if (!url || typeof url !== "string") return null;
+
+  const cleanUrl = url.split("?")[0];
+  const marker = "/upload/";
+  const markerIndex = cleanUrl.indexOf(marker);
+  if (markerIndex === -1) return null;
+
+  let publicPath = cleanUrl.slice(markerIndex + marker.length);
+  publicPath = publicPath.replace(/^v\d+\//, "");
+
+  const lastDot = publicPath.lastIndexOf(".");
+  if (lastDot > -1) {
+    publicPath = publicPath.slice(0, lastDot);
+  }
+
+  return publicPath || null;
+};
+
+const uploadToCloudinary = (file, folder) =>
+  new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder,
+        resource_type: "image",
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      },
+    );
+
+    Readable.from(file.buffer).pipe(stream);
+  });
 
 export const getAllTrabalhadores = async (req, res, next) => {
   try {
@@ -230,5 +267,57 @@ export const deleteTrabalhador = async (req, res, next) => {
     res.status(204).send();
   } catch (error) {
     next(genericError("Error deleting trabalhador"));
+  }
+};
+
+export const updateTrabalhadorFoto = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    if (!req.userData || req.userData.userType !== "trabalhador") {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    if (Number(req.userData.userId) !== Number(id)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: "Falta o ficheiro" });
+    }
+
+    const trabalhador = await Trabalhador.findByPk(id);
+    if (!trabalhador) {
+      return next(notFoundError("trabalhador", id));
+    }
+
+    const upload = await uploadToCloudinary(req.file, `trabalhadores/${id}`);
+    const newUrl = upload?.secure_url || upload?.url;
+    if (!newUrl) {
+      return next(genericError("Error uploading fotoPerfil"));
+    }
+
+    const oldUrl = trabalhador.fotoPerfil;
+    await trabalhador.update({ fotoPerfil: newUrl });
+
+    const oldPublicId = extractPublicIdFromUrl(oldUrl);
+    if (oldPublicId) {
+      try {
+        await cloudinary.uploader.destroy(oldPublicId, {
+          resource_type: "image",
+          invalidate: true,
+        });
+      } catch {
+        // ignore cleanup errors
+      }
+    }
+
+    res.json({ success: true, fotoPerfil: newUrl });
+  } catch (error) {
+    if (handleSequelizeValidation(error, next)) {
+      return;
+    }
+
+    next(genericError("Error updating fotoPerfil"));
   }
 };

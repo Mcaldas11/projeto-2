@@ -36,6 +36,10 @@ const TrabalhadorModel = (sequelize) =>
         type: DataTypes.TEXT,
         allowNull: true,
       },
+      fotoPerfil: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
     },
     {
       tableName: "trabalhador",

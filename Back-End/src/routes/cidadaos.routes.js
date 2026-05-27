@@ -1,4 +1,5 @@
 import express from "express";
+import multer from "multer";
 
 import * as cidadaosControllers from "../controllers/cidadaos.controller.js";
 import * as ocorrenciasControllers from "../controllers/ocorrencias.controller.js";
@@ -11,6 +12,19 @@ import { requiredFieldsByResource } from "../utils/required-fields.utils.js";
 import authMiddleware from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
+
+const uploadFoto = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const allowed = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    if (allowed.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Apenas JPG, PNG, GIF ou WEBP sao permitidos"));
+    }
+  },
+});
 
 router.get("/", cidadaosControllers.getAllCidadaos);
 router.post(
@@ -51,6 +65,13 @@ router.put(
   requireJsonObject,
   requireFields(requiredFieldsByResource.cidadaos),
   cidadaosControllers.updateCidadao,
+);
+router.patch(
+  "/:id/foto",
+  authMiddleware,
+  validateIntegerParam("id"),
+  uploadFoto.single("file"),
+  cidadaosControllers.updateCidadaoFoto,
 );
 router.delete(
   "/:id",
