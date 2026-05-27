@@ -70,6 +70,20 @@ def generate_fake_trabalhadores_por_equipa(equipas=None, trabalhadores_por_equip
     return trabalhadores
 
 
+def generate_fake_trabalhadores_sem_equipa(count=5):
+    """
+    Gerar `count` trabalhadores sem equipa (idEquipa None).
+
+    Retorna uma lista de instâncias `TrabalhadorSchema`.
+    """
+    trabalhadores = []
+    for i in range(1, count + 1):
+        trabalhador, _ = generate_fake_trabalhador(None, i)
+        trabalhadores.append(trabalhador)
+
+    return trabalhadores
+
+
 def generate_responsaveis_freguesia(freguesias=None):
     if freguesias is None:
         freguesias = FREGUESIAS_VILA_DO_CONDE

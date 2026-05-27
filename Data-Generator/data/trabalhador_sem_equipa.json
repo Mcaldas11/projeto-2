@@ -1,0 +1,37 @@
+[
+    {
+        "nomeTrabalhador": "Kévim Correia",
+        "emailTrabalhador": "kevim.correia.1@example.pt",
+        "telemovelTrabalhador": "911526988",
+        "idEquipa": null,
+        "credenciaisTrabalhadores": "38156"
+    },
+    {
+        "nomeTrabalhador": "Leonardo Tavares-Araújo",
+        "emailTrabalhador": "leonardo.tavares.araujo.2@example.pt",
+        "telemovelTrabalhador": "915446406",
+        "idEquipa": null,
+        "credenciaisTrabalhadores": "68260"
+    },
+    {
+        "nomeTrabalhador": "Clara Almeida",
+        "emailTrabalhador": "clara.almeida.3@example.pt",
+        "telemovelTrabalhador": "936135492",
+        "idEquipa": null,
+        "credenciaisTrabalhadores": "87682"
+    },
+    {
+        "nomeTrabalhador": "Margarida Mendes",
+        "emailTrabalhador": "margarida.mendes.4@example.pt",
+        "telemovelTrabalhador": "916715045",
+        "idEquipa": null,
+        "credenciaisTrabalhadores": "56884"
+    },
+    {
+        "nomeTrabalhador": "Leonardo Carneiro",
+        "emailTrabalhador": "leonardo.carneiro.5@example.pt",
+        "telemovelTrabalhador": "917257221",
+        "idEquipa": null,
+        "credenciaisTrabalhadores": "93942"
+    }
+]
