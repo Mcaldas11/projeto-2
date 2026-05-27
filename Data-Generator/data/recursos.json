@@ -1,0 +1,1202 @@
+[
+  {
+    "idRecurso": 1,
+    "tipo": "Mini retroescavadora",
+    "estado": "Operacional",
+    "especificacoes": "Escavações ligeiras, reposição de pavimento e remoção de entulho.",
+    "localizacao": "Árvore",
+    "equipaResponsavel": 11
+  },
+  {
+    "idRecurso": 2,
+    "tipo": "Placa vibratória",
+    "estado": "Operacional",
+    "especificacoes": "Compactação de solos e reparações rápidas em passeios e calçadas.",
+    "localizacao": "Árvore",
+    "equipaResponsavel": 11
+  },
+  {
+    "idRecurso": 3,
+    "tipo": "Carrinha de sinalização",
+    "estado": "Operacional",
+    "especificacoes": "Transporte de cones, painéis de aviso e material de sinalização temporária.",
+    "localizacao": "Árvore",
+    "equipaResponsavel": 12
+  },
+  {
+    "idRecurso": 4,
+    "tipo": "Kit de sinalização móvel",
+    "estado": "Operacional",
+    "especificacoes": "Cones, barreiras e placas portáteis para cortes e desvios de trânsito.",
+    "localizacao": "Árvore",
+    "equipaResponsavel": 12
+  },
+  {
+    "idRecurso": 5,
+    "tipo": "Plataforma elevatória",
+    "estado": "Operacional",
+    "especificacoes": "Acesso em altura para substituição e reparação de luminárias.",
+    "localizacao": "Árvore",
+    "equipaResponsavel": 13
+  },
+  {
+    "idRecurso": 6,
+    "tipo": "Gerador portátil",
+    "estado": "Operacional",
+    "especificacoes": "Alimentação de emergência para intervenções em zonas sem energia.",
+    "localizacao": "Árvore",
+    "equipaResponsavel": 13
+  },
+  {
+    "idRecurso": 7,
+    "tipo": "Mini retroescavadora",
+    "estado": "Operacional",
+    "especificacoes": "Escavações ligeiras, reposição de pavimento e remoção de entulho.",
+    "localizacao": "Aveleda",
+    "equipaResponsavel": 21
+  },
+  {
+    "idRecurso": 8,
+    "tipo": "Placa vibratória",
+    "estado": "Operacional",
+    "especificacoes": "Compactação de solos e reparações rápidas em passeios e calçadas.",
+    "localizacao": "Aveleda",
+    "equipaResponsavel": 21
+  },
+  {
+    "idRecurso": 9,
+    "tipo": "Carrinha de sinalização",
+    "estado": "Operacional",
+    "especificacoes": "Transporte de cones, painéis de aviso e material de sinalização temporária.",
+    "localizacao": "Aveleda",
+    "equipaResponsavel": 22
+  },
+  {
+    "idRecurso": 10,
+    "tipo": "Kit de sinalização móvel",
+    "estado": "Operacional",
+    "especificacoes": "Cones, barreiras e placas portáteis para cortes e desvios de trânsito.",
+    "localizacao": "Aveleda",
+    "equipaResponsavel": 22
+  },
+  {
+    "idRecurso": 11,
+    "tipo": "Plataforma elevatória",
+    "estado": "Operacional",
+    "especificacoes": "Acesso em altura para substituição e reparação de luminárias.",
+    "localizacao": "Aveleda",
+    "equipaResponsavel": 23
+  },
+  {
+    "idRecurso": 12,
+    "tipo": "Gerador portátil",
+    "estado": "Operacional",
+    "especificacoes": "Alimentação de emergência para intervenções em zonas sem energia.",
+    "localizacao": "Aveleda",
+    "equipaResponsavel": 23
+  },
+  {
+    "idRecurso": 13,
+    "tipo": "Mini retroescavadora",
+    "estado": "Operacional",
+    "especificacoes": "Escavações ligeiras, reposição de pavimento e remoção de entulho.",
+    "localizacao": "Azurara",
+    "equipaResponsavel": 31
+  },
+  {
+    "idRecurso": 14,
+    "tipo": "Placa vibratória",
+    "estado": "Operacional",
+    "especificacoes": "Compactação de solos e reparações rápidas em passeios e calçadas.",
+    "localizacao": "Azurara",
+    "equipaResponsavel": 31
+  },
+  {
+    "idRecurso": 15,
+    "tipo": "Carrinha de sinalização",
+    "estado": "Operacional",
+    "especificacoes": "Transporte de cones, painéis de aviso e material de sinalização temporária.",
+    "localizacao": "Azurara",
+    "equipaResponsavel": 32
+  },
+  {
+    "idRecurso": 16,
+    "tipo": "Kit de sinalização móvel",
+    "estado": "Operacional",
+    "especificacoes": "Cones, barreiras e placas portáteis para cortes e desvios de trânsito.",
+    "localizacao": "Azurara",
+    "equipaResponsavel": 32
+  },
+  {
+    "idRecurso": 17,
+    "tipo": "Plataforma elevatória",
+    "estado": "Operacional",
+    "especificacoes": "Acesso em altura para substituição e reparação de luminárias.",
+    "localizacao": "Azurara",
+    "equipaResponsavel": 33
+  },
+  {
+    "idRecurso": 18,
+    "tipo": "Gerador portátil",
+    "estado": "Operacional",
+    "especificacoes": "Alimentação de emergência para intervenções em zonas sem energia.",
+    "localizacao": "Azurara",
+    "equipaResponsavel": 33
+  },
+  {
+    "idRecurso": 19,
+    "tipo": "Mini retroescavadora",
+    "estado": "Operacional",
+    "especificacoes": "Escavações ligeiras, reposição de pavimento e remoção de entulho.",
+    "localizacao": "Fajozes",
+    "equipaResponsavel": 41
+  },
+  {
+    "idRecurso": 20,
+    "tipo": "Placa vibratória",
+    "estado": "Operacional",
+    "especificacoes": "Compactação de solos e reparações rápidas em passeios e calçadas.",
+    "localizacao": "Fajozes",
+    "equipaResponsavel": 41
+  },
+  {
+    "idRecurso": 21,
+    "tipo": "Carrinha de sinalização",
+    "estado": "Operacional",
+    "especificacoes": "Transporte de cones, painéis de aviso e material de sinalização temporária.",
+    "localizacao": "Fajozes",
+    "equipaResponsavel": 42
+  },
+  {
+    "idRecurso": 22,
+    "tipo": "Kit de sinalização móvel",
+    "estado": "Operacional",
+    "especificacoes": "Cones, barreiras e placas portáteis para cortes e desvios de trânsito.",
+    "localizacao": "Fajozes",
+    "equipaResponsavel": 42
+  },
+  {
+    "idRecurso": 23,
+    "tipo": "Plataforma elevatória",
+    "estado": "Operacional",
+    "especificacoes": "Acesso em altura para substituição e reparação de luminárias.",
+    "localizacao": "Fajozes",
+    "equipaResponsavel": 43
+  },
+  {
+    "idRecurso": 24,
+    "tipo": "Gerador portátil",
+    "estado": "Operacional",
+    "especificacoes": "Alimentação de emergência para intervenções em zonas sem energia.",
+    "localizacao": "Fajozes",
+    "equipaResponsavel": 43
+  },
+  {
+    "idRecurso": 25,
+    "tipo": "Mini retroescavadora",
+    "estado": "Operacional",
+    "especificacoes": "Escavações ligeiras, reposição de pavimento e remoção de entulho.",
+    "localizacao": "Gião",
+    "equipaResponsavel": 51
+  },
+  {
+    "idRecurso": 26,
+    "tipo": "Placa vibratória",
+    "estado": "Operacional",
+    "especificacoes": "Compactação de solos e reparações rápidas em passeios e calçadas.",
+    "localizacao": "Gião",
+    "equipaResponsavel": 51
+  },
+  {
+    "idRecurso": 27,
+    "tipo": "Carrinha de sinalização",
+    "estado": "Operacional",
+    "especificacoes": "Transporte de cones, painéis de aviso e material de sinalização temporária.",
+    "localizacao": "Gião",
+    "equipaResponsavel": 52
+  },
+  {
+    "idRecurso": 28,
+    "tipo": "Kit de sinalização móvel",
+    "estado": "Operacional",
+    "especificacoes": "Cones, barreiras e placas portáteis para cortes e desvios de trânsito.",
+    "localizacao": "Gião",
+    "equipaResponsavel": 52
+  },
+  {
+    "idRecurso": 29,
+    "tipo": "Plataforma elevatória",
+    "estado": "Operacional",
+    "especificacoes": "Acesso em altura para substituição e reparação de luminárias.",
+    "localizacao": "Gião",
+    "equipaResponsavel": 53
+  },
+  {
+    "idRecurso": 30,
+    "tipo": "Gerador portátil",
+    "estado": "Operacional",
+    "especificacoes": "Alimentação de emergência para intervenções em zonas sem energia.",
+    "localizacao": "Gião",
+    "equipaResponsavel": 53
+  },
+  {
+    "idRecurso": 31,
+    "tipo": "Mini retroescavadora",
+    "estado": "Operacional",
+    "especificacoes": "Escavações ligeiras, reposição de pavimento e remoção de entulho.",
+    "localizacao": "Guilhabreu",
+    "equipaResponsavel": 61
+  },
+  {
+    "idRecurso": 32,
+    "tipo": "Placa vibratória",
+    "estado": "Operacional",
+    "especificacoes": "Compactação de solos e reparações rápidas em passeios e calçadas.",
+    "localizacao": "Guilhabreu",
+    "equipaResponsavel": 61
+  },
+  {
+    "idRecurso": 33,
+    "tipo": "Carrinha de sinalização",
+    "estado": "Operacional",
+    "especificacoes": "Transporte de cones, painéis de aviso e material de sinalização temporária.",
+    "localizacao": "Guilhabreu",
+    "equipaResponsavel": 62
+  },
+  {
+    "idRecurso": 34,
+    "tipo": "Kit de sinalização móvel",
+    "estado": "Operacional",
+    "especificacoes": "Cones, barreiras e placas portáteis para cortes e desvios de trânsito.",
+    "localizacao": "Guilhabreu",
+    "equipaResponsavel": 62
+  },
+  {
+    "idRecurso": 35,
+    "tipo": "Plataforma elevatória",
+    "estado": "Operacional",
+    "especificacoes": "Acesso em altura para substituição e reparação de luminárias.",
+    "localizacao": "Guilhabreu",
+    "equipaResponsavel": 63
+  },
+  {
+    "idRecurso": 36,
+    "tipo": "Gerador portátil",
+    "estado": "Operacional",
+    "especificacoes": "Alimentação de emergência para intervenções em zonas sem energia.",
+    "localizacao": "Guilhabreu",
+    "equipaResponsavel": 63
+  },
+  {
+    "idRecurso": 37,
+    "tipo": "Mini retroescavadora",
+    "estado": "Operacional",
+    "especificacoes": "Escavações ligeiras, reposição de pavimento e remoção de entulho.",
+    "localizacao": "Junqueira",
+    "equipaResponsavel": 71
+  },
+  {
+    "idRecurso": 38,
+    "tipo": "Placa vibratória",
+    "estado": "Operacional",
+    "especificacoes": "Compactação de solos e reparações rápidas em passeios e calçadas.",
+    "localizacao": "Junqueira",
+    "equipaResponsavel": 71
+  },
+  {
+    "idRecurso": 39,
+    "tipo": "Carrinha de sinalização",
+    "estado": "Operacional",
+    "especificacoes": "Transporte de cones, painéis de aviso e material de sinalização temporária.",
+    "localizacao": "Junqueira",
+    "equipaResponsavel": 72
+  },
+  {
+    "idRecurso": 40,
+    "tipo": "Kit de sinalização móvel",
+    "estado": "Operacional",
+    "especificacoes": "Cones, barreiras e placas portáteis para cortes e desvios de trânsito.",
+    "localizacao": "Junqueira",
+    "equipaResponsavel": 72
+  },
+  {
+    "idRecurso": 41,
+    "tipo": "Plataforma elevatória",
+    "estado": "Operacional",
+    "especificacoes": "Acesso em altura para substituição e reparação de luminárias.",
+    "localizacao": "Junqueira",
+    "equipaResponsavel": 73
+  },
+  {
+    "idRecurso": 42,
+    "tipo": "Gerador portátil",
+    "estado": "Operacional",
+    "especificacoes": "Alimentação de emergência para intervenções em zonas sem energia.",
+    "localizacao": "Junqueira",
+    "equipaResponsavel": 73
+  },
+  {
+    "idRecurso": 43,
+    "tipo": "Mini retroescavadora",
+    "estado": "Operacional",
+    "especificacoes": "Escavações ligeiras, reposição de pavimento e remoção de entulho.",
+    "localizacao": "Labruge",
+    "equipaResponsavel": 81
+  },
+  {
+    "idRecurso": 44,
+    "tipo": "Placa vibratória",
+    "estado": "Operacional",
+    "especificacoes": "Compactação de solos e reparações rápidas em passeios e calçadas.",
+    "localizacao": "Labruge",
+    "equipaResponsavel": 81
+  },
+  {
+    "idRecurso": 45,
+    "tipo": "Carrinha de sinalização",
+    "estado": "Operacional",
+    "especificacoes": "Transporte de cones, painéis de aviso e material de sinalização temporária.",
+    "localizacao": "Labruge",
+    "equipaResponsavel": 82
+  },
+  {
+    "idRecurso": 46,
+    "tipo": "Kit de sinalização móvel",
+    "estado": "Operacional",
+    "especificacoes": "Cones, barreiras e placas portáteis para cortes e desvios de trânsito.",
+    "localizacao": "Labruge",
+    "equipaResponsavel": 82
+  },
+  {
+    "idRecurso": 47,
+    "tipo": "Plataforma elevatória",
+    "estado": "Operacional",
+    "especificacoes": "Acesso em altura para substituição e reparação de luminárias.",
+    "localizacao": "Labruge",
+    "equipaResponsavel": 83
+  },
+  {
+    "idRecurso": 48,
+    "tipo": "Gerador portátil",
+    "estado": "Operacional",
+    "especificacoes": "Alimentação de emergência para intervenções em zonas sem energia.",
+    "localizacao": "Labruge",
+    "equipaResponsavel": 83
+  },
+  {
+    "idRecurso": 49,
+    "tipo": "Mini retroescavadora",
+    "estado": "Operacional",
+    "especificacoes": "Escavações ligeiras, reposição de pavimento e remoção de entulho.",
+    "localizacao": "Macieira da Maia",
+    "equipaResponsavel": 91
+  },
+  {
+    "idRecurso": 50,
+    "tipo": "Placa vibratória",
+    "estado": "Operacional",
+    "especificacoes": "Compactação de solos e reparações rápidas em passeios e calçadas.",
+    "localizacao": "Macieira da Maia",
+    "equipaResponsavel": 91
+  },
+  {
+    "idRecurso": 51,
+    "tipo": "Carrinha de sinalização",
+    "estado": "Operacional",
+    "especificacoes": "Transporte de cones, painéis de aviso e material de sinalização temporária.",
+    "localizacao": "Macieira da Maia",
+    "equipaResponsavel": 92
+  },
+  {
+    "idRecurso": 52,
+    "tipo": "Kit de sinalização móvel",
+    "estado": "Operacional",
+    "especificacoes": "Cones, barreiras e placas portáteis para cortes e desvios de trânsito.",
+    "localizacao": "Macieira da Maia",
+    "equipaResponsavel": 92
+  },
+  {
+    "idRecurso": 53,
+    "tipo": "Plataforma elevatória",
+    "estado": "Operacional",
+    "especificacoes": "Acesso em altura para substituição e reparação de luminárias.",
+    "localizacao": "Macieira da Maia",
+    "equipaResponsavel": 93
+  },
+  {
+    "idRecurso": 54,
+    "tipo": "Gerador portátil",
+    "estado": "Operacional",
+    "especificacoes": "Alimentação de emergência para intervenções em zonas sem energia.",
+    "localizacao": "Macieira da Maia",
+    "equipaResponsavel": 93
+  },
+  {
+    "idRecurso": 55,
+    "tipo": "Mini retroescavadora",
+    "estado": "Operacional",
+    "especificacoes": "Escavações ligeiras, reposição de pavimento e remoção de entulho.",
+    "localizacao": "Mindelo",
+    "equipaResponsavel": 101
+  },
+  {
+    "idRecurso": 56,
+    "tipo": "Placa vibratória",
+    "estado": "Operacional",
+    "especificacoes": "Compactação de solos e reparações rápidas em passeios e calçadas.",
+    "localizacao": "Mindelo",
+    "equipaResponsavel": 101
+  },
+  {
+    "idRecurso": 57,
+    "tipo": "Carrinha de sinalização",
+    "estado": "Operacional",
+    "especificacoes": "Transporte de cones, painéis de aviso e material de sinalização temporária.",
+    "localizacao": "Mindelo",
+    "equipaResponsavel": 102
+  },
+  {
+    "idRecurso": 58,
+    "tipo": "Kit de sinalização móvel",
+    "estado": "Operacional",
+    "especificacoes": "Cones, barreiras e placas portáteis para cortes e desvios de trânsito.",
+    "localizacao": "Mindelo",
+    "equipaResponsavel": 102
+  },
+  {
+    "idRecurso": 59,
+    "tipo": "Plataforma elevatória",
+    "estado": "Operacional",
+    "especificacoes": "Acesso em altura para substituição e reparação de luminárias.",
+    "localizacao": "Mindelo",
+    "equipaResponsavel": 103
+  },
+  {
+    "idRecurso": 60,
+    "tipo": "Gerador portátil",
+    "estado": "Operacional",
+    "especificacoes": "Alimentação de emergência para intervenções em zonas sem energia.",
+    "localizacao": "Mindelo",
+    "equipaResponsavel": 103
+  },
+  {
+    "idRecurso": 61,
+    "tipo": "Mini retroescavadora",
+    "estado": "Operacional",
+    "especificacoes": "Escavações ligeiras, reposição de pavimento e remoção de entulho.",
+    "localizacao": "Modivas",
+    "equipaResponsavel": 111
+  },
+  {
+    "idRecurso": 62,
+    "tipo": "Placa vibratória",
+    "estado": "Operacional",
+    "especificacoes": "Compactação de solos e reparações rápidas em passeios e calçadas.",
+    "localizacao": "Modivas",
+    "equipaResponsavel": 111
+  },
+  {
+    "idRecurso": 63,
+    "tipo": "Carrinha de sinalização",
+    "estado": "Operacional",
+    "especificacoes": "Transporte de cones, painéis de aviso e material de sinalização temporária.",
+    "localizacao": "Modivas",
+    "equipaResponsavel": 112
+  },
+  {
+    "idRecurso": 64,
+    "tipo": "Kit de sinalização móvel",
+    "estado": "Operacional",
+    "especificacoes": "Cones, barreiras e placas portáteis para cortes e desvios de trânsito.",
+    "localizacao": "Modivas",
+    "equipaResponsavel": 112
+  },
+  {
+    "idRecurso": 65,
+    "tipo": "Plataforma elevatória",
+    "estado": "Operacional",
+    "especificacoes": "Acesso em altura para substituição e reparação de luminárias.",
+    "localizacao": "Modivas",
+    "equipaResponsavel": 113
+  },
+  {
+    "idRecurso": 66,
+    "tipo": "Gerador portátil",
+    "estado": "Operacional",
+    "especificacoes": "Alimentação de emergência para intervenções em zonas sem energia.",
+    "localizacao": "Modivas",
+    "equipaResponsavel": 113
+  },
+  {
+    "idRecurso": 67,
+    "tipo": "Mini retroescavadora",
+    "estado": "Operacional",
+    "especificacoes": "Escavações ligeiras, reposição de pavimento e remoção de entulho.",
+    "localizacao": "Vila Chã",
+    "equipaResponsavel": 121
+  },
+  {
+    "idRecurso": 68,
+    "tipo": "Placa vibratória",
+    "estado": "Operacional",
+    "especificacoes": "Compactação de solos e reparações rápidas em passeios e calçadas.",
+    "localizacao": "Vila Chã",
+    "equipaResponsavel": 121
+  },
+  {
+    "idRecurso": 69,
+    "tipo": "Carrinha de sinalização",
+    "estado": "Operacional",
+    "especificacoes": "Transporte de cones, painéis de aviso e material de sinalização temporária.",
+    "localizacao": "Vila Chã",
+    "equipaResponsavel": 122
+  },
+  {
+    "idRecurso": 70,
+    "tipo": "Kit de sinalização móvel",
+    "estado": "Operacional",
+    "especificacoes": "Cones, barreiras e placas portáteis para cortes e desvios de trânsito.",
+    "localizacao": "Vila Chã",
+    "equipaResponsavel": 122
+  },
+  {
+    "idRecurso": 71,
+    "tipo": "Plataforma elevatória",
+    "estado": "Operacional",
+    "especificacoes": "Acesso em altura para substituição e reparação de luminárias.",
+    "localizacao": "Vila Chã",
+    "equipaResponsavel": 123
+  },
+  {
+    "idRecurso": 72,
+    "tipo": "Gerador portátil",
+    "estado": "Operacional",
+    "especificacoes": "Alimentação de emergência para intervenções em zonas sem energia.",
+    "localizacao": "Vila Chã",
+    "equipaResponsavel": 123
+  },
+  {
+    "idRecurso": 73,
+    "tipo": "Mini retroescavadora",
+    "estado": "Operacional",
+    "especificacoes": "Escavações ligeiras, reposição de pavimento e remoção de entulho.",
+    "localizacao": "Vila do Conde",
+    "equipaResponsavel": 131
+  },
+  {
+    "idRecurso": 74,
+    "tipo": "Placa vibratória",
+    "estado": "Operacional",
+    "especificacoes": "Compactação de solos e reparações rápidas em passeios e calçadas.",
+    "localizacao": "Vila do Conde",
+    "equipaResponsavel": 131
+  },
+  {
+    "idRecurso": 75,
+    "tipo": "Carrinha de sinalização",
+    "estado": "Operacional",
+    "especificacoes": "Transporte de cones, painéis de aviso e material de sinalização temporária.",
+    "localizacao": "Vila do Conde",
+    "equipaResponsavel": 132
+  },
+  {
+    "idRecurso": 76,
+    "tipo": "Kit de sinalização móvel",
+    "estado": "Operacional",
+    "especificacoes": "Cones, barreiras e placas portáteis para cortes e desvios de trânsito.",
+    "localizacao": "Vila do Conde",
+    "equipaResponsavel": 132
+  },
+  {
+    "idRecurso": 77,
+    "tipo": "Plataforma elevatória",
+    "estado": "Operacional",
+    "especificacoes": "Acesso em altura para substituição e reparação de luminárias.",
+    "localizacao": "Vila do Conde",
+    "equipaResponsavel": 133
+  },
+  {
+    "idRecurso": 78,
+    "tipo": "Gerador portátil",
+    "estado": "Operacional",
+    "especificacoes": "Alimentação de emergência para intervenções em zonas sem energia.",
+    "localizacao": "Vila do Conde",
+    "equipaResponsavel": 133
+  },
+  {
+    "idRecurso": 79,
+    "tipo": "Mini retroescavadora",
+    "estado": "Operacional",
+    "especificacoes": "Escavações ligeiras, reposição de pavimento e remoção de entulho.",
+    "localizacao": "Vilar de Pinheiro",
+    "equipaResponsavel": 141
+  },
+  {
+    "idRecurso": 80,
+    "tipo": "Placa vibratória",
+    "estado": "Operacional",
+    "especificacoes": "Compactação de solos e reparações rápidas em passeios e calçadas.",
+    "localizacao": "Vilar de Pinheiro",
+    "equipaResponsavel": 141
+  },
+  {
+    "idRecurso": 81,
+    "tipo": "Carrinha de sinalização",
+    "estado": "Operacional",
+    "especificacoes": "Transporte de cones, painéis de aviso e material de sinalização temporária.",
+    "localizacao": "Vilar de Pinheiro",
+    "equipaResponsavel": 142
+  },
+  {
+    "idRecurso": 82,
+    "tipo": "Kit de sinalização móvel",
+    "estado": "Operacional",
+    "especificacoes": "Cones, barreiras e placas portáteis para cortes e desvios de trânsito.",
+    "localizacao": "Vilar de Pinheiro",
+    "equipaResponsavel": 142
+  },
+  {
+    "idRecurso": 83,
+    "tipo": "Plataforma elevatória",
+    "estado": "Operacional",
+    "especificacoes": "Acesso em altura para substituição e reparação de luminárias.",
+    "localizacao": "Vilar de Pinheiro",
+    "equipaResponsavel": 143
+  },
+  {
+    "idRecurso": 84,
+    "tipo": "Gerador portátil",
+    "estado": "Operacional",
+    "especificacoes": "Alimentação de emergência para intervenções em zonas sem energia.",
+    "localizacao": "Vilar de Pinheiro",
+    "equipaResponsavel": 143
+  },
+  {
+    "idRecurso": 85,
+    "tipo": "Mini retroescavadora",
+    "estado": "Operacional",
+    "especificacoes": "Escavações ligeiras, reposição de pavimento e remoção de entulho.",
+    "localizacao": "Bagunte, Ferreiró, Outeiro Maior e Parada",
+    "equipaResponsavel": 151
+  },
+  {
+    "idRecurso": 86,
+    "tipo": "Placa vibratória",
+    "estado": "Operacional",
+    "especificacoes": "Compactação de solos e reparações rápidas em passeios e calçadas.",
+    "localizacao": "Bagunte, Ferreiró, Outeiro Maior e Parada",
+    "equipaResponsavel": 151
+  },
+  {
+    "idRecurso": 87,
+    "tipo": "Carrinha de sinalização",
+    "estado": "Operacional",
+    "especificacoes": "Transporte de cones, painéis de aviso e material de sinalização temporária.",
+    "localizacao": "Bagunte, Ferreiró, Outeiro Maior e Parada",
+    "equipaResponsavel": 152
+  },
+  {
+    "idRecurso": 88,
+    "tipo": "Kit de sinalização móvel",
+    "estado": "Operacional",
+    "especificacoes": "Cones, barreiras e placas portáteis para cortes e desvios de trânsito.",
+    "localizacao": "Bagunte, Ferreiró, Outeiro Maior e Parada",
+    "equipaResponsavel": 152
+  },
+  {
+    "idRecurso": 89,
+    "tipo": "Plataforma elevatória",
+    "estado": "Operacional",
+    "especificacoes": "Acesso em altura para substituição e reparação de luminárias.",
+    "localizacao": "Bagunte, Ferreiró, Outeiro Maior e Parada",
+    "equipaResponsavel": 153
+  },
+  {
+    "idRecurso": 90,
+    "tipo": "Gerador portátil",
+    "estado": "Operacional",
+    "especificacoes": "Alimentação de emergência para intervenções em zonas sem energia.",
+    "localizacao": "Bagunte, Ferreiró, Outeiro Maior e Parada",
+    "equipaResponsavel": 153
+  },
+  {
+    "idRecurso": 91,
+    "tipo": "Mini retroescavadora",
+    "estado": "Operacional",
+    "especificacoes": "Escavações ligeiras, reposição de pavimento e remoção de entulho.",
+    "localizacao": "Touguinha e Touguinhó",
+    "equipaResponsavel": 161
+  },
+  {
+    "idRecurso": 92,
+    "tipo": "Placa vibratória",
+    "estado": "Operacional",
+    "especificacoes": "Compactação de solos e reparações rápidas em passeios e calçadas.",
+    "localizacao": "Touguinha e Touguinhó",
+    "equipaResponsavel": 161
+  },
+  {
+    "idRecurso": 93,
+    "tipo": "Carrinha de sinalização",
+    "estado": "Operacional",
+    "especificacoes": "Transporte de cones, painéis de aviso e material de sinalização temporária.",
+    "localizacao": "Touguinha e Touguinhó",
+    "equipaResponsavel": 162
+  },
+  {
+    "idRecurso": 94,
+    "tipo": "Kit de sinalização móvel",
+    "estado": "Operacional",
+    "especificacoes": "Cones, barreiras e placas portáteis para cortes e desvios de trânsito.",
+    "localizacao": "Touguinha e Touguinhó",
+    "equipaResponsavel": 162
+  },
+  {
+    "idRecurso": 95,
+    "tipo": "Plataforma elevatória",
+    "estado": "Operacional",
+    "especificacoes": "Acesso em altura para substituição e reparação de luminárias.",
+    "localizacao": "Touguinha e Touguinhó",
+    "equipaResponsavel": 163
+  },
+  {
+    "idRecurso": 96,
+    "tipo": "Gerador portátil",
+    "estado": "Operacional",
+    "especificacoes": "Alimentação de emergência para intervenções em zonas sem energia.",
+    "localizacao": "Touguinha e Touguinhó",
+    "equipaResponsavel": 163
+  },
+  {
+    "idRecurso": 97,
+    "tipo": "Mini retroescavadora",
+    "estado": "Operacional",
+    "especificacoes": "Escavações ligeiras, reposição de pavimento e remoção de entulho.",
+    "localizacao": "Vilar e Mosteiró",
+    "equipaResponsavel": 171
+  },
+  {
+    "idRecurso": 98,
+    "tipo": "Placa vibratória",
+    "estado": "Operacional",
+    "especificacoes": "Compactação de solos e reparações rápidas em passeios e calçadas.",
+    "localizacao": "Vilar e Mosteiró",
+    "equipaResponsavel": 171
+  },
+  {
+    "idRecurso": 99,
+    "tipo": "Carrinha de sinalização",
+    "estado": "Operacional",
+    "especificacoes": "Transporte de cones, painéis de aviso e material de sinalização temporária.",
+    "localizacao": "Vilar e Mosteiró",
+    "equipaResponsavel": 172
+  },
+  {
+    "idRecurso": 100,
+    "tipo": "Kit de sinalização móvel",
+    "estado": "Operacional",
+    "especificacoes": "Cones, barreiras e placas portáteis para cortes e desvios de trânsito.",
+    "localizacao": "Vilar e Mosteiró",
+    "equipaResponsavel": 172
+  },
+  {
+    "idRecurso": 101,
+    "tipo": "Plataforma elevatória",
+    "estado": "Operacional",
+    "especificacoes": "Acesso em altura para substituição e reparação de luminárias.",
+    "localizacao": "Vilar e Mosteiró",
+    "equipaResponsavel": 173
+  },
+  {
+    "idRecurso": 102,
+    "tipo": "Gerador portátil",
+    "estado": "Operacional",
+    "especificacoes": "Alimentação de emergência para intervenções em zonas sem energia.",
+    "localizacao": "Vilar e Mosteiró",
+    "equipaResponsavel": 173
+  },
+  {
+    "idRecurso": 103,
+    "tipo": "Mini retroescavadora",
+    "estado": "Operacional",
+    "especificacoes": "Escavações ligeiras, reposição de pavimento e remoção de entulho.",
+    "localizacao": "Malta",
+    "equipaResponsavel": 181
+  },
+  {
+    "idRecurso": 104,
+    "tipo": "Placa vibratória",
+    "estado": "Operacional",
+    "especificacoes": "Compactação de solos e reparações rápidas em passeios e calçadas.",
+    "localizacao": "Malta",
+    "equipaResponsavel": 181
+  },
+  {
+    "idRecurso": 105,
+    "tipo": "Carrinha de sinalização",
+    "estado": "Operacional",
+    "especificacoes": "Transporte de cones, painéis de aviso e material de sinalização temporária.",
+    "localizacao": "Malta",
+    "equipaResponsavel": 182
+  },
+  {
+    "idRecurso": 106,
+    "tipo": "Kit de sinalização móvel",
+    "estado": "Operacional",
+    "especificacoes": "Cones, barreiras e placas portáteis para cortes e desvios de trânsito.",
+    "localizacao": "Malta",
+    "equipaResponsavel": 182
+  },
+  {
+    "idRecurso": 107,
+    "tipo": "Plataforma elevatória",
+    "estado": "Operacional",
+    "especificacoes": "Acesso em altura para substituição e reparação de luminárias.",
+    "localizacao": "Malta",
+    "equipaResponsavel": 183
+  },
+  {
+    "idRecurso": 108,
+    "tipo": "Gerador portátil",
+    "estado": "Operacional",
+    "especificacoes": "Alimentação de emergência para intervenções em zonas sem energia.",
+    "localizacao": "Malta",
+    "equipaResponsavel": 183
+  },
+  {
+    "idRecurso": 109,
+    "tipo": "Mini retroescavadora",
+    "estado": "Operacional",
+    "especificacoes": "Escavações ligeiras, reposição de pavimento e remoção de entulho.",
+    "localizacao": "Canidelo",
+    "equipaResponsavel": 191
+  },
+  {
+    "idRecurso": 110,
+    "tipo": "Placa vibratória",
+    "estado": "Operacional",
+    "especificacoes": "Compactação de solos e reparações rápidas em passeios e calçadas.",
+    "localizacao": "Canidelo",
+    "equipaResponsavel": 191
+  },
+  {
+    "idRecurso": 111,
+    "tipo": "Carrinha de sinalização",
+    "estado": "Operacional",
+    "especificacoes": "Transporte de cones, painéis de aviso e material de sinalização temporária.",
+    "localizacao": "Canidelo",
+    "equipaResponsavel": 192
+  },
+  {
+    "idRecurso": 112,
+    "tipo": "Kit de sinalização móvel",
+    "estado": "Operacional",
+    "especificacoes": "Cones, barreiras e placas portáteis para cortes e desvios de trânsito.",
+    "localizacao": "Canidelo",
+    "equipaResponsavel": 192
+  },
+  {
+    "idRecurso": 113,
+    "tipo": "Plataforma elevatória",
+    "estado": "Operacional",
+    "especificacoes": "Acesso em altura para substituição e reparação de luminárias.",
+    "localizacao": "Canidelo",
+    "equipaResponsavel": 193
+  },
+  {
+    "idRecurso": 114,
+    "tipo": "Gerador portátil",
+    "estado": "Operacional",
+    "especificacoes": "Alimentação de emergência para intervenções em zonas sem energia.",
+    "localizacao": "Canidelo",
+    "equipaResponsavel": 193
+  },
+  {
+    "idRecurso": 115,
+    "tipo": "Mini retroescavadora",
+    "estado": "Operacional",
+    "especificacoes": "Escavações ligeiras, reposição de pavimento e remoção de entulho.",
+    "localizacao": "Fornelo",
+    "equipaResponsavel": 201
+  },
+  {
+    "idRecurso": 116,
+    "tipo": "Placa vibratória",
+    "estado": "Operacional",
+    "especificacoes": "Compactação de solos e reparações rápidas em passeios e calçadas.",
+    "localizacao": "Fornelo",
+    "equipaResponsavel": 201
+  },
+  {
+    "idRecurso": 117,
+    "tipo": "Carrinha de sinalização",
+    "estado": "Operacional",
+    "especificacoes": "Transporte de cones, painéis de aviso e material de sinalização temporária.",
+    "localizacao": "Fornelo",
+    "equipaResponsavel": 202
+  },
+  {
+    "idRecurso": 118,
+    "tipo": "Kit de sinalização móvel",
+    "estado": "Operacional",
+    "especificacoes": "Cones, barreiras e placas portáteis para cortes e desvios de trânsito.",
+    "localizacao": "Fornelo",
+    "equipaResponsavel": 202
+  },
+  {
+    "idRecurso": 119,
+    "tipo": "Plataforma elevatória",
+    "estado": "Operacional",
+    "especificacoes": "Acesso em altura para substituição e reparação de luminárias.",
+    "localizacao": "Fornelo",
+    "equipaResponsavel": 203
+  },
+  {
+    "idRecurso": 120,
+    "tipo": "Gerador portátil",
+    "estado": "Operacional",
+    "especificacoes": "Alimentação de emergência para intervenções em zonas sem energia.",
+    "localizacao": "Fornelo",
+    "equipaResponsavel": 203
+  },
+  {
+    "idRecurso": 121,
+    "tipo": "Mini retroescavadora",
+    "estado": "Operacional",
+    "especificacoes": "Escavações ligeiras, reposição de pavimento e remoção de entulho.",
+    "localizacao": "Vairão",
+    "equipaResponsavel": 211
+  },
+  {
+    "idRecurso": 122,
+    "tipo": "Placa vibratória",
+    "estado": "Operacional",
+    "especificacoes": "Compactação de solos e reparações rápidas em passeios e calçadas.",
+    "localizacao": "Vairão",
+    "equipaResponsavel": 211
+  },
+  {
+    "idRecurso": 123,
+    "tipo": "Carrinha de sinalização",
+    "estado": "Operacional",
+    "especificacoes": "Transporte de cones, painéis de aviso e material de sinalização temporária.",
+    "localizacao": "Vairão",
+    "equipaResponsavel": 212
+  },
+  {
+    "idRecurso": 124,
+    "tipo": "Kit de sinalização móvel",
+    "estado": "Operacional",
+    "especificacoes": "Cones, barreiras e placas portáteis para cortes e desvios de trânsito.",
+    "localizacao": "Vairão",
+    "equipaResponsavel": 212
+  },
+  {
+    "idRecurso": 125,
+    "tipo": "Plataforma elevatória",
+    "estado": "Operacional",
+    "especificacoes": "Acesso em altura para substituição e reparação de luminárias.",
+    "localizacao": "Vairão",
+    "equipaResponsavel": 213
+  },
+  {
+    "idRecurso": 126,
+    "tipo": "Gerador portátil",
+    "estado": "Operacional",
+    "especificacoes": "Alimentação de emergência para intervenções em zonas sem energia.",
+    "localizacao": "Vairão",
+    "equipaResponsavel": 213
+  },
+  {
+    "idRecurso": 127,
+    "tipo": "Mini retroescavadora",
+    "estado": "Operacional",
+    "especificacoes": "Escavações ligeiras, reposição de pavimento e remoção de entulho.",
+    "localizacao": "Retorta",
+    "equipaResponsavel": 221
+  },
+  {
+    "idRecurso": 128,
+    "tipo": "Placa vibratória",
+    "estado": "Operacional",
+    "especificacoes": "Compactação de solos e reparações rápidas em passeios e calçadas.",
+    "localizacao": "Retorta",
+    "equipaResponsavel": 221
+  },
+  {
+    "idRecurso": 129,
+    "tipo": "Carrinha de sinalização",
+    "estado": "Operacional",
+    "especificacoes": "Transporte de cones, painéis de aviso e material de sinalização temporária.",
+    "localizacao": "Retorta",
+    "equipaResponsavel": 222
+  },
+  {
+    "idRecurso": 130,
+    "tipo": "Kit de sinalização móvel",
+    "estado": "Operacional",
+    "especificacoes": "Cones, barreiras e placas portáteis para cortes e desvios de trânsito.",
+    "localizacao": "Retorta",
+    "equipaResponsavel": 222
+  },
+  {
+    "idRecurso": 131,
+    "tipo": "Plataforma elevatória",
+    "estado": "Operacional",
+    "especificacoes": "Acesso em altura para substituição e reparação de luminárias.",
+    "localizacao": "Retorta",
+    "equipaResponsavel": 223
+  },
+  {
+    "idRecurso": 132,
+    "tipo": "Gerador portátil",
+    "estado": "Operacional",
+    "especificacoes": "Alimentação de emergência para intervenções em zonas sem energia.",
+    "localizacao": "Retorta",
+    "equipaResponsavel": 223
+  },
+  {
+    "idRecurso": 133,
+    "tipo": "Mini retroescavadora",
+    "estado": "Operacional",
+    "especificacoes": "Escavações ligeiras, reposição de pavimento e remoção de entulho.",
+    "localizacao": "Tougues",
+    "equipaResponsavel": 231
+  },
+  {
+    "idRecurso": 134,
+    "tipo": "Placa vibratória",
+    "estado": "Operacional",
+    "especificacoes": "Compactação de solos e reparações rápidas em passeios e calçadas.",
+    "localizacao": "Tougues",
+    "equipaResponsavel": 231
+  },
+  {
+    "idRecurso": 135,
+    "tipo": "Carrinha de sinalização",
+    "estado": "Operacional",
+    "especificacoes": "Transporte de cones, painéis de aviso e material de sinalização temporária.",
+    "localizacao": "Tougues",
+    "equipaResponsavel": 232
+  },
+  {
+    "idRecurso": 136,
+    "tipo": "Kit de sinalização móvel",
+    "estado": "Operacional",
+    "especificacoes": "Cones, barreiras e placas portáteis para cortes e desvios de trânsito.",
+    "localizacao": "Tougues",
+    "equipaResponsavel": 232
+  },
+  {
+    "idRecurso": 137,
+    "tipo": "Plataforma elevatória",
+    "estado": "Operacional",
+    "especificacoes": "Acesso em altura para substituição e reparação de luminárias.",
+    "localizacao": "Tougues",
+    "equipaResponsavel": 233
+  },
+  {
+    "idRecurso": 138,
+    "tipo": "Gerador portátil",
+    "estado": "Operacional",
+    "especificacoes": "Alimentação de emergência para intervenções em zonas sem energia.",
+    "localizacao": "Tougues",
+    "equipaResponsavel": 233
+  },
+  {
+    "idRecurso": 139,
+    "tipo": "Mini retroescavadora",
+    "estado": "Operacional",
+    "especificacoes": "Escavações ligeiras, reposição de pavimento e remoção de entulho.",
+    "localizacao": "Rio Mau",
+    "equipaResponsavel": 241
+  },
+  {
+    "idRecurso": 140,
+    "tipo": "Placa vibratória",
+    "estado": "Operacional",
+    "especificacoes": "Compactação de solos e reparações rápidas em passeios e calçadas.",
+    "localizacao": "Rio Mau",
+    "equipaResponsavel": 241
+  },
+  {
+    "idRecurso": 141,
+    "tipo": "Carrinha de sinalização",
+    "estado": "Operacional",
+    "especificacoes": "Transporte de cones, painéis de aviso e material de sinalização temporária.",
+    "localizacao": "Rio Mau",
+    "equipaResponsavel": 242
+  },
+  {
+    "idRecurso": 142,
+    "tipo": "Kit de sinalização móvel",
+    "estado": "Operacional",
+    "especificacoes": "Cones, barreiras e placas portáteis para cortes e desvios de trânsito.",
+    "localizacao": "Rio Mau",
+    "equipaResponsavel": 242
+  },
+  {
+    "idRecurso": 143,
+    "tipo": "Plataforma elevatória",
+    "estado": "Operacional",
+    "especificacoes": "Acesso em altura para substituição e reparação de luminárias.",
+    "localizacao": "Rio Mau",
+    "equipaResponsavel": 243
+  },
+  {
+    "idRecurso": 144,
+    "tipo": "Gerador portátil",
+    "estado": "Operacional",
+    "especificacoes": "Alimentação de emergência para intervenções em zonas sem energia.",
+    "localizacao": "Rio Mau",
+    "equipaResponsavel": 243
+  },
+  {
+    "idRecurso": 145,
+    "tipo": "Mini retroescavadora",
+    "estado": "Operacional",
+    "especificacoes": "Escavações ligeiras, reposição de pavimento e remoção de entulho.",
+    "localizacao": "Arcos",
+    "equipaResponsavel": 251
+  },
+  {
+    "idRecurso": 146,
+    "tipo": "Placa vibratória",
+    "estado": "Operacional",
+    "especificacoes": "Compactação de solos e reparações rápidas em passeios e calçadas.",
+    "localizacao": "Arcos",
+    "equipaResponsavel": 251
+  },
+  {
+    "idRecurso": 147,
+    "tipo": "Carrinha de sinalização",
+    "estado": "Operacional",
+    "especificacoes": "Transporte de cones, painéis de aviso e material de sinalização temporária.",
+    "localizacao": "Arcos",
+    "equipaResponsavel": 252
+  },
+  {
+    "idRecurso": 148,
+    "tipo": "Kit de sinalização móvel",
+    "estado": "Operacional",
+    "especificacoes": "Cones, barreiras e placas portáteis para cortes e desvios de trânsito.",
+    "localizacao": "Arcos",
+    "equipaResponsavel": 252
+  },
+  {
+    "idRecurso": 149,
+    "tipo": "Plataforma elevatória",
+    "estado": "Operacional",
+    "especificacoes": "Acesso em altura para substituição e reparação de luminárias.",
+    "localizacao": "Arcos",
+    "equipaResponsavel": 253
+  },
+  {
+    "idRecurso": 150,
+    "tipo": "Gerador portátil",
+    "estado": "Operacional",
+    "especificacoes": "Alimentação de emergência para intervenções em zonas sem energia.",
+    "localizacao": "Arcos",
+    "equipaResponsavel": 253
+  }
+]
