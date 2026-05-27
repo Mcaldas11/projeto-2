@@ -6,6 +6,7 @@ Base URL: http://127.0.0.1:3000
 
 - Rotas de ocorrencias exigem token.
 - Rota /cidadaos/me/ocorrencias exige token.
+- Rotas /cidadaos/:id/foto e /trabalhadores/:id/foto exigem token e o userId do token tem de ser igual ao :id.
 - Header: Authorization: Bearer <TOKEN>
 - Token vem de /cidadaos/login, /trabalhadores/login, /cidadaos (create) e /trabalhadores (create).
 
@@ -202,6 +203,25 @@ Erro (exemplo 400):
 }
 ```
 
+### PATCH /cidadaos/:id/foto (auth, multipart/form-data, file)
+Sucesso:
+
+```json
+{ "success": true, "fotoPerfil": "https://res.cloudinary.com/.../perfil.jpg" }
+```
+
+Erro (exemplo 400):
+
+```json
+{ "message": "Falta o ficheiro" }
+```
+
+Erro (exemplo 403):
+
+```json
+{ "message": "Forbidden" }
+```
+
 ### DELETE /cidadaos/:id
 Sucesso: status 204 (sem body)
 
@@ -330,6 +350,25 @@ Erro (exemplo 400):
 
 ```json
 { "message": "Invalid idEquipa" }
+```
+
+### PATCH /trabalhadores/:id/foto (auth, multipart/form-data, file)
+Sucesso:
+
+```json
+{ "success": true, "fotoPerfil": "https://res.cloudinary.com/.../perfil.jpg" }
+```
+
+Erro (exemplo 400):
+
+```json
+{ "message": "Falta o ficheiro" }
+```
+
+Erro (exemplo 403):
+
+```json
+{ "message": "Forbidden" }
 ```
 
 ### DELETE /trabalhadores/:id
