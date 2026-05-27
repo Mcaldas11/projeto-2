@@ -65,28 +65,46 @@
 
         <div class="form-row">
           <label class="field-label">Localização:</label>
-          <input type="text" v-model="form.location" class="custom-select" placeholder="Ex: Rua Dom Sancho I" />
+          <div class="field-stack">
+            <input
+              type="text"
+              v-model="form.location"
+              :class="['custom-select', { 'field-invalid': validationErrors.location }]"
+              placeholder="Ex: Rua Dom Sancho I"
+              @blur="validateField('location')"
+            />
+            <span v-if="validationErrors.location" class="field-error">Indica a localização.</span>
+          </div>
         </div>
 
         <div class="form-row">
           <label class="field-label">Tipo:</label>
-          <div class="select-container">
-            <select v-model="form.type" class="custom-select">
-              <option value="" disabled selected>Selecciona o tipo de ocorrência</option>
+          <div class="field-stack select-container">
+            <select
+              v-model="form.type"
+              :class="['custom-select', { 'field-invalid': validationErrors.type }]"
+              @blur="validateField('type')"
+            >
+              <option value="" disabled>Selecciona o tipo de ocorrência</option>
               <option value="iluminacao">Iluminação</option>
               <option value="estrada">Estradas e passeios</option>
               <option value="higiene">Higiene Pública</option>
             </select>
+            <span v-if="validationErrors.type" class="field-error">Escolhe o tipo de ocorrência.</span>
           </div>
         </div>
 
         <div class="form-row">
           <label class="field-label">Descrição:</label>
-          <textarea
-            v-model="form.description"
-            class="custom-textarea"
-            placeholder="A iluminação junto à entrada do campus universitário está muito fraca..."
-          ></textarea>
+          <div class="field-stack">
+            <textarea
+              v-model="form.description"
+              :class="['custom-textarea', { 'field-invalid': validationErrors.description }]"
+              placeholder="A iluminação junto à entrada do campus universitário está muito fraca..."
+              @blur="validateField('description')"
+            ></textarea>
+            <span v-if="validationErrors.description" class="field-error">Escreve uma descrição.</span>
+          </div>
         </div>
 
         <div class="form-row">
@@ -115,6 +133,7 @@ import { useRouter } from 'vue-router'
 import Footer from '@/components/footer.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
+import { addOccurrence, defaultOccurrenceAvatar } from '@/utils/occurrenceStorage'
 
 // Estados do Header
 const showNotif = ref(false)
@@ -159,11 +178,58 @@ const form = ref({
   files: [],
 })
 
+const validationErrors = ref({
+  location: false,
+  type: false,
+  description: false,
+})
+
+function validateField(field) {
+  validationErrors.value[field] = !String(form.value[field] || '').trim()
+}
+
+function validateForm() {
+  validateField('location')
+  validateField('type')
+  validateField('description')
+  return !validationErrors.value.location && !validationErrors.value.type && !validationErrors.value.description
+}
+
 const triggerFile = () => fileInput.value.click()
 const onFileChange = (e) => {
   form.value.files = e.target.files
 }
-const handleSubmit = () => console.log('Dados enviados:', form.value)
+const handleSubmit = () => {
+  if (!validateForm()) return
+
+  const profile = JSON.parse(localStorage.getItem('userProfile') || 'null')
+  const userName = `${profile?.firstName || 'Utilizador'} ${profile?.lastName || ''}`.trim()
+
+  const typeLabels = {
+    iluminacao: 'Iluminação',
+    estrada: 'Estradas e passeios',
+    higiene: 'Higiene Pública',
+  }
+
+  addOccurrence({
+    id: Date.now(),
+    nome: userName,
+    situacao: 'Em Resolução',
+    statusClass: 'em-resolucao',
+    tipo: typeLabels[form.value.type] || form.value.type,
+    detalhes: form.value.description.trim(),
+    userImg: defaultOccurrenceAvatar,
+    location: form.value.location.trim(),
+  })
+
+  form.value.location = ''
+  form.value.type = ''
+  form.value.description = ''
+  form.value.files = []
+  validationErrors.value = { location: false, type: false, description: false }
+
+  router.push({ path: '/ocorrencias' })
+}
 </script>
 
 <style scoped>
@@ -384,6 +450,20 @@ const handleSubmit = () => console.log('Dados enviados:', form.value)
   border: 1px solid #cbd5e1;
   border-radius: 10px;
   font-size: 16px;
+}
+.field-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field-error {
+  color: #dc2626;
+  font-size: 13px;
+  font-weight: 600;
+}
+.field-invalid {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.12);
 }
 .custom-textarea {
   height: 150px;

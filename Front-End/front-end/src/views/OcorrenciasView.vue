@@ -158,6 +158,7 @@ import { useRouter } from 'vue-router'
 import Footer from '@/components/footer.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
+import { readStoredOccurrences } from '@/utils/occurrenceStorage'
 
 const viewMode = ref('lista')
 const showNotif = ref(false)
@@ -189,35 +190,7 @@ const toggleMenu = (e) => {
 
 const removeNotif = (i) => notifications.value.splice(i, 1)
 
-const ocorrencias = ref([
-  {
-    id: 1,
-    nome: 'Mariana Silva',
-    situacao: 'Resolvido',
-    statusClass: 'resolvido',
-    tipo: 'Sinalização',
-    detalhes: 'Necessária a poda de árvores...',
-    userImg: '/img/avatar1.png',
-  },
-  {
-    id: 2,
-    nome: 'Ricardo Pereira',
-    situacao: 'Em Resolução',
-    statusClass: 'em-resolucao',
-    tipo: 'Buracos na Via',
-    detalhes: 'Reparação urgente de buraco...',
-    userImg: '/img/avatar2.png',
-  },
-  {
-    id: 3,
-    nome: 'Beatriz Costa',
-    situacao: 'À espera de equipa',
-    statusClass: 'espera',
-    tipo: 'Iluminação Pública',
-    detalhes: 'Substituição de lâmpada...',
-    userImg: '/img/avatar3.png',
-  },
-])
+const ocorrencias = ref(readStoredOccurrences())
 
 function handleDocClick(e) {
   if (
