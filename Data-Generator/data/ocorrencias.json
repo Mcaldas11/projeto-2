@@ -1,7 +1,9 @@
 [
   {
     "idOcorrencia": 1,
-    "foto": null,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779897869/ocorrencias/seed/keyakldrqgupxn8g7rwr.jpg"
+    ],
     "descricao": "Buraco no asfalto na Avenida Principal",
     "localizacao": "Avenida Principal, 52, 4481-402 Vila do Conde",
     "dataOcorrencia": "2026-04-29 16:13:11",
@@ -19,7 +21,9 @@
   },
   {
     "idOcorrencia": 2,
-    "foto": null,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779897870/ocorrencias/seed/mb4potm9urgmksl2enzx.jpg"
+    ],
     "descricao": "Passeio danificado e com perigo de queda",
     "localizacao": "Rua do Comércio, 14, 4482-215 Vila do Conde",
     "dataOcorrencia": "2026-05-01 09:22:00",
@@ -37,7 +41,9 @@
   },
   {
     "idOcorrencia": 3,
-    "foto": null,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779897871/ocorrencias/seed/ooddqntdrh6yl3ku48pc.jpg"
+    ],
     "descricao": "Calçada partida em frente ao prédio",
     "localizacao": "Rua da Escola, 87, 4484-311 Vilar de Pinheiro",
     "dataOcorrencia": "2026-05-04 11:45:33",
@@ -55,7 +61,9 @@
   },
   {
     "idOcorrencia": 4,
-    "foto": null,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779897871/ocorrencias/seed/b79qyzcidikjsxernu9r.jpg"
+    ],
     "descricao": "Asfalto esburacado dificultando circulação",
     "localizacao": "Rua Nova, 120, 4481-250 Vila do Conde",
     "dataOcorrencia": "2026-05-06 18:05:22",
@@ -73,7 +81,9 @@
   },
   {
     "idOcorrencia": 5,
-    "foto": null,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779897872/ocorrencias/seed/ltzhs9jia5atdggvv1px.webp"
+    ],
     "descricao": "Semáforo avariado na rotunda",
     "localizacao": "Rotunda do Mercado, 8, 4485-190 Árvore",
     "dataOcorrencia": "2026-05-08 08:10:12",
@@ -91,7 +101,9 @@
   },
   {
     "idOcorrencia": 6,
-    "foto": null,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779897873/ocorrencias/seed/aohboe6fhpxbzzwayuqg.jpg"
+    ],
     "descricao": "Placa de trânsito caída no chão",
     "localizacao": "Rua do Centro, 3, 4480-612 Vilar e Mosteiró",
     "dataOcorrencia": "2026-05-09 13:40:00",
@@ -109,7 +121,9 @@
   },
   {
     "idOcorrencia": 7,
-    "foto": null,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779897874/ocorrencias/seed/xhpk4uhkejdwpozcxydn.jpg"
+    ],
     "descricao": "Marcas de via apagadas e invisíveis",
     "localizacao": "Avenida Central, 44, 4480-550 Azurara",
     "dataOcorrencia": "2026-05-12 10:15:45",
@@ -127,7 +141,9 @@
   },
   {
     "idOcorrencia": 8,
-    "foto": null,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779897875/ocorrencias/seed/nbldffclvber2hc3sozl.jpg"
+    ],
     "descricao": "Sinal de proibição danificado",
     "localizacao": "Rua da Praia, 19, 4486-321 Vila Chã",
     "dataOcorrencia": "2026-05-13 17:10:05",
@@ -145,7 +161,9 @@
   },
   {
     "idOcorrencia": 9,
-    "foto": null,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779897876/ocorrencias/seed/q8nixphezvj2dcfidpsr.jpg"
+    ],
     "descricao": "Candeeiro apagado há semanas na rua",
     "localizacao": "Rua da Igreja, 10, 4480-401 Mindelo",
     "dataOcorrencia": "2026-05-14 20:02:19",
@@ -163,7 +181,9 @@
   },
   {
     "idOcorrencia": 10,
-    "foto": null,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779897876/ocorrencias/seed/wdcxpty4dssumclg8a5a.jpg"
+    ],
     "descricao": "Lâmpada fundida deixando escuridão total",
     "localizacao": "Rua das Flores, 62, 4486-115 Touguinha e Touguinhó",
     "dataOcorrencia": "2026-05-15 21:50:00",
@@ -181,7 +201,9 @@
   },
   {
     "idOcorrencia": 11,
-    "foto": null,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779897877/ocorrencias/seed/fmlwe0jfbtfpewn1geoj.jpg"
+    ],
     "descricao": "Vários candeeiros desligados no bairro",
     "localizacao": "Rua da Fonte, 5, 4485-650 Guilhabreu",
     "dataOcorrencia": "2026-05-16 22:30:45",
@@ -199,7 +221,9 @@
   },
   {
     "idOcorrencia": 12,
-    "foto": null,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779897878/ocorrencias/seed/ceqrxbighxew1sgkri51.jpg"
+    ],
     "descricao": "Zona sem iluminação criando insegurança",
     "localizacao": "Rua do Monte, 23, 4480-528 Macieira da Maia",
     "dataOcorrencia": "2026-05-17 19:25:10",
@@ -217,7 +241,9 @@
   },
   {
     "idOcorrencia": 13,
-    "foto": null,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779897878/ocorrencias/seed/z10wbjwo7duzxbtssifj.jpg"
+    ],
     "descricao": "Lixo acumulado junto ao contentor",
     "localizacao": "Rua do Povo, 77, 4481-233 Canidelo",
     "dataOcorrencia": "2026-05-18 10:05:00",
@@ -235,7 +261,9 @@
   },
   {
     "idOcorrencia": 14,
-    "foto": null,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779897879/ocorrencias/seed/fnh42djxbylg6w6rvcyx.jpg"
+    ],
     "descricao": "Rua suja com detritos espalhados",
     "localizacao": "Rua do Pinhal, 11, 4486-210 Bagunte, Ferreiró, Outeiro Maior e Parada",
     "dataOcorrencia": "2026-05-18 14:12:30",
@@ -253,7 +281,9 @@
   },
   {
     "idOcorrencia": 15,
-    "foto": null,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779897880/ocorrencias/seed/j6gfjau19ahyzrfp2uvh.jpg"
+    ],
     "descricao": "Mato crescido na berma da estrada",
     "localizacao": "Rua do Castro, 2, 4480-742 Canidelo",
     "dataOcorrencia": "2026-05-19 09:50:00",
@@ -271,7 +301,9 @@
   },
   {
     "idOcorrencia": 16,
-    "foto": null,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779897881/ocorrencias/seed/csm1fqwanaebjzpgqkne.jpg"
+    ],
     "descricao": "Árvore caída no parque infantil",
     "localizacao": "Parque da Ribeira, 6, 4480-601 Vilar de Pinheiro",
     "dataOcorrencia": "2026-05-20 16:40:00",
@@ -289,7 +321,9 @@
   },
   {
     "idOcorrencia": 17,
-    "foto": null,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779897882/ocorrencias/seed/ijuyv6ejipkscsj7zko6.jpg"
+    ],
     "descricao": "Banco do parque partido e perigoso",
     "localizacao": "Jardim Municipal, 18, 4480-201 Mindelo",
     "dataOcorrencia": "2026-05-21 11:15:00",
@@ -307,7 +341,9 @@
   },
   {
     "idOcorrencia": 18,
-    "foto": null,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779897882/ocorrencias/seed/c1gutbitsj3rimjc6uvo.jpg"
+    ],
     "descricao": "Relva alta e descuidada na zona",
     "localizacao": "Rua do Parque, 44, 4481-340 Vila do Conde",
     "dataOcorrencia": "2026-05-22 08:30:00",

@@ -20,6 +20,28 @@ const normalizeDate = (value) => {
   return date.toISOString().slice(0, 19).replace("T", " ");
 };
 
+const normalizeFotoValue = (value) => {
+  if (!value) return null;
+
+  if (Array.isArray(value)) {
+    const urls = value
+      .map((entry) => {
+        if (typeof entry === "string") return entry;
+        if (entry && typeof entry === "object") {
+          return entry.url || entry.secure_url || null;
+        }
+        return null;
+      })
+      .filter(Boolean);
+
+    return urls.length ? JSON.stringify(urls) : null;
+  }
+
+  if (typeof value === "string") return value;
+
+  return null;
+};
+
 async function importOcorrencias() {
   try {
     const raw = await fs.readFile(dataPath, "utf8");
@@ -96,7 +118,7 @@ async function importOcorrencias() {
 
     const payload = ocorrencias.map((o) => ({
       idOcorrencia: o.idOcorrencia,
-      foto: o.foto ?? null,
+      foto: normalizeFotoValue(o.foto),
       descricao: o.descricao,
       localizacao: o.localizacao,
       dataOcorrencia: normalizeDate(o.dataOcorrencia),
