@@ -52,7 +52,7 @@
         <div class="alert-content">
           <div class="alert-left">
             <div class="alert-title-row">
-              <span class="alert-icon">⚠</span>
+              <img src="@/assets/warning_icon.svg" alt="alerta" class="alert-icon" />
               <strong>Localização Errada</strong>
             </div>
             <div class="alert-body">
@@ -111,7 +111,7 @@
             <p>
               <strong>Status:</strong>
               <span class="status-badge em-resolucao">Em Resolução</span>
-              <span class="edit-icon" title="Editar status">✏️</span>
+              <img src="@/assets/edit_icon.svg" alt="edit_icon" class="edit-icon" /> 
             </p>
             <p><strong>Localização:</strong><br />R. Dom Sancho I 981, 4480-876 Vila do Conde</p>
             <p>
@@ -368,8 +368,8 @@ const prevImg = () => {
   margin-bottom: 12px;
 }
 .alert-icon {
-  background: #fbbf24;
-  padding: 4px 8px;
+  background: #730000;
+  padding: 8px;
   border-radius: 6px;
   font-size: 16px;
 }
@@ -509,9 +509,10 @@ const prevImg = () => {
   color: #ca8a04;
 }
 .edit-icon {
+  width: 18px;
+  height: 18px;
   margin-left: 8px;
   cursor: pointer;
-  font-size: 16px;
 }
 
 /* CIDADÃO SECTION */

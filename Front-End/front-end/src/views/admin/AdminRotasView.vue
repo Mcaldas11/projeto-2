@@ -37,68 +37,17 @@
       <section class="rotas-ativas">
         <div class="rotas-grid">
           <div class="map-placeholder">
-            <svg viewBox="0 0 500 400" class="route-map-svg">
-              <!-- Background grid / streets -->
-              <rect width="500" height="400" fill="#e8ede4" />
-              <!-- Park areas -->
-              <rect x="0" y="0" width="120" height="80" fill="#c5ddb8" rx="5" />
-              <rect x="350" y="280" width="150" height="120" fill="#c5ddb8" rx="5" />
-              <rect x="0" y="280" width="100" height="120" fill="#c5ddb8" rx="5" />
-              <!-- Streets -->
-              <line x1="0" y1="120" x2="500" y2="120" stroke="#d4d4d4" stroke-width="3" />
-              <line x1="0" y1="250" x2="500" y2="250" stroke="#d4d4d4" stroke-width="3" />
-              <line x1="160" y1="0" x2="160" y2="400" stroke="#d4d4d4" stroke-width="3" />
-              <line x1="320" y1="0" x2="320" y2="400" stroke="#d4d4d4" stroke-width="3" />
-              <!-- Water -->
-              <line x1="100" y1="0" x2="200" y2="400" stroke="#bfdbfe" stroke-width="4" opacity="0.6" />
-
-              <!-- Route: Engenharia e vias (orange) -->
-              <polyline points="50,80 100,55 150,70" fill="none" stroke="#f59e0b" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
-              <rect x="58" y="42" width="14" height="14" fill="#f59e0b" rx="3" />
-
-              <!-- Route: Higiene Urbana (green) -->
-              <polyline points="140,130 220,100 310,120 380,100" fill="none" stroke="#22c55e" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
-              <polygon points="390,95 396,108 384,108" fill="#22c55e" />
-
-              <!-- Route: Iluminação pública (purple) -->
-              <polyline points="130,200 200,170 290,215 350,185" fill="none" stroke="#8b5cf6" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
-              <rect x="347" y="178" width="14" height="14" fill="#8b5cf6" rx="3" />
-
-              <!-- Route: Espaços Verdes (red/dark) -->
-              <polyline points="200,280 310,310 410,340 460,350" fill="none" stroke="#730000" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
-              <polygon points="460,345 466,358 454,358" fill="#730000" />
-            </svg>
+            <div ref="mapElement" class="route-map-canvas"></div>
           </div>
 
           <div class="rotas-legend">
             <h3 class="legend-title">Rotas Ativas</h3>
             <div class="legend-items">
-              <div class="legend-item">
-                <div class="legend-bar" style="background: #730000"></div>
+              <div v-for="route in routes" :key="route.id" class="legend-item">
+                <div class="legend-bar" :style="{ background: route.color }"></div>
                 <div class="legend-text">
-                  <strong>Engenharia e vias</strong>
-                  <span>4 ocorrências</span>
-                </div>
-              </div>
-              <div class="legend-item">
-                <div class="legend-bar" style="background: #8b5cf6"></div>
-                <div class="legend-text">
-                  <strong>Higiene Urbana</strong>
-                  <span>7 ocorrências</span>
-                </div>
-              </div>
-              <div class="legend-item">
-                <div class="legend-bar" style="background: #f59e0b"></div>
-                <div class="legend-text">
-                  <strong>Iluminação pública</strong>
-                  <span>5 ocorrências</span>
-                </div>
-              </div>
-              <div class="legend-item">
-                <div class="legend-bar" style="background: #22c55e"></div>
-                <div class="legend-text">
-                  <strong>Espaços Verdes</strong>
-                  <span>9 ocorrências</span>
+                  <strong>{{ route.teamName }}</strong>
+                  <span>{{ route.waypoints.length }} pontos</span>
                 </div>
               </div>
             </div>
@@ -111,35 +60,11 @@
         <h2 class="section-subtitle">Proximas Rotas Otimizadas</h2>
         <p class="espera-label">Nº Ocorrências em espera</p>
         <div class="category-cards">
-          <div class="category-card">
-            <div class="card-bar" style="background: #730000"></div>
+          <div v-for="route in routes" :key="route.id" class="category-card">
+            <div class="card-bar" :style="{ background: route.color }"></div>
             <div class="card-content">
-              <strong>Engenharia e vias</strong>
-              <span>4 ocorrências</span>
-            </div>
-            <span class="info-icon" title="Mais informações">ⓘ</span>
-          </div>
-          <div class="category-card">
-            <div class="card-bar" style="background: #8b5cf6"></div>
-            <div class="card-content">
-              <strong>Higiene Urbana</strong>
-              <span>7 ocorrências</span>
-            </div>
-            <span class="info-icon" title="Mais informações">ⓘ</span>
-          </div>
-          <div class="category-card">
-            <div class="card-bar" style="background: #f59e0b"></div>
-            <div class="card-content">
-              <strong>Iluminação pública</strong>
-              <span>5 ocorrências</span>
-            </div>
-            <span class="info-icon" title="Mais informações">ⓘ</span>
-          </div>
-          <div class="category-card">
-            <div class="card-bar" style="background: #22c55e"></div>
-            <div class="card-content">
-              <strong>Espaços Verdes</strong>
-              <span>9 ocorrências</span>
+              <strong>{{ route.teamName }}</strong>
+              <span>{{ route.waypoints.length }} pontos</span>
             </div>
             <span class="info-icon" title="Mais informações">ⓘ</span>
           </div>
@@ -153,12 +78,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { nextTick, ref, onMounted, onBeforeUnmount } from 'vue'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 import Footer from '@/components/footer.vue'
 import AdminSidebarMenu from '@/components/AdminSidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import adminFooterLogo from '@/assets/logo_footer.png'
+import { listRoutesWithGeometry } from '@/services/routeService'
 
 const adminFooterColumns = [
   [
@@ -177,6 +105,10 @@ const showNotif = ref(false)
 const showMenu = ref(false)
 const notifPanel = ref(null)
 const notifIcon = ref(null)
+const mapElement = ref(null)
+const mapInstance = ref(null)
+const routeLayer = ref(null)
+const routes = ref([])
 
 const notifications = ref([
   { id: 1, title: 'Nova ocorrência', body: 'Uma nova ocorrência foi reportada em <strong>Vila do Conde</strong>' },
@@ -194,17 +126,83 @@ const toggleMenu = (e) => {
 }
 const removeNotif = (i) => notifications.value.splice(i, 1)
 
+function formatRoutePoints(route) {
+  return (route.geometry?.length ? route.geometry : route.waypoints || []).map((point) => [point.latitude, point.longitude])
+}
+
+function drawRoutes() {
+  if (!mapInstance.value || !routeLayer.value) return
+
+  routeLayer.value.clearLayers()
+
+  const bounds = []
+
+  routes.value.forEach((route) => {
+    const points = formatRoutePoints(route)
+    if (points.length < 2) return
+
+    const polyline = L.polyline(points, {
+      color: route.color,
+      weight: 5,
+      opacity: 0.95,
+      lineJoin: 'round',
+    })
+
+    polyline.addTo(routeLayer.value)
+    bounds.push(...points)
+
+    const startPoint = points[0]
+    const endPoint = points[points.length - 1]
+    L.circleMarker(startPoint, { radius: 6, color: route.color, fillColor: '#fff', fillOpacity: 1, weight: 3 }).addTo(routeLayer.value)
+    L.circleMarker(endPoint, { radius: 7, color: route.color, fillColor: route.color, fillOpacity: 1, weight: 2 }).addTo(routeLayer.value)
+  })
+
+  if (bounds.length > 0) {
+    mapInstance.value.fitBounds(bounds, { padding: [24, 24] })
+  }
+}
+
+async function initMap() {
+  if (!mapElement.value || mapInstance.value) return
+
+  mapInstance.value = L.map(mapElement.value, { zoomControl: true }).setView([41.3649, -8.7389], 14)
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors',
+    maxZoom: 19,
+  }).addTo(mapInstance.value)
+
+  routeLayer.value = L.layerGroup().addTo(mapInstance.value)
+  await nextTick()
+  drawRoutes()
+}
+
+async function loadRoutes() {
+  routes.value = await listRoutesWithGeometry()
+  drawRoutes()
+}
+
 function handleDocClick(e) {
   if (showNotif.value && notifPanel.value && !notifPanel.value.contains(e.target) && notifIcon.value && !notifIcon.value.contains(e.target)) {
     showNotif.value = false
   }
 }
 
-onMounted(() => document.addEventListener('click', handleDocClick))
-onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
+onMounted(async () => {
+  document.addEventListener('click', handleDocClick)
+  await loadRoutes()
+  await initMap()
+})
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleDocClick)
+  if (mapInstance.value) {
+    mapInstance.value.remove()
+    mapInstance.value = null
+  }
+})
 
 const gerarRotas = () => {
-  console.log('Gerar Rotas clicked')
+  loadRoutes()
 }
 </script>
 
@@ -274,9 +272,10 @@ const gerarRotas = () => {
   overflow: hidden;
   aspect-ratio: 5/4;
 }
-.route-map-svg {
+.route-map-canvas {
   width: 100%;
   height: 100%;
+  min-height: 420px;
 }
 .legend-title {
   font-size: 18px;

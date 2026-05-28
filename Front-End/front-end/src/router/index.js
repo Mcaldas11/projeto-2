@@ -17,6 +17,7 @@ import AdminTrabalhadoresView from '../views/admin/AdminTrabalhadoresView.vue'
 import AdminEquipasView from '../views/admin/AdminEquipasView.vue'
 import AdminRotasView from '../views/admin/AdminRotasView.vue'
 import { isAuthenticated } from '../utils/auth'
+import AdminFreguesiasView from '@/views/admin/AdminFreguesiasView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -35,14 +36,45 @@ const router = createRouter({
     },
     { path: '/ocorrencias', name: 'ocorrencias', component: OcorrenciasView },
     { path: '/conta', name: 'conta', component: ContaView },
-    { path: '/trabalhador', name: 'trabalhador-home', component: TrabalhadorHomeView, meta: { requiresWorker: true } },
+    {
+      path: '/trabalhador',
+      name: 'trabalhador-home',
+      component: TrabalhadorHomeView,
+      meta: { requiresWorker: true },
+    },
 
     // Admin Routes
     { path: '/admin', name: 'admin-home', component: AdminHomeView, meta: { requiresAdmin: true } },
-    { path: '/admin/ocorrencia/:id', name: 'admin-ocorrencia-detail', component: AdminOcorrenciaDetailView, meta: { requiresAdmin: true } },
-    { path: '/admin/trabalhadores', name: 'admin-trabalhadores', component: AdminTrabalhadoresView, meta: { requiresAdmin: true } },
-    { path: '/admin/equipas', name: 'admin-equipas', component: AdminEquipasView, meta: { requiresAdmin: true } },
-    { path: '/admin/rotas', name: 'admin-rotas', component: AdminRotasView, meta: { requiresAdmin: true } },
+    {
+      path: '/admin/ocorrencia/:id',
+      name: 'admin-ocorrencia-detail',
+      component: AdminOcorrenciaDetailView,
+      meta: { requiresAdmin: true },
+    },
+    {
+      path: '/admin/trabalhadores',
+      name: 'admin-trabalhadores',
+      component: AdminTrabalhadoresView,
+      meta: { requiresAdmin: true },
+    },
+    {
+      path: '/admin/equipas',
+      name: 'admin-equipas',
+      component: AdminEquipasView,
+      meta: { requiresAdmin: true },
+    },
+    {
+      path: '/admin/rotas',
+      name: 'admin-rotas',
+      component: AdminRotasView,
+      meta: { requiresAdmin: true },
+    },
+    {
+      path: '/admin/freguesias',
+      name: 'admin-freguesias',
+      component: AdminFreguesiasView,
+      meta: { requiresAdmin: true },
+    },
   ],
 })
 

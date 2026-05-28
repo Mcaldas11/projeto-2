@@ -15,15 +15,19 @@
           </router-link>
           <router-link to="/admin/rotas" class="sidebar-item" @click="closeMenu">
             <span class="sidebar-label">Rotas</span>
-            <img src="@/assets/ocorrencias.png" alt="rotas" class="sidebar-icon" />
+            <img src="@/assets/route_icon.svg" alt="rotas" class="sidebar-icon" />
           </router-link>
           <router-link to="/admin/equipas" class="sidebar-item" @click="closeMenu">
             <span class="sidebar-label">Equipas</span>
-            <img src="@/assets/ocorrencias.png" alt="equipas" class="sidebar-icon" />
+            <img src="@/assets/team_icon.svg" alt="equipas" class="sidebar-icon" />
           </router-link>
           <router-link to="/admin/trabalhadores" class="sidebar-item" @click="closeMenu">
-            <span class="sidebar-label">Funcionarios</span>
-            <img src="@/assets/conta.png" alt="funcionarios" class="sidebar-icon" />
+            <span class="sidebar-label">Trabalhadores</span>
+            <img src="@/assets/workers_icon.svg" alt="funcionarios" class="sidebar-icon" />
+          </router-link>
+          <router-link to="/admin/freguesias" class="sidebar-item" @click="closeMenu">
+            <span class="sidebar-label">Freguesias</span>
+            <img src="@/assets/workers_icon.svg" alt="Freguesias" class="sidebar-icon" />
           </router-link>
         </div>
       </div>

@@ -32,13 +32,7 @@
 
     <main class="main-content">
       <div class="title-filter">
-        <h1 class="page-title">Trabalhadores</h1>
-        <div class="filter-select">
-          <label>Freguesia</label>
-          <select v-model="selectedFreguesia">
-            <option v-for="f in FREGUESIAS" :key="f" :value="f">{{ f }}</option>
-          </select>
-        </div>
+        <h1 class="page-title">Freguesias</h1>
       </div>
 
       <div class="table-container">
@@ -46,16 +40,15 @@
           <thead>
             <tr>
               <th>Nome</th>
-              <th>Descrição</th>
-              <th>Equipa</th>
+              <th>Nr Trabalahadores</th>
+              <th>Equipas</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="worker in paginatedWorkers" :key="worker.id">
+            <tr v-for="f in FREGUESIAS" :key="f.name">
               <td class="user-cell">
-                <img :src="worker.avatar" class="avatar" />
-                {{ worker.nome }}
+                {{ f.nome }}
               </td>
               <td class="desc-cell">{{ worker.email }}</td>
               <td class="teams-cell">
@@ -108,7 +101,6 @@ import Footer from '@/components/footer.vue'
 import AdminSidebarMenu from '@/components/AdminSidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
-import avatarImg from '@/assets/avatar.png'
 import adminFooterLogo from '@/assets/logo_footer.png'
 import { FREGUESIAS } from '@/utils/freguesias'
 
@@ -155,105 +147,17 @@ function handleDocClick(e) {
 onMounted(() => document.addEventListener('click', handleDocClick))
 onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
 
-// Workers data
-const allWorkers = ref([
-  {
-    id: 1, nome: 'Olivia Rhye', email: 'olivia@untitledul.com', avatar: avatarImg, freguesia: 'Vila do Conde',
-    teams: [
-      { name: 'Higiene Urbana', colorClass: 'tag-blue' },
-      { name: 'Técnico de Saneamento', colorClass: 'tag-blue' },
-      { name: 'Coleta de resíduos', colorClass: 'tag-blue' },
-    ],
-  },
-  {
-    id: 2, nome: 'Phoenix Baker', email: 'phoenix@untitledul.com', avatar: avatarImg, freguesia: 'Azurara',
-    teams: [
-      { name: 'Espaços Verdes', colorClass: 'tag-green' },
-      { name: 'Paisagista', colorClass: 'tag-green' },
-    ],
-  },
-  {
-    id: 3, nome: 'Lana Steiner', email: 'lana@untitledul.com', avatar: avatarImg, freguesia: 'Argivai',
-    teams: [
-      { name: 'Eletricidade', colorClass: 'tag-purple' },
-      { name: 'Engenheiro Eletricista', colorClass: 'tag-purple' },
-      { name: 'Instalações elétricas', colorClass: 'tag-purple' },
-    ],
-  },
-  {
-    id: 4, nome: 'Demi Wilkinson', email: 'demi@untitledul.com', avatar: avatarImg, freguesia: 'Mindelo',
-    teams: [
-      { name: 'Engenharia e Vias', colorClass: 'tag-orange' },
-      { name: 'Engenheiro de Estradas', colorClass: 'tag-orange' },
-      { name: 'Pavimentações', colorClass: 'tag-orange' },
-    ],
-  },
-  {
-    id: 5, nome: 'Candice Wu', email: 'candice@untitledul.com', avatar: avatarImg,
-    teams: [
-      { name: 'Higiene Urbana', colorClass: 'tag-blue' },
-      { name: 'Coordenador de Limpeza', colorClass: 'tag-blue' },
-      { name: 'Gestão de resíduos', colorClass: 'tag-blue' },
-    ],
-  },
-  {
-    id: 6, nome: 'Natali Craig', email: 'natali@untitledul.com', avatar: avatarImg,
-    teams: [
-      { name: 'Espaços Verdes', colorClass: 'tag-green' },
-      { name: 'Arborista', colorClass: 'tag-green' },
-      { name: 'Manutenção de árvores', colorClass: 'tag-green' },
-    ],
-  },
-  {
-    id: 7, nome: 'Drew Cano', email: 'drew@untitledul.com', avatar: avatarImg,
-    teams: [
-      { name: 'Eletricidade', colorClass: 'tag-purple' },
-      { name: 'Técnico Eletricista', colorClass: 'tag-purple' },
-      { name: 'Manutenção elétrica', colorClass: 'tag-purple' },
-    ],
-  },
-  {
-    id: 8, nome: 'Orlando Diggs', email: 'orlando@untitledul.com', avatar: avatarImg,
-    teams: [
-      { name: 'Engenharia e Vias', colorClass: 'tag-orange' },
-      { name: 'Engenheiro de Tráfego', colorClass: 'tag-orange' },
-      { name: 'Análise de tráfego', colorClass: 'tag-orange' },
-    ],
-  },
-  {
-    id: 9, nome: 'Andi Lane', email: 'andi@untitledul.com', avatar: avatarImg,
-    teams: [
-      { name: 'Higiene Urbana', colorClass: 'tag-blue' },
-      { name: 'Supervisor de Coleta', colorClass: 'tag-blue' },
-      { name: 'Controle de equipe', colorClass: 'tag-blue' },
-    ],
-  },
-  {
-    id: 10, nome: 'Kate Morrison', email: 'kate@untitledul.com', avatar: avatarImg,
-    teams: [
-      { name: 'Espaços Verdes', colorClass: 'tag-green' },
-      { name: 'Gestor Ambiental', colorClass: 'tag-green' },
-      { name: 'Conservação de áreas verdes', colorClass: 'tag-green' },
-    ],
-  },
-])
 
-const selectedFreguesia = ref('Todas')
 
-const filteredWorkers = computed(() => {
-  if (!selectedFreguesia.value || selectedFreguesia.value === 'Todas') return allWorkers.value
-  return allWorkers.value.filter((w) => w.freguesia === selectedFreguesia.value)
-})
+
+
 
 // Pagination
 const currentPage = ref(1)
 const perPage = 10
-const totalPages = computed(() => Math.max(1, Math.ceil(allWorkers.value.length / perPage)))
+const totalPages = computed(() => Math.ceil(FREGUESIAS.length / perPage))
 
-const paginatedWorkers = computed(() => {
-  const start = (currentPage.value - 1) * perPage
-  return filteredWorkers.value.slice(start, start + perPage)
-})
+
 
 const visiblePages = computed(() => {
   const pages = []
@@ -322,7 +226,6 @@ const editWorker = (id) => {
   font-size: 36px;
   font-weight: 800;
   margin: 0 0 30px 0;
-  font-style: italic;
 }
 
 .title-filter { display: flex; align-items: center; justify-content: space-between; gap: 20px; }

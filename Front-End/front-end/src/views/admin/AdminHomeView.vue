@@ -91,50 +91,15 @@
         </table>
       </div>
 
-      <!-- Pagination -->
-      <div class="pagination">
-        <button class="page-btn nav-btn" :disabled="currentPage === 1" @click="currentPage--">
-          ← Previous
-        </button>
-        <div class="page-numbers">
-          <button
-            v-for="p in visiblePages"
-            :key="p"
-            :class="['page-btn', { active: currentPage === p, ellipsis: p === '...' }]"
-            :disabled="p === '...'"
-            @click="p !== '...' && (currentPage = p)"
-          >
-            {{ p }}
-          </button>
-        </div>
-        <button class="page-btn nav-btn" :disabled="currentPage === totalPages" @click="currentPage++">
-          Next →
-        </button>
-      </div>
 
       <!-- Rotas Section -->
       <section class="rotas-section">
         <h2 class="section-title">Rotas</h2>
         <div class="rotas-grid">
+          <div class="map-container">
           <div class="map-placeholder">
-            <!-- Stylized map with route lines -->
-            <svg viewBox="0 0 500 350" class="route-map-svg">
-              <!-- Background streets -->
-              <line x1="0" y1="100" x2="500" y2="100" stroke="#ddd" stroke-width="2" />
-              <line x1="0" y1="200" x2="500" y2="200" stroke="#ddd" stroke-width="2" />
-              <line x1="150" y1="0" x2="150" y2="350" stroke="#ddd" stroke-width="2" />
-              <line x1="350" y1="0" x2="350" y2="350" stroke="#ddd" stroke-width="2" />
-              <!-- Route lines -->
-              <polyline points="50,80 120,60 180,80" fill="none" stroke="#f59e0b" stroke-width="4" stroke-linecap="round" />
-              <polyline points="180,80 250,120 320,80 380,110" fill="none" stroke="#22c55e" stroke-width="4" stroke-linecap="round" />
-              <polyline points="120,180 200,160 300,200 350,180" fill="none" stroke="#8b5cf6" stroke-width="4" stroke-linecap="round" />
-              <polyline points="200,250 300,280 400,300 450,310" fill="none" stroke="#730000" stroke-width="4" stroke-linecap="round" />
-              <!-- Markers -->
-              <rect x="55" y="55" width="12" height="12" fill="#f59e0b" rx="2" />
-              <polygon points="385,100 390,115 380,115" fill="#22c55e" />
-              <rect x="345" y="170" width="12" height="12" fill="#8b5cf6" rx="2" />
-              <polygon points="450,305 455,318 445,318" fill="#730000" />
-            </svg>
+            <div ref="mapElement" class="map-leaflet"></div>
+          </div>
           </div>
           <div class="rotas-legend">
             <div class="legend-item">
@@ -177,6 +142,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { listRoutesWithGeometry } from '@/services/routeService'
 import Footer from '@/components/footer.vue'
 import AdminSidebarMenu from '@/components/AdminSidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
@@ -184,6 +150,16 @@ import notifOff from '@/assets/notificationsoff.png'
 import avatarImg from '@/assets/avatar.png'
 import adminFooterLogo from '@/assets/logo_footer.png'
 import { FREGUESIAS } from '@/utils/freguesias'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
+
+const mapCenter = [41.36405, -8.73894]
+let mapInstance = null
+let markerLayer = null
+let routeLayer = null
+const mapElement = ref(null)
+const geocodeCache = new Map()
+
 
 const adminFooterColumns = [
   [
@@ -225,8 +201,48 @@ function handleDocClick(e) {
   }
 }
 
-onMounted(() => document.addEventListener('click', handleDocClick))
-onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
+onMounted(() => {
+  document.addEventListener('click', handleDocClick)
+
+  // initialize leaflet map in the admin home rotas placeholder
+  const el = mapElement.value || document.querySelector('.map-leaflet')
+  if (el) {
+    mapInstance = L.map(el).setView(mapCenter, 13)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(mapInstance)
+
+    routeLayer = L.layerGroup().addTo(mapInstance)
+
+    ;(async () => {
+      try {
+        const routes = await listRoutesWithGeometry()
+        if (routes && routes.length) {
+          routeLayer.clearLayers()
+          const allBounds = []
+          routes.forEach((r) => {
+            if (!r.geometry || !r.geometry.coordinates) return
+            const coords = r.geometry.coordinates.map((c) => [c[1], c[0]])
+            const poly = L.polyline(coords, { color: r.color || '#3388ff', weight: 5, opacity: 0.9 })
+            poly.addTo(routeLayer)
+            allBounds.push(...coords)
+          })
+          if (allBounds.length) mapInstance.fitBounds(allBounds, { padding: [40, 40] })
+        }
+      } catch (err) {
+        // fallback: leave empty map
+      }
+    })()
+  }
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleDocClick)
+  if (mapInstance) {
+    mapInstance.remove()
+    mapInstance = null
+  }
+})
 
 // Ocorrências Data
 const allOcorrencias = ref([
@@ -245,7 +261,6 @@ const allOcorrencias = ref([
 // Pagination
 const currentPage = ref(1)
 const perPage = 10
-const totalPages = computed(() => Math.ceil(allOcorrencias.value.length / perPage))
 
 const selectedFreguesia = ref('Todas')
 
@@ -259,19 +274,6 @@ const paginatedOcorrencias = computed(() => {
   return filteredOcorrencias.value.slice(start, start + perPage)
 })
 
-const visiblePages = computed(() => {
-  const total = totalPages.value
-  const current = currentPage.value
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
-  const pages = []
-  pages.push(1, 2, 3)
-  if (current > 4) pages.push('...')
-  const middle = [current - 1, current, current + 1].filter((p) => p > 3 && p < total - 1)
-  pages.push(...middle)
-  if (current < total - 3) pages.push('...')
-  pages.push(total - 1, total)
-  return [...new Set(pages)].filter((p) => p !== '...' ? p >= 1 && p <= total : true)
-})
 
 const toggleSort = () => {
   allOcorrencias.value.reverse()
@@ -357,10 +359,11 @@ const toggleSort = () => {
 }
 .notif-body {
   color: rgba(0, 0, 0, 0.7);
+}
+
+.title-filter { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
 .filter-select { display: flex; align-items: center; gap: 10px; }
 .filter-select select { padding: 8px 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
-  font-size: 14px;
-}
 .notif-empty {
   color: #666;
   font-size: 14px;
