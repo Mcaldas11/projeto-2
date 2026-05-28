@@ -169,6 +169,28 @@ export const createOcorrenciaForCidadao = async (req, res, next) => {
   }
 };
 
+export const getOcorrenciasForCidadao = async (req, res, next) => {
+  try {
+    if (!req.userData || req.userData.userType !== "cidadao") {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const userId = req.userData.userId;
+    const ocorrencias = await Ocorrencia.findAll({ where: { idCidadao: userId } });
+    const data = ocorrencias.map((ocorrencia) => {
+      const fotos = normalizeFotosField(ocorrencia.foto).map((foto) => foto.url);
+      return {
+        ...ocorrencia.toJSON(),
+        foto: buildFotosComIndice(fotos),
+      };
+    });
+
+    res.json(data);
+  } catch (error) {
+    next(genericError("Error fetching ocorrencias for cidadao"));
+  }
+};
+
 export const updateOcorrencia = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -198,6 +220,49 @@ export const deleteOcorrencia = async (req, res, next) => {
       return next(notFoundError("ocorrencia", id));
     }
 
+    if (!req.userData) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+
+    // determine if requester is admin
+    let isAdmin = false;
+    if (req.userData.userType === "trabalhador_admin") {
+      isAdmin = true;
+    } else if (req.userData.userType && req.userData.userType.startsWith("trabalhador")) {
+      const requesterTrab = await Trabalhador.findByPk(req.userData.userId);
+      const adminList = (process.env.ADMIN_EMAILS || "admin@vcc.pt,admin.geral@example.pt").split(",").map((s) => s.trim());
+      if (requesterTrab && adminList.includes((requesterTrab.emailTrabalhador || "").trim())) {
+        isAdmin = true;
+      }
+    }
+
+    // only admin or the cidadao who created it can delete
+    if (!isAdmin) {
+      if (req.userData.userType !== "cidadao" || Number(req.userData.userId) !== Number(ocorrencia.idCidadao)) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+    }
+
+    // remove fotos from cloudinary
+    try {
+      const fotos = normalizeFotosField(ocorrencia.foto);
+      const publicIds = [
+        ...new Set(
+          fotos
+            .map((foto) => foto.publicId || extractPublicIdFromUrl(foto.url))
+            .filter(Boolean),
+        ),
+      ];
+
+      await Promise.allSettled(
+        publicIds.map((publicId) =>
+          cloudinary.uploader.destroy(publicId, { resource_type: "image", invalidate: true }),
+        ),
+      );
+    } catch (e) {
+      console.warn("Failed to cleanup fotos for ocorrencia", id, e?.message || e);
+    }
+
     await ocorrencia.destroy();
     res.status(204).send();
   } catch (error) {
@@ -209,8 +274,8 @@ export const resolveOcorrenciaByEquipa = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    // Only trabalhadores can resolve occurrences
-    if (!req.userData || req.userData.userType !== "trabalhador") {
+    // Only trabalhadores (including admin) can resolve occurrences
+    if (!req.userData || !req.userData.userType || !req.userData.userType.startsWith("trabalhador")) {
       return res.status(403).json({
         message: "Forbidden: only trabalhadores can resolve ocorrencias",
       });

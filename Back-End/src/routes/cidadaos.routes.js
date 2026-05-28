@@ -61,9 +61,9 @@ router.get(
 );
 router.put(
   "/:id",
+  authMiddleware,
   validateIntegerParam("id"),
   requireJsonObject,
-  requireFields(requiredFieldsByResource.cidadaos),
   cidadaosControllers.updateCidadao,
 );
 router.patch(
@@ -75,6 +75,7 @@ router.patch(
 );
 router.delete(
   "/:id",
+  authMiddleware,
   validateIntegerParam("id"),
   cidadaosControllers.deleteCidadao,
 );

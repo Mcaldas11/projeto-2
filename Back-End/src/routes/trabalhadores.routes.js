@@ -38,9 +38,9 @@ router.post("/login", trabalhadoresControllers.loginTrabalhador);
 router.get("/:id", validateIntegerParam("id"), trabalhadoresControllers.getTrabalhadorById);
 router.put(
   "/:id",
+  authMiddleware,
   validateIntegerParam("id"),
   requireJsonObject,
-  requireFields(requiredFieldsByResource.trabalhadores),
   trabalhadoresControllers.updateTrabalhador,
 );
 router.patch(
@@ -50,6 +50,6 @@ router.patch(
   uploadFoto.single("file"),
   trabalhadoresControllers.updateTrabalhadorFoto,
 );
-router.delete("/:id", validateIntegerParam("id"), trabalhadoresControllers.deleteTrabalhador);
+router.delete("/:id", authMiddleware, validateIntegerParam("id"), trabalhadoresControllers.deleteTrabalhador);
 
 export default router;

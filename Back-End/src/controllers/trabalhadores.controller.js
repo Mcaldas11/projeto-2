@@ -185,11 +185,17 @@ export const loginTrabalhador = async (req, res, next) => {
         .json({ message: "Authentication failed. Wrong password." });
     }
 
+    // determine if this trabalhador is an admin by email
+    const adminList = (process.env.ADMIN_EMAILS || "admin@vcc.pt,admin.geral@example.pt").split(",").map((s) => s.trim());
+    const isAdmin = adminList.includes((trabalhador.emailTrabalhador || "").trim());
+
+    const tokenUserType = isAdmin ? "trabalhador_admin" : "trabalhador";
+
     const token = jwt.sign(
       {
         userId: trabalhador.idTrabalhador,
         email: trabalhador.emailTrabalhador,
-        userType: "trabalhador",
+        userType: tokenUserType,
       },
       "your_jwt_secret",
       { expiresIn: "15m" },
@@ -199,7 +205,7 @@ export const loginTrabalhador = async (req, res, next) => {
       message: "Login realizado com sucesso",
       token,
       userId: trabalhador.idTrabalhador,
-      userType: "trabalhador",
+      userType: tokenUserType,
     });
   } catch (error) {
     next(genericError("Error during login"));
@@ -215,10 +221,28 @@ export const updateTrabalhador = async (req, res, next) => {
       return next(notFoundError("trabalhador", id));
     }
 
+    // determine if requester is admin
+    let isAdmin = false;
+    if (req.userData && req.userData.userType && req.userData.userType.startsWith("trabalhador")) {
+      if (req.userData.userType === "trabalhador_admin") {
+        isAdmin = true;
+      } else {
+        const requesterTrab = await Trabalhador.findByPk(req.userData.userId);
+        const adminList = (process.env.ADMIN_EMAILS || "admin@vcc.pt,admin.geral@example.pt")
+          .split(",")
+          .map((s) => s.trim());
+        if (requesterTrab && adminList.includes((requesterTrab.emailTrabalhador || "").trim())) {
+          isAdmin = true;
+        }
+      }
+    }
+
     if (Object.prototype.hasOwnProperty.call(req.body, "idEquipa")) {
       const { idEquipa } = req.body;
 
       if (idEquipa === "" || idEquipa === null) {
+        // clearing team requires admin
+        if (!isAdmin) return res.status(403).json({ message: "Only admin can clear team" });
         req.body.idEquipa = null;
       } else {
         const normalizedIdEquipa = Number(idEquipa);
@@ -229,6 +253,11 @@ export const updateTrabalhador = async (req, res, next) => {
         const equipa = await Equipa.findByPk(normalizedIdEquipa);
         if (!equipa) {
           return res.status(400).json({ message: "Invalid idEquipa" });
+        }
+
+        // only admin can change the active team
+        if (!isAdmin) {
+          return res.status(403).json({ message: "Only admin can change team" });
         }
 
         req.body.idEquipa = normalizedIdEquipa;
