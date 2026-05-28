@@ -1,18 +1,14 @@
 # Back-End API (Rotas e Exemplos)
 
-Base URL: http://127.0.0.1:3000
+Base URL: `http://127.0.0.1:3000`
 
 ## Auth
 
-- Rotas de ocorrencias exigem token.
-- Rota /cidadaos/me/ocorrencias exige token.
-- Rotas /cidadaos/:id/foto e /trabalhadores/:id/foto exigem token e o userId do token tem de ser igual ao :id.
-- Header: Authorization: Bearer <TOKEN>
-- Token vem de /cidadaos/login, /trabalhadores/login, /cidadaos (create) e /trabalhadores (create).
+- `Authorization: Bearer <TOKEN>`
+- `trabalhador_admin` é o userType do admin no login de trabalhador.
+- Rotas de `ocorrencias`, `mensagens`, `cidadaos/:id`, `cidadaos/:id/foto`, `trabalhadores/:id`, `trabalhadores/:id/foto` e `cidadaos/me/ocorrencias` usam auth.
 
-## Formatos de erro
-
-Erro padrao (middlewares):
+## Formato de erro
 
 ```json
 {
@@ -23,8 +19,6 @@ Erro padrao (middlewares):
 }
 ```
 
-Erros com message (algumas rotas):
-
 ```json
 { "message": "Authentication failed!" }
 ```
@@ -33,26 +27,9 @@ Erros com message (algumas rotas):
 { "message": "Falta o ficheiro" }
 ```
 
-## Health
+## `cidadaos`
 
-### GET /health
-Sucesso:
-
-```json
-{ "status": "ok" }
-```
-
-Erro (exemplo 500):
-
-```json
-{ "description": "Internal server error" }
-```
-
-## Cidadaos
-
-### GET /cidadaos
-Sucesso:
-
+### `GET /cidadaos`
 ```json
 [
   {
@@ -65,13 +42,7 @@ Sucesso:
 ]
 ```
 
-Erro (exemplo 500):
-
-```json
-{ "description": "Error fetching cidadaos" }
-```
-
-### POST /cidadaos
+### `POST /cidadaos`
 Body:
 
 ```json
@@ -84,8 +55,6 @@ Body:
 }
 ```
 
-Sucesso:
-
 ```json
 {
   "message": "Cidadao created successfully",
@@ -95,23 +64,10 @@ Sucesso:
 }
 ```
 
-Erro (exemplo 409):
-
-```json
-{
-  "description": "Conflict: Email already in use.",
-  "errors": { "email": ["Email already in use"] }
-}
-```
-
-### POST /cidadaos/login
-Body:
-
+### `POST /cidadaos/login`
 ```json
 { "email": "ana@exemplo.pt", "password": "secret" }
 ```
-
-Sucesso:
 
 ```json
 {
@@ -122,15 +78,7 @@ Sucesso:
 }
 ```
 
-Erro (exemplo 401):
-
-```json
-{ "message": "Authentication failed. Wrong password." }
-```
-
-### POST /cidadaos/me/ocorrencias (auth)
-Body:
-
+### `POST /cidadaos/me/ocorrencias`
 ```json
 {
   "descricao": "Buraco na estrada",
@@ -140,8 +88,6 @@ Body:
   "tipo_ocorrencia": "Infraestruturas"
 }
 ```
-
-Sucesso:
 
 ```json
 {
@@ -153,15 +99,7 @@ Sucesso:
 }
 ```
 
-Erro (exemplo 401):
-
-```json
-{ "message": "Authentication failed!" }
-```
-
-### GET /cidadaos/:id
-Sucesso:
-
+### `GET /cidadaos/:id`
 ```json
 {
   "idCidadao": 1,
@@ -172,73 +110,29 @@ Sucesso:
 }
 ```
 
-Erro (exemplo 404):
+### `PUT /cidadaos/:id`
+Body parcial permitido.
 
 ```json
 {
-  "description": "Resource not found",
-  "errors": { "cidadao": ["Resource cidadao with ID 999 not found"] }
+  "nome": "Ana Martins",
+  "nrTelemovel": "911111111"
 }
 ```
 
-### PUT /cidadaos/:id
-Sucesso:
-
-```json
-{
-  "idCidadao": 1,
-  "nome": "Ana Santos",
-  "fregCidadao": 2,
-  "nrTelemovel": "912345678",
-  "email": "ana@exemplo.pt"
-}
-```
-
-Erro (exemplo 400):
-
-```json
-{
-  "description": "Missing required fields",
-  "errors": { "nome": ["nome is required"] }
-}
-```
-
-### PATCH /cidadaos/:id/foto (auth, multipart/form-data, file)
-Sucesso:
+### `PATCH /cidadaos/:id/foto`
+`multipart/form-data` com `file`.
 
 ```json
 { "success": true, "fotoPerfil": "https://res.cloudinary.com/.../perfil.jpg" }
 ```
 
-Erro (exemplo 400):
+### `DELETE /cidadaos/:id`
+Status `204`.
 
-```json
-{ "message": "Falta o ficheiro" }
-```
+## `trabalhadores`
 
-Erro (exemplo 403):
-
-```json
-{ "message": "Forbidden" }
-```
-
-### DELETE /cidadaos/:id
-Sucesso: status 204 (sem body)
-
-Erro (exemplo 404):
-
-```json
-{
-  "description": "Resource not found",
-  "errors": { "cidadao": ["Resource cidadao with ID 999 not found"] }
-}
-```
-
-## Trabalhadores
-
-### GET /trabalhadores
-Sucesso:
-
+### `GET /trabalhadores`
 ```json
 [
   {
@@ -251,15 +145,7 @@ Sucesso:
 ]
 ```
 
-Erro (exemplo 500):
-
-```json
-{ "description": "Error fetching trabalhadores" }
-```
-
-### POST /trabalhadores
-Body:
-
+### `POST /trabalhadores`
 ```json
 {
   "nomeTrabalhador": "Jose Martins",
@@ -270,8 +156,6 @@ Body:
 }
 ```
 
-Sucesso:
-
 ```json
 {
   "message": "Trabalhador created successfully",
@@ -281,39 +165,21 @@ Sucesso:
 }
 ```
 
-Erro (exemplo 400):
-
-```json
-{ "message": "Password is required" }
-```
-
-### POST /trabalhadores/login
-Body:
-
+### `POST /trabalhadores/login`
 ```json
 { "email": "jose@exemplo.pt", "password": "secret" }
 ```
-
-Sucesso:
 
 ```json
 {
   "message": "Login realizado com sucesso",
   "token": "<jwt>",
   "userId": 1,
-  "userType": "trabalhador"
+  "userType": "trabalhador_admin"
 }
 ```
 
-Erro (exemplo 401):
-
-```json
-{ "message": "Authentication failed. Wrong password." }
-```
-
-### GET /trabalhadores/:id
-Sucesso:
-
+### `GET /trabalhadores/:id`
 ```json
 {
   "idTrabalhador": 1,
@@ -324,79 +190,228 @@ Sucesso:
 }
 ```
 
-Erro (exemplo 404):
+### `PUT /trabalhadores/:id`
+Body parcial permitido.
 
 ```json
 {
-  "description": "Resource not found",
-  "errors": { "trabalhador": ["Resource trabalhador with ID 999 not found"] }
+  "nomeTrabalhador": "Jose Silva",
+  "idEquipa": 3
 }
 ```
 
-### PUT /trabalhadores/:id
-Sucesso:
-
-```json
-{
-  "idTrabalhador": 1,
-  "nomeTrabalhador": "Jose Martins",
-  "emailTrabalhador": "jose@exemplo.pt",
-  "telemovelTrabalhador": "913333333",
-  "idEquipa": 2
-}
-```
-
-Erro (exemplo 400):
-
-```json
-{ "message": "Invalid idEquipa" }
-```
-
-### PATCH /trabalhadores/:id/foto (auth, multipart/form-data, file)
-Sucesso:
+### `PATCH /trabalhadores/:id/foto`
+`multipart/form-data` com `file`.
 
 ```json
 { "success": true, "fotoPerfil": "https://res.cloudinary.com/.../perfil.jpg" }
 ```
 
-Erro (exemplo 400):
+### `DELETE /trabalhadores/:id`
+Status `204`.
 
+## `ocorrencias`
+
+### `GET /ocorrencias`
 ```json
-{ "message": "Falta o ficheiro" }
+[
+  {
+    "idOcorrencia": 1,
+    "descricao": "Buraco na estrada",
+    "estado": "À espera da equipa",
+    "idCidadao": 1,
+    "idFreguesia": 2
+  }
+]
 ```
 
-Erro (exemplo 403):
-
-```json
-{ "message": "Forbidden" }
-```
-
-### DELETE /trabalhadores/:id
-Sucesso: status 204 (sem body)
-
-Erro (exemplo 404):
-
+### `POST /ocorrencias`
 ```json
 {
-  "description": "Resource not found",
-  "errors": { "trabalhador": ["Resource trabalhador with ID 999 not found"] }
+  "descricao": "Lixo na rua",
+  "localizacao": "Centro",
+  "dataOcorrencia": "2026-05-28T10:00:00.000Z",
+  "severidade": "Alta",
+  "tipo_ocorrencia": "Higiene",
+  "idCidadao": 1,
+  "idFreguesia": 2
 }
 ```
 
-## Municipios
-
-### GET /municipios
-Sucesso:
-
+### `GET /ocorrencias/:id`
 ```json
-[{ "idMunicipio": 1, "nome": "Vila do Conde" }]
+{
+  "idOcorrencia": 1,
+  "descricao": "Buraco na estrada",
+  "estado": "À espera da equipa"
+}
 ```
 
-Erro (exemplo 500):
+### `POST /ocorrencias/:id/fotos`
+`multipart/form-data` com `files`.
 
 ```json
-{ "description": "Error fetching municipios" }
+{ "idOcorrencia": 1, "fotos": ["https://res.cloudinary.com/.../1.jpg"] }
 ```
+
+### `DELETE /ocorrencias/:id/fotos`
+```json
+{ "success": true }
+```
+
+### `DELETE /ocorrencias/:id/fotos/:fotoIndex`
+```json
+{ "success": true }
+```
+
+### `PATCH /ocorrencias/:id/fotos/:fotoIndex`
+`multipart/form-data` com `files`.
+
+```json
+{ "success": true }
+```
+
+### `PUT /ocorrencias/:id`
+```json
+{
+  "descricao": "Buraco maior na estrada",
+  "estado": "Em análise"
+}
+```
+
+### `PATCH /ocorrencias/:id/resolve`
+```json
+{
+  "estado": "Resolvido",
+  "idEquipa": 2
+}
+```
+
+### `DELETE /ocorrencias/:id`
+Status `204`.
+
+## `mensagens`
+
+### `GET /mensagens`
+```json
+[
+  {
+    "idMensagem": 1,
+    "assunto": "Pedido de informação",
+    "idCidadao": 1
+  }
+]
+```
+
+### `POST /mensagens`
+```json
+{
+  "assunto": "Pedido de informação",
+  "mensagem": "Preciso de ajuda com a ocorrência",
+  "idCidadao": 1
+}
+```
+
+### `GET /mensagens/:id`
+```json
+{
+  "idMensagem": 1,
+  "assunto": "Pedido de informação",
+  "mensagem": "Preciso de ajuda com a ocorrência"
+}
+```
+
+### `PUT /mensagens/:id`
+```json
+{
+  "assunto": "Atualização",
+  "mensagem": "Já resolvi"
+}
+```
+
+### `DELETE /mensagens/:id`
+Status `204`.
+
+## `municipios`
+
+### `GET /municipios`
+```json
+[
+  { "idMunicipio": 1, "nome": "Vila do Conde" }
+]
+```
+
+### `POST /municipios`
+```json
+{ "nome": "Vila do Conde" }
+```
+
+### `GET /municipios/:id`
+```json
+{ "idMunicipio": 1, "nome": "Vila do Conde" }
+```
+
+### `PUT /municipios/:id`
+```json
+{ "nome": "Póvoa de Varzim" }
+```
+
+### `DELETE /municipios/:id`
+Status `204`.
+
+## `equipas`
+
+### `GET /equipas`
+```json
+[
+  { "idEquipa": 1, "nomeEquipa": "Equipa Norte" }
+]
+```
+
+### `POST /equipas`
+```json
+{ "nomeEquipa": "Equipa Norte" }
+```
+
+### `GET /equipas/:id`
+```json
+{ "idEquipa": 1, "nomeEquipa": "Equipa Norte" }
+```
+
+### `PUT /equipas/:id`
+```json
+{ "nomeEquipa": "Equipa Sul" }
+```
+
+### `DELETE /equipas/:id`
+Status `204`.
+
+## `recursos`
+
+### `GET /recursos`
+```json
+[
+  { "idRecurso": 1, "nomeRecurso": "Camião" }
+]
+```
+
+### `POST /recursos`
+```json
+{ "nomeRecurso": "Camião" }
+```
+
+### `GET /recursos/:id`
+```json
+{ "idRecurso": 1, "nomeRecurso": "Camião" }
+```
+
+### `PUT /recursos/:id`
+```json
+{ "nomeRecurso": "Carrinha" }
+```
+
+### `DELETE /recursos/:id`
+Status `204`.
 
 ### POST /municipios
 Body:
@@ -970,4 +985,13 @@ Erro (exemplo 404):
   "description": "Resource not found",
   "errors": { "ocorrencia": ["Resource ocorrencia with ID 999 not found"] }
 }
+```
+
+## Health
+
+### GET /health
+Sucesso:
+
+```json
+{ "status": "ok" }
 ```
