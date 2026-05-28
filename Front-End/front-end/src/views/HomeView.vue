@@ -66,6 +66,27 @@
       </div>
     </section>
 
+    <section class="teams-freguesias-section">
+      <div class="section-heading-row">
+        <h2 class="section-title-small">Equipas</h2>
+        <router-link to="/equipas" class="section-link">Ver todas</router-link>
+      </div>
+      <div class="teams-grid">
+        <article class="team-card">
+          <h3>Estradas e passeios</h3>
+          <p>Equipa dedicada à reparação e manutenção da via pública.</p>
+        </article>
+        <article class="team-card">
+          <h3>Sinalizacao de transito</h3>
+          <p>Equipa dedicada à sinalização horizontal e vertical.</p>
+        </article>
+        <article class="team-card">
+          <h3>Iluminacao urbana</h3>
+          <p>Equipa dedicada à iluminação e resposta técnica urbana.</p>
+        </article>
+      </div>
+    </section>
+
     <section class="how-to-section">
       <h2 class="section-title-large">Como reportar uma ocorrência</h2>
       <div class="steps-grid">
@@ -320,6 +341,55 @@
   border-radius: 25px;
 }
 
+.teams-freguesias-section {
+  padding: 40px 80px 100px;
+}
+
+.section-heading-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.section-title-small {
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.section-link {
+  color: #730000;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.teams-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.team-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 20px;
+}
+
+.team-card h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.team-card p {
+  margin: 0;
+  color: #64748b;
+  font-weight: 600;
+}
+
 /* Como Reportar */
 .how-to-section {
   padding: 80px;
@@ -409,6 +479,7 @@
   .hero-title { font-size: 3.5rem; }
   .about-section, .steps-grid { flex-direction: column; grid-template-columns: 1fr; }
   .stats-container { flex-direction: column; }
+  .teams-grid { grid-template-columns: 1fr; }
 }
 </style>
 
