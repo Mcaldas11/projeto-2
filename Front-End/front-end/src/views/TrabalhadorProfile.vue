@@ -1,0 +1,713 @@
+<template>
+  <div class="page-container">
+    <!-- NAVBAR ALINHADA (SEM BOTÃO LIGADO A OCORRÊNCIAS) -->
+    <nav class="navbar">
+      <div class="logo-area">
+        <img src="@/assets/logoP.png" alt="VC Comunica Logo" class="logo-img" />
+      </div>
+      <div class="nav-icons">
+        <!-- Notificações e Menu Hambúrguer juntos no lado direito -->
+        <img
+          :src="notifications.length === 0 ? notifOff : notifOn"
+          alt="notifications"
+          class="icon notification"
+          @click="toggleNotif"
+        />
+        <span class="icon menu-hamburger" @click="toggleMenu">☰</span>
+
+        <SidebarMenu v-model="showMenu" />
+
+        <div v-if="showNotif" class="notifications">
+          <h4>Notificações</h4>
+          <div class="notif-list">
+            <div
+              v-for="(n, i) in notifications"
+              :key="n.id"
+              class="notif-item"
+              @click.stop="removeNotif(i)"
+            >
+              <div class="notif-title">{{ n.title }}</div>
+              <div class="notif-body" v-html="n.body"></div>
+            </div>
+            <div v-if="notifications.length === 0" class="notif-empty">Sem notificações</div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- CONTEÚDO PRINCIPAL NO NOVO DESIGN -->
+    <main class="content-wrapper">
+      <h1 class="page-title">Perfil do Trabalhador</h1>
+
+      <!-- Cabeçalho do Perfil (Estilo Identidade Visual Nova) -->
+      <section class="profile-header">
+        <div class="user-info">
+          <div class="avatar-container">
+            <img v-if="worker.avatar" :src="worker.avatar" alt="Avatar" class="profile-avatar" />
+            <div v-else class="profile-avatar-placeholder">
+              {{ worker.nome[0] }}{{ worker.apelido[0] }}
+            </div>
+          </div>
+          <div class="user-text">
+            <h2>{{ worker.nome }} {{ worker.apelido }}</h2>
+            <p>{{ worker.email }}</p>
+          </div>
+        </div>
+        <button @click="openEditModal" class="btn-edit">Editar</button>
+      </section>
+
+      <!-- Detalhes e Informações Técnicas do Trabalhador -->
+      <section class="profile-details">
+        <div class="details-grid">
+          <div class="detail-field">
+            <label>Género</label>
+            <select v-model="worker.genero" class="display-box select-box">
+              <option value="Masculino">Masculino</option>
+              <option value="Feminino">Feminino</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </div>
+
+          <div class="detail-field">
+            <label>Equipa Designada</label>
+            <div class="display-box disabled-box">{{ worker.equipa }}</div>
+          </div>
+
+          <div class="detail-field">
+            <label>Freguesia de Atuação 🔒</label>
+            <div class="display-box disabled-box">{{ worker.freguesia }}</div>
+          </div>
+
+          <div class="detail-field">
+            <label>Média de Avaliações</label>
+            <div class="display-box rating-box">⭐ {{ worker.ratingMedia }} / 5.0</div>
+          </div>
+
+          <div class="detail-field full-width">
+            <label>Credenciais de Acesso</label>
+            <div 
+              :class="['spoiler-credential', { revealed: isCredRevealed }]" 
+              @click="isCredRevealed = !isCredRevealed"
+            >
+              <span class="cred-text">{{ worker.credenciais }}</span>
+              <span v-if="!isCredRevealed" class="spoiler-label">Clique para revelar credencial</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECÇÃO INFERIOR: APENAS OCORRÊNCIAS DA FREGUESIA E ROTAS AGENDADAS -->
+      <section class="worker-dashboard-bottom">
+        
+        <!-- Listagem de Ocorrências com base na Tabela do Novo Design -->
+        <div class="dashboard-block user-occurrences">
+          <h3>Ocorrências em {{ worker.freguesia }}</h3>
+          <div class="table-container">
+            <table class="occ-table">
+              <thead>
+                <tr>
+                  <th>Situação</th>
+                  <th>Tipo de Problema</th>
+                  <th>Localização</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="occ in ocorrencias" :key="occ.id">
+                  <td>
+                    <span :class="['status-badge', occ.statusClass]">{{ occ.status }}</span>
+                  </td>
+                  <td>{{ occ.tipo }}</td>
+                  <td class="details-cell">{{ occ.local }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Listagem de Rotas & Agendamentos -->
+        <div class="dashboard-block worker-routes">
+          <h3>Rotas & Agendamentos Semanais</h3>
+          <div class="routes-list-wrapper">
+            <div v-for="route in rotas" :key="route.id" class="route-minimal-card">
+              <div class="route-info-side">
+                <h4>{{ route.nome }}</h4>
+                <p>{{ route.descricao }}</p>
+              </div>
+              <div class="route-date-side">
+                <span class="r-date">{{ route.data }}</span>
+                <span class="r-time">⏰ {{ route.hora }}</span>
+              </div>
+            </div>
+            <div v-if="rotas.length === 0" class="notif-empty">Nenhuma rota planeada.</div>
+          </div>
+        </div>
+
+      </section>
+
+      <button class="btn-logout" @click="showLogoutModal = true">Terminar Sessão</button>
+    </main>
+
+    <!-- MODAL: EDITAR PERFIL (MATRICULADO NO SEU DESIGN NOVO) -->
+    <div v-if="showEditModal" class="modal-overlay" @click.self="showEditModal = false">
+      <div class="modal-card">
+        <h3>Editar Perfil</h3>
+        <div class="modal-form-body">
+          <label>Nome:</label>
+          <input v-model="editFirstName" class="display-box" />
+          
+          <label>Apelido:</label>
+          <input v-model="editLastName" class="display-box" />
+          
+          <label>Email:</label>
+          <input v-model="editEmail" class="display-box" />
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn cancel" @click="showEditModal = false">VOLTAR</button>
+          <button class="modal-btn confirm" @click="handleSaveEdit">SALVAR</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: TERMINAR SESSÃO -->
+    <div v-if="showLogoutModal" class="modal-overlay" @click.self="showLogoutModal = false">
+      <div class="modal-card confirmation-card">
+        <h3>Terminar Sessão</h3>
+        <p>Tens a certeza que queres terminar sessão do painel técnico?</p>
+        <div class="modal-actions">
+          <button class="modal-btn cancel" @click="showLogoutModal = false">Cancelar</button>
+          <button class="modal-btn confirm" @click="handleLogout">Sim, sair</button>
+        </div>
+      </div>
+    </div>
+
+    <Footer />
+  </div>
+</template>
+
+<script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import Footer from '@/components/footer.vue'
+import SidebarMenu from '@/components/SidebarMenu.vue'
+import notifOn from '@/assets/notificationson.png'
+import notifOff from '@/assets/notificationsoff.png'
+
+const router = useRouter()
+
+// Sistema de Notificações e Menu
+const showNotif = ref(false)
+const showMenu = ref(false)
+const notifications = ref([
+  {
+    id: 1,
+    title: 'Nova Rota Atribuída',
+    body: 'Foi adicionada uma nova rota de piquete em <strong>Vila do Conde</strong>.',
+  },
+])
+
+const toggleNotif = () => {
+  showNotif.value = !showNotif.value
+  showMenu.value = false
+}
+const toggleMenu = () => {
+  showMenu.value = !showMenu.value
+  showNotif.value = false
+}
+const removeNotif = (i) => notifications.value.splice(i, 1)
+
+// Estado reativo do Perfil Técnico do Trabalhador
+const isCredRevealed = ref(false)
+const worker = ref({
+  nome: 'Carlos',
+  apelido: 'Sousa',
+  email: 'csousa@vccomunica.pt',
+  genero: 'Masculino',
+  equipa: 'Estradas e Passeios',
+  freguesia: 'Vila do Conde',
+  credenciais: 'VCC_Worker#2026',
+  avatar: null,
+  ratingMedia: '4.7'
+})
+
+// Modais de Edição de Dados
+const showEditModal = ref(false)
+const editFirstName = ref('')
+const editLastName = ref('')
+const editEmail = ref('')
+
+const openEditModal = () => {
+  editFirstName.value = worker.value.nome
+  editLastName.value = worker.value.apelido
+  editEmail.value = worker.value.email
+  showEditModal.value = true
+}
+
+function handleSaveEdit() {
+  if (!editFirstName.value.trim() || !editLastName.value.trim()) {
+    alert('Nome e apelido não podem ficar vazios.')
+    return
+  }
+  worker.value.nome = editFirstName.value.trim()
+  worker.value.apelido = editLastName.value.trim()
+  worker.value.email = editEmail.value.trim()
+  showEditModal.value = false
+}
+
+// Ocorrências vinculadas à freguesia do funcionário
+const ocorrencias = ref([
+  { id: 101, tipo: 'Estradas e passeios', status: 'Em resolução', statusClass: 'em-resolucao', local: 'Rua da Praia, Nº 45' },
+  { id: 102, tipo: 'Iluminação Pública', status: 'Espera', statusClass: 'espera', local: 'Avenida Baltazar, Poste C2' }
+])
+
+// Rotas exclusivas do Trabalhador
+const rotas = ref([
+  { id: 1, nome: 'Rota Semanal Norte', descricao: 'Reparação de calçada danificada.', data: '29 Mai 2026', hora: '08:30' },
+  { id: 2, nome: 'Intervenção urgente', descricao: 'Substituição de lâmpadas fundidas.', data: '29 Mai 2026', hora: '14:00' }
+])
+
+// Logout do Operador
+const showLogoutModal = ref(false)
+function handleLogout() {
+  localStorage.removeItem('role')
+  showLogoutModal.value = false
+  router.replace({ name: 'home' })
+}
+</script>
+
+<style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap');
+
+.page-container {
+  font-family: Arial, sans-serif;
+  color: #1a1a1a;
+  line-height: 1.5;
+  background-color: #fff;
+}
+
+/* NAVBAR EQUILIBRADA COM ÍCONES À DIREITA */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 80px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.logo-img {
+  height: 40px;
+}
+.nav-icons {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  position: relative;
+}
+.icon {
+  cursor: pointer;
+  user-select: none;
+}
+.icon.notification {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+}
+.menu-hamburger {
+  font-size: 24px;
+  color: #1e293b;
+}
+
+/* NOTIFICAÇÕES */
+.notifications {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  width: 320px;
+  background: #ffffff;
+  color: #0b2b2b;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+}
+.notifications h4 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 800;
+}
+.notif-list {
+  display: flex;
+  flex-direction: column;
+}
+.notif-item {
+  background: #dff3ec;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+.notif-title {
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.notif-empty {
+  color: #94a3b8;
+  text-align: center;
+  font-size: 13px;
+  padding: 10px 0;
+}
+
+/* CONTEÚDO EMBALADO NO MODELO */
+.content-wrapper {
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 0 40px;
+}
+.page-title {
+  font-size: 42px;
+  font-weight: 900;
+  color: #1e293b;
+  margin-bottom: 40px;
+}
+
+/* HEADER COM AVATAR */
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+  background: #f8fafc;
+  padding: 24px;
+  border-radius: 16px;
+}
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.profile-avatar, .profile-avatar-placeholder {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.profile-avatar-placeholder {
+  background: #cfe8df;
+  color: #0b2b2b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 24px;
+}
+.user-text h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #1e293b;
+}
+.user-text p {
+  margin: 4px 0 0 0;
+  color: #64748b;
+}
+.btn-edit {
+  background: #d1dfdb;
+  color: #1e293b;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-edit:hover {
+  background: #c3d3cf;
+}
+
+/* FORMULÁRIO / GRID DE CAMPOS */
+.details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px 40px;
+  margin-bottom: 50px;
+}
+.detail-field label {
+  display: block;
+  font-weight: 800;
+  color: #475569;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+.display-box {
+  background: #f8fafc;
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid #f1f5f9;
+  color: #1e293b;
+  font-weight: 600;
+  box-sizing: border-box;
+  font-size: 15px;
+}
+.select-box {
+  appearance: none;
+  background: #f8fafc url("data:image/svg+xml;utf8,<svg fill='%2394a3b8' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>") no-repeat right 12px center;
+  cursor: pointer;
+}
+.disabled-box {
+  background: #f1f5f9;
+  color: #64748b;
+}
+.rating-box {
+  color: #1e293b;
+  font-weight: 700;
+}
+.full-width {
+  grid-column: span 2;
+}
+
+/* SPOILER CREDENCIAIS MANTIDO E ADAPTADO */
+.spoiler-credential {
+  background: #1e293b;
+  border-radius: 10px;
+  padding: 14px;
+  cursor: pointer;
+  position: relative;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+.spoiler-credential .cred-text {
+  color: transparent;
+  font-family: monospace;
+  font-size: 15px;
+  user-select: none;
+}
+.spoiler-credential .spoiler-label {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: #f8fafc;
+  font-size: 13px;
+  font-weight: 600;
+}
+.spoiler-credential.revealed {
+  background: #f8fafc;
+  border: 1.5px dashed #730000;
+}
+.spoiler-credential.revealed .cred-text {
+  color: #730000;
+  font-weight: bold;
+  user-select: text;
+}
+
+/* LAYOUT INFERIOR: APENAS OCORRÊNCIAS E ROTAS */
+.worker-dashboard-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  margin-top: 20px;
+}
+.dashboard-block h3 {
+  font-size: 20px;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 16px;
+}
+.table-container {
+  border: 1px solid #f1f5f9;
+  border-radius: 15px;
+  overflow: hidden;
+}
+.occ-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14px;
+}
+.occ-table th {
+  padding: 15px;
+  background: #f8fafc;
+  color: #94a3b8;
+  font-weight: 700;
+  border-bottom: 1px solid #f1f5f9;
+}
+.occ-table td {
+  padding: 15px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+/* BADGES DE ESTADO EXCLUSIVOS */
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 800;
+  display: inline-block;
+}
+.em-resolucao { background: #fef9c3; color: #ca8a04; }
+.espera { background: #ffedd5; color: #ea580c; }
+.details-cell { color: #64748b; }
+
+/* ROTAS VERTICAIS ALINHADAS */
+.routes-list-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.route-minimal-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8fafc;
+  border-left: 4px solid #730000;
+  padding: 16px;
+  border-radius: 8px;
+}
+.route-info-side h4 {
+  margin: 0 0 4px 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+}
+.route-info-side p {
+  margin: 0;
+  font-size: 13px;
+  color: #64748b;
+}
+.route-date-side {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+.r-date {
+  font-weight: 700;
+  color: #730000;
+}
+.r-time {
+  color: #475569;
+}
+
+/* BOTÃO SAIR (ESTILO ORIGINAL MONTSERRAT) */
+.btn-logout {
+  width: 100%;
+  padding: 16px;
+  margin-top: 50px;
+  background: #FF383C;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+.btn-logout:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 56, 60, 0.4);
+  background: #e0292d;
+}
+
+/* MODAIS NO MODELO EXATO */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 40px;
+  max-width: 440px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  font-family: 'Montserrat', sans-serif;
+  text-align: left;
+}
+.modal-card h3 {
+  font-size: 26px;
+  margin: 0 0 20px 0;
+  font-weight: 700;
+  color: #1e293b;
+}
+.modal-form-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.modal-form-body label {
+  font-weight: 700;
+  color: #475569;
+  font-size: 14px;
+  margin-top: 6px;
+}
+.modal-card .display-box {
+  background: #fff;
+  border: 1.5px solid #cbd5e1;
+  color: #475569;
+}
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-btn {
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+}
+.modal-btn.cancel {
+  background: transparent;
+  color: #1e293b;
+}
+.modal-btn.confirm {
+  background: #cfe8df;
+  color: #0b2b2b;
+}
+.confirmation-card {
+  text-align: center;
+}
+.confirmation-card p {
+  color: #64748b;
+  margin-bottom: 24px;
+}
+.confirmation-card .modal-actions {
+  justify-content: center;
+  gap: 16px;
+}
+.confirmation-card .modal-btn.cancel {
+  background: #f1f5f9;
+  color: #475569;
+}
+.confirmation-card .modal-btn.confirm {
+  background: #FF383C;
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+  .full-width {
+    grid-column: span 1;
+  }
+  .navbar, .content-wrapper {
+    padding: 20px;
+  }
+}
+</style>

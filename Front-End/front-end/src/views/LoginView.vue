@@ -80,7 +80,6 @@ const role = ref('cidadao')
 const router = useRouter()
 
 const handleLogin = () => {
-  // Check for admin credentials
   if (email.value === 'admin@vcc.pt' && password.value === 'admin') {
     localStorage.setItem('role', 'admin')
     router.push({ name: 'admin-home' })
@@ -89,7 +88,7 @@ const handleLogin = () => {
 
   localStorage.setItem('role', role.value)
   if (role.value === 'trabalhador') {
-    router.push({ name: 'trabalhador-home' })
+    router.push({ name: 'trabalhador-profile' })
   } else {
     router.push({ name: 'home' })
   }
@@ -108,7 +107,6 @@ const handleLogin = () => {
   overflow: hidden;
 }
 
-/* Background Logic */
 .background-overlay {
   position: absolute;
   top: 0;
@@ -130,10 +128,9 @@ const handleLogin = () => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.4); /* Escurece um pouco a foto para dar foco ao card */
+  background: rgba(0, 0, 0, 0.4);
 }
 
-/* Logo Superior */
 .top-logo {
   position: absolute;
   top: 40px;
@@ -147,7 +144,6 @@ const handleLogin = () => {
 .logo-img { height: 45px; }
 .logo-text { font-size: 1.5rem; font-weight: bold; letter-spacing: 1px; }
 
-/* Card Style */
 .login-card {
   background: white;
   padding: 50px 60px;
@@ -161,7 +157,6 @@ const handleLogin = () => {
 h1 { font-size: 2rem; margin-bottom: 10px; color: #1a1a1a; }
 .subtitle { color: #888; margin-bottom: 40px; font-size: 0.95rem; }
 
-/* Inputs */
 .input-group {
   text-align: left;
   margin-bottom: 20px;
@@ -184,7 +179,6 @@ h1 { font-size: 2rem; margin-bottom: 10px; color: #1a1a1a; }
   box-sizing: border-box;
 }
 
-/* Form Options (Checkbox e Link) */
 .form-options {
   display: flex;
   justify-content: space-between;
@@ -202,15 +196,14 @@ h1 { font-size: 2rem; margin-bottom: 10px; color: #1a1a1a; }
 }
 
 .forgot-password {
-  color: #8b0000; /* Vermelho escuro conforme o design */
+  color: #8b0000;
   text-decoration: none;
   font-weight: bold;
 }
 
-/* Button */
 .btn-sign-in {
   width: 100%;
-  background: #334155; /* Azul acinzentado escuro do botão */
+  background: #334155;
   color: white;
   padding: 14px;
   border: none;
@@ -225,7 +218,6 @@ h1 { font-size: 2rem; margin-bottom: 10px; color: #1a1a1a; }
   background: #1e293b;
 }
 
-/* Footer Link */
 .footer-text {
   margin-top: 30px;
   font-size: 0.9rem;
@@ -233,7 +225,7 @@ h1 { font-size: 2rem; margin-bottom: 10px; color: #1a1a1a; }
 }
 
 .create-account {
-  color: #22c55e; /* Verde conforme o design */
+  color: #22c55e;
   text-decoration: none;
   font-weight: bold;
 }

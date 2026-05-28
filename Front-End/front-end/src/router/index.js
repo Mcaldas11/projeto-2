@@ -9,6 +9,7 @@ import OcorrenciasView from '../views/OcorrenciasView.vue'
 import DetailsOcorrenciaView from '../views/DetailsOcorrenciaView.vue'
 import ContaView from '../views/ContaView.vue'
 import TrabalhadorHomeView from '../views/TrabalhadorHomeView.vue'
+import TrabalhadorProfile from '../views/TrabalhadorProfile.vue'
 
 // Admin Views
 import AdminHomeView from '../views/admin/AdminHomeView.vue'
@@ -40,6 +41,12 @@ const router = createRouter({
       path: '/trabalhador',
       name: 'trabalhador-home',
       component: TrabalhadorHomeView,
+      meta: { requiresWorker: true },
+    },
+    {
+      path: '/trabalhador/perfil',
+      name: 'trabalhador-profile',
+      component: TrabalhadorProfile,
       meta: { requiresWorker: true },
     },
 
