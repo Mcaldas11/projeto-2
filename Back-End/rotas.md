@@ -207,8 +207,14 @@ Body parcial permitido.
 { "success": true, "fotoPerfil": "https://res.cloudinary.com/.../perfil.jpg" }
 ```
 
+- Só o próprio trabalhador ou um admin pode alterar esta foto.
+
 ### `DELETE /trabalhadores/:id`
 Status `204`.
+
+- Só o próprio trabalhador ou um admin pode apagar a conta.
+- Contas de admin não podem ser apagadas.
+- A foto de perfil é removida do Cloudinary antes de apagar a conta.
 
 ## `ocorrencias`
 

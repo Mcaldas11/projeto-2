@@ -57,6 +57,43 @@ const uploadToCloudinary = (file, folder) =>
     Readable.from(file.buffer).pipe(stream);
   });
 
+const getAdminEmails = () =>
+  (process.env.ADMIN_EMAILS || "admin@vcc.pt,admin.geral@example.pt")
+    .split(",")
+    .map((email) => email.trim())
+    .filter(Boolean);
+
+const isAdminEmail = (email) => getAdminEmails().includes((email || "").trim());
+
+const isRequesterAdmin = async (req) => {
+  if (!req.userData || !req.userData.userType) {
+    return false;
+  }
+
+  if (req.userData.userType === "trabalhador_admin") {
+    return true;
+  }
+
+  if (!req.userData.userType.startsWith("trabalhador")) {
+    return false;
+  }
+
+  const requesterTrab = await Trabalhador.findByPk(req.userData.userId);
+  return Boolean(requesterTrab && isAdminEmail(requesterTrab.emailTrabalhador));
+};
+
+const canManageWorkerAccount = async (req, trabalhadorId) => {
+  if (!req.userData) {
+    return false;
+  }
+
+  if (Number(req.userData.userId) === Number(trabalhadorId) && req.userData.userType?.startsWith("trabalhador")) {
+    return true;
+  }
+
+  return isRequesterAdmin(req);
+};
+
 export const getAllTrabalhadores = async (req, res, next) => {
   try {
     const trabalhadores = await Trabalhador.findAll();
@@ -186,8 +223,7 @@ export const loginTrabalhador = async (req, res, next) => {
     }
 
     // determine if this trabalhador is an admin by email
-    const adminList = (process.env.ADMIN_EMAILS || "admin@vcc.pt,admin.geral@example.pt").split(",").map((s) => s.trim());
-    const isAdmin = adminList.includes((trabalhador.emailTrabalhador || "").trim());
+    const isAdmin = isAdminEmail(trabalhador.emailTrabalhador);
 
     const tokenUserType = isAdmin ? "trabalhador_admin" : "trabalhador";
 
@@ -221,21 +257,7 @@ export const updateTrabalhador = async (req, res, next) => {
       return next(notFoundError("trabalhador", id));
     }
 
-    // determine if requester is admin
-    let isAdmin = false;
-    if (req.userData && req.userData.userType && req.userData.userType.startsWith("trabalhador")) {
-      if (req.userData.userType === "trabalhador_admin") {
-        isAdmin = true;
-      } else {
-        const requesterTrab = await Trabalhador.findByPk(req.userData.userId);
-        const adminList = (process.env.ADMIN_EMAILS || "admin@vcc.pt,admin.geral@example.pt")
-          .split(",")
-          .map((s) => s.trim());
-        if (requesterTrab && adminList.includes((requesterTrab.emailTrabalhador || "").trim())) {
-          isAdmin = true;
-        }
-      }
-    }
+    const isAdmin = await isRequesterAdmin(req);
 
     if (Object.prototype.hasOwnProperty.call(req.body, "idEquipa")) {
       const { idEquipa } = req.body;
@@ -292,6 +314,28 @@ export const deleteTrabalhador = async (req, res, next) => {
       return next(notFoundError("trabalhador", id));
     }
 
+    const canManage = await canManageWorkerAccount(req, id);
+    if (!canManage) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    if (isAdminEmail(trabalhador.emailTrabalhador)) {
+      return res.status(403).json({ message: "Admin cannot be deleted" });
+    }
+
+    const oldFotoPerfil = trabalhador.fotoPerfil;
+    const oldPublicId = extractPublicIdFromUrl(oldFotoPerfil);
+    if (oldPublicId) {
+      try {
+        await cloudinary.uploader.destroy(oldPublicId, {
+          resource_type: "image",
+          invalidate: true,
+        });
+      } catch {
+        // ignore cleanup errors
+      }
+    }
+
     await trabalhador.destroy();
     res.status(204).send();
   } catch (error) {
@@ -303,11 +347,8 @@ export const updateTrabalhadorFoto = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    if (!req.userData || req.userData.userType !== "trabalhador") {
-      return res.status(403).json({ message: "Forbidden" });
-    }
-
-    if (Number(req.userData.userId) !== Number(id)) {
+    const canManage = await canManageWorkerAccount(req, id);
+    if (!canManage) {
       return res.status(403).json({ message: "Forbidden" });
     }
 
