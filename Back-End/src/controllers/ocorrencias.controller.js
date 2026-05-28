@@ -224,6 +224,10 @@ export const deleteOcorrencia = async (req, res, next) => {
       return res.status(401).json({ message: "Authentication required" });
     }
 
+    const isCidadaoDaOcorrencia =
+      req.userData.userType === "cidadao" &&
+      Number(req.userData.userId) === Number(ocorrencia.idCidadao);
+
     // determine if requester is admin
     let isAdmin = false;
     if (req.userData.userType === "trabalhador_admin") {
@@ -238,8 +242,14 @@ export const deleteOcorrencia = async (req, res, next) => {
 
     // only admin or the cidadao who created it can delete
     if (!isAdmin) {
-      if (req.userData.userType !== "cidadao" || Number(req.userData.userId) !== Number(ocorrencia.idCidadao)) {
+      if (!isCidadaoDaOcorrencia) {
         return res.status(403).json({ message: "Forbidden" });
+      }
+
+      if (ocorrencia.estado !== DEFAULT_ESTADO) {
+        return res.status(403).json({
+          message: "Forbidden: a ocorrencia ja foi assumida por uma equipa",
+        });
       }
     }
 
