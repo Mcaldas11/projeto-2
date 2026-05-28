@@ -13,32 +13,9 @@
           @click="toggleNotif"
           ref="notifIcon"
         />
-        <span class="icon menu-trigger" ref="menuIcon" @click="toggleMenu">☰</span>
+        <span class="icon menu-trigger" @click="toggleMenu">☰</span>
 
-        <div v-if="showMenu" class="hamburger-menu" ref="menuPanel">
-          <div class="menu-list">
-            <router-link to="/admin" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Home</span>
-              <img src="@/assets/home.png" alt="home" class="menu-icon" />
-            </router-link>
-            <router-link to="/admin" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Ocorrências</span>
-              <img src="@/assets/ocorrencias.png" alt="ocorrencias" class="menu-icon" />
-            </router-link>
-            <router-link to="/admin/rotas" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Rotas</span>
-              <img src="@/assets/ocorrencias.png" alt="rotas" class="menu-icon" />
-            </router-link>
-            <router-link to="/admin/equipas" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Equipas</span>
-              <img src="@/assets/ocorrencias.png" alt="equipas" class="menu-icon" />
-            </router-link>
-            <router-link to="/admin/trabalhadores" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Funcionarios</span>
-              <img src="@/assets/conta.png" alt="funcionarios" class="menu-icon" />
-            </router-link>
-          </div>
-        </div>
+        <AdminSidebarMenu v-model="showMenu" />
 
         <div v-if="showNotif" class="notifications" ref="notifPanel">
           <h4>Notificações</h4>
@@ -54,10 +31,18 @@
     </nav>
 
     <main class="main-content">
-      <h1 class="page-title">Equipas</h1>
+      <div class="title-filter">
+        <h1 class="page-title">Equipas</h1>
+        <div class="filter-select">
+          <label>Freguesia</label>
+          <select v-model="selectedFreguesia">
+            <option v-for="f in FREGUESIAS" :key="f" :value="f">{{ f }}</option>
+          </select>
+        </div>
+      </div>
 
       <div class="teams-list">
-        <div v-for="team in teams" :key="team.id" class="team-card">
+        <div v-for="team in filteredTeams" :key="team.id" class="team-card">
           <div class="team-layout">
             <!-- Left side: Team members -->
             <div class="team-left">
@@ -68,7 +53,7 @@
                 <div v-for="member in team.members" :key="member.id" class="member-row">
                   <img :src="member.avatar" class="member-avatar" />
                   <span class="member-name">{{ member.name }}</span>
-                  <button class="btn-delete-member" title="Remover" @click="removeMember(team.id, member.id)">🗑</button>
+                  <button class="btn-delete-member" title="Remover" @click="handleRemoveMember(team.id, member.id)">🗑</button>
                 </div>
               </div>
             </div>
@@ -76,8 +61,7 @@
             <!-- Right side: Stats & Controls -->
             <div class="team-right">
               <div class="team-actions">
-                <button class="btn-add-worker">+ Trabalhador</button>
-                <button class="btn-split-team">Dividir Equipa</button>
+                <button class="btn-add-worker" @click="openWorkerModal(team)">+ Trabalhador</button>
               </div>
 
               <div class="stats-row">
@@ -109,17 +93,63 @@
       </div>
     </main>
 
+    <div v-if="showWorkerModal" class="modal-overlay" @click.self="closeWorkerModal">
+      <div class="worker-modal">
+        <div class="worker-modal-header">
+          <div>
+            <p class="modal-kicker">Adicionar trabalhador</p>
+            <h3>{{ activeTeam?.name }}</h3>
+            <p class="modal-subtitle">Filtro ativo: {{ selectedFreguesia }}</p>
+          </div>
+          <button class="modal-close" @click="closeWorkerModal">✕</button>
+        </div>
+
+        <div v-if="workerNotice" class="worker-notice">{{ workerNotice }}</div>
+
+        <div class="worker-modal-list">
+          <div v-for="worker in visibleWorkers" :key="worker.id" class="worker-card">
+            <img :src="worker.avatar" alt="worker avatar" class="worker-avatar" />
+            <div class="worker-card-body">
+              <strong>{{ worker.name }}</strong>
+              <span>{{ worker.email }}</span>
+              <span>{{ worker.freguesia }}</span>
+              <small>{{ workerAssignmentLabel(worker) }}</small>
+            </div>
+            <button
+              class="worker-add-btn"
+              :disabled="!canAddWorker(worker)"
+              @click="handleAddWorker(worker)"
+            >
+              {{ canAddWorker(worker) ? 'Adicionar' : 'Já alocado' }}
+            </button>
+          </div>
+
+          <div v-if="visibleWorkers.length === 0" class="worker-empty">
+            Não existem trabalhadores para este filtro.
+          </div>
+        </div>
+      </div>
+    </div>
+
     <Footer :columns="adminFooterColumns" :logo-src="adminFooterLogo" />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import Footer from '@/components/footer.vue'
+import AdminSidebarMenu from '@/components/AdminSidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
-import avatarImg from '@/assets/avatar.png'
 import adminFooterLogo from '@/assets/logo_footer.png'
+import { FREGUESIAS } from '@/utils/freguesias'
+import {
+  assignWorkerToTeam,
+  listTeams,
+  listWorkers,
+  persistTeamState,
+  unassignWorkerFromTeam,
+} from '@/services/teamService'
 
 const adminFooterColumns = [
   [
@@ -138,8 +168,11 @@ const showNotif = ref(false)
 const showMenu = ref(false)
 const notifPanel = ref(null)
 const notifIcon = ref(null)
-const menuPanel = ref(null)
-const menuIcon = ref(null)
+const teams = ref([])
+const workers = ref([])
+const showWorkerModal = ref(false)
+const activeTeamId = ref(null)
+const workerNotice = ref('')
 
 const notifications = ref([
   { id: 1, title: 'Nova ocorrência', body: 'Uma nova ocorrência foi reportada em <strong>Vila do Conde</strong>' },
@@ -157,78 +190,108 @@ const toggleMenu = (e) => {
 }
 const removeNotif = (i) => notifications.value.splice(i, 1)
 
+const activeTeam = computed(() => teams.value.find((team) => String(team.id) === String(activeTeamId.value)) || null)
+
+const selectedFreguesia = ref('Todas')
+
+const filteredTeams = computed(() => {
+  if (!selectedFreguesia.value || selectedFreguesia.value === 'Todas') return teams.value
+
+  return teams.value
+    .map((team) => ({
+      ...team,
+      members: team.members.filter((member) => member.freguesia === selectedFreguesia.value),
+    }))
+    .filter((team) => team.members.length > 0)
+})
+
+const visibleWorkers = computed(() => {
+  if (!selectedFreguesia.value || selectedFreguesia.value === 'Todas') return workers.value
+  return workers.value.filter((worker) => worker.freguesia === selectedFreguesia.value)
+})
+
+const workerAssignments = computed(() => {
+  const map = new Map()
+  teams.value.forEach((team) => {
+    team.members.forEach((member) => {
+      map.set(String(member.id), team.name)
+    })
+  })
+  return map
+})
+
+const workerAssignmentLabel = (worker) => {
+  const teamName = workerAssignments.value.get(String(worker.id))
+  if (!teamName) return 'Disponível'
+  if (activeTeam.value && teamName === activeTeam.value.name) return 'Já pertence a esta equipa'
+  return `Já alocado a ${teamName}`
+}
+
+const canAddWorker = (worker) => {
+  const assignedTeam = workerAssignments.value.get(String(worker.id))
+  if (!assignedTeam) return true
+  return activeTeam.value ? assignedTeam !== activeTeam.value.name : false
+}
+
+function openWorkerModal(team) {
+  activeTeamId.value = team.id
+  workerNotice.value = ''
+  showWorkerModal.value = true
+}
+
+function closeWorkerModal() {
+  showWorkerModal.value = false
+  workerNotice.value = ''
+}
+
+async function handleAddWorker(worker) {
+  if (!activeTeam.value) return
+
+  const result = await assignWorkerToTeam(activeTeam.value.id, worker.id)
+  if (result?.added) {
+    teams.value = result.teams || teams.value
+    workerNotice.value = `${worker.name} foi adicionado a ${activeTeam.value.name}.`
+    return
+  }
+
+  if (result?.reason === 'already-assigned') {
+    workerNotice.value = `${worker.name} já está alocado noutra equipa.`
+    return
+  }
+
+  workerNotice.value = 'Não foi possível adicionar o trabalhador.'
+}
+
+async function handleRemoveMember(teamId, memberId) {
+  teams.value = await unassignWorkerFromTeam(teamId, memberId)
+}
+
+function loadInitialTeamsAndWorkers() {
+  return Promise.all([listTeams(), listWorkers()]).then(([loadedTeams, loadedWorkers]) => {
+    teams.value = loadedTeams
+    workers.value = loadedWorkers
+  })
+}
+
 function handleDocClick(e) {
   if (showNotif.value && notifPanel.value && !notifPanel.value.contains(e.target) && notifIcon.value && !notifIcon.value.contains(e.target)) {
     showNotif.value = false
   }
-  if (showMenu.value && menuPanel.value && !menuPanel.value.contains(e.target) && menuIcon.value && !menuIcon.value.contains(e.target)) {
-    showMenu.value = false
-  }
 }
 
-onMounted(() => document.addEventListener('click', handleDocClick))
+onMounted(async () => {
+  await loadInitialTeamsAndWorkers()
+  document.addEventListener('click', handleDocClick)
+})
 onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
-
-// Teams data
-const teams = ref([
-  {
-    id: 1,
-    name: 'Engenharia e Vias',
-    members: [
-      { id: 1, name: 'Gabriel Silva', avatar: avatarImg },
-      { id: 2, name: 'Sofia Almeida', avatar: avatarImg },
-      { id: 3, name: 'Lucas Pereira', avatar: avatarImg },
-    ],
-    stats: { ativas: 26, concluidas: 55, naoResolvidas: 12 },
-    maxPerRoute: 8,
-  },
-  {
-    id: 2,
-    name: 'Eletricidade',
-    members: [
-      { id: 4, name: 'Ana Sousa', avatar: avatarImg },
-      { id: 5, name: 'Pedro Lima', avatar: avatarImg },
-      { id: 6, name: 'Mariana Costa', avatar: avatarImg },
-    ],
-    stats: { ativas: 26, concluidas: 55, naoResolvidas: 12 },
-    maxPerRoute: 8,
-  },
-  {
-    id: 3,
-    name: 'Higiene Urbana',
-    members: [
-      { id: 7, name: 'Mariana Silva', avatar: avatarImg },
-      { id: 8, name: 'Rafael Costa', avatar: avatarImg },
-      { id: 9, name: 'Ana Sousa', avatar: avatarImg },
-    ],
-    stats: { ativas: 26, concluidas: 55, naoResolvidas: 12 },
-    maxPerRoute: 8,
-  },
-  {
-    id: 4,
-    name: 'Espaços Verdes',
-    members: [
-      { id: 10, name: 'Miguel Almeida', avatar: avatarImg },
-      { id: 11, name: 'Sofia Ferreira', avatar: avatarImg },
-      { id: 12, name: 'João Martins', avatar: avatarImg },
-    ],
-    stats: { ativas: 26, concluidas: 55, naoResolvidas: 12 },
-    maxPerRoute: 8,
-  },
-])
-
-const removeMember = (teamId, memberId) => {
-  const team = teams.value.find((t) => t.id === teamId)
-  if (team) {
-    team.members = team.members.filter((m) => m.id !== memberId)
-  }
-}
 
 const decrementMax = (team) => {
   if (team.maxPerRoute > 1) team.maxPerRoute--
+  persistTeamState(teams.value)
 }
 const incrementMax = (team) => {
   team.maxPerRoute++
+  persistTeamState(teams.value)
 }
 </script>
 
@@ -258,21 +321,11 @@ const incrementMax = (team) => {
 .menu-trigger { font-size: 1.4rem; }
 
 /* MENU & NOTIFICATIONS */
-.hamburger-menu, .notifications {
+.notifications {
   position: absolute; top: 44px; right: 0;
   background: #fff; border-radius: 12px; padding: 12px;
   box-shadow: 0 12px 30px rgba(0,0,0,0.15); z-index: 70;
 }
-.hamburger-menu { width: 220px; }
-.menu-list { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
-.menu-item {
-  display: flex; align-items: center; justify-content: flex-end; gap: 8px;
-  text-decoration: none; color: #0b2b2b; font-weight: 700;
-  padding: 8px 10px; border-radius: 8px; width: 100%; transition: background 0.15s;
-}
-.menu-item:hover { background: rgba(0,0,0,0.05); }
-.menu-label { font-size: 13px; }
-.menu-icon { width: 14px; height: 14px; object-fit: contain; }
 .notifications { width: 320px; }
 .notifications h4 { margin: 0 0 10px 0; font-size: 18px; }
 .notif-list { display: flex; flex-direction: column; gap: 8px; }
@@ -291,6 +344,10 @@ const incrementMax = (team) => {
   font-weight: 800;
   margin: 0 0 30px 0;
 }
+
+.title-filter { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.filter-select { display: flex; align-items: center; gap: 10px; }
+.filter-select select { padding: 8px 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
 
 /* TEAM CARDS */
 .teams-list {
@@ -368,18 +425,6 @@ const incrementMax = (team) => {
   transition: background 0.15s;
 }
 .btn-add-worker:hover { background: #f8fafc; }
-.btn-split-team {
-  background: #730000;
-  color: #fff;
-  border: none;
-  padding: 8px 18px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 13px;
-  cursor: pointer;
-  transition: opacity 0.15s;
-}
-.btn-split-team:hover { opacity: 0.9; }
 
 /* STATS */
 .stats-row {
@@ -460,6 +505,148 @@ const incrementMax = (team) => {
   font-weight: 800;
   min-width: 30px;
   text-align: center;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 43, 43, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 120;
+  padding: 24px;
+}
+
+.worker-modal {
+  width: min(920px, 100%);
+  max-height: min(78vh, 760px);
+  overflow: hidden;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.24);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-family: Montserrat, sans-serif;
+}
+
+.worker-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.modal-kicker {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #7b7b7b;
+}
+
+.worker-modal-header h3 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.modal-subtitle {
+  margin: 6px 0 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.modal-close {
+  border: none;
+  background: #f1f5f9;
+  color: #0f172a;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.worker-notice {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #ecfdf5;
+  color: #166534;
+  font-weight: 600;
+}
+
+.worker-modal-list {
+  overflow-y: auto;
+  display: grid;
+  gap: 12px;
+  padding-right: 4px;
+}
+
+.worker-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #f8fafc;
+}
+
+.worker-avatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.worker-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.worker-card-body strong {
+  font-size: 16px;
+}
+
+.worker-card-body span,
+.worker-card-body small {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.worker-add-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  background: #730000;
+  color: #fff;
+  transition: transform 0.15s, opacity 0.15s;
+}
+
+.worker-add-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.worker-add-btn:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+}
+
+.worker-empty {
+  padding: 20px;
+  text-align: center;
+  color: #64748b;
+  border: 1px dashed #cbd5e1;
+  border-radius: 16px;
+  background: #f8fafc;
 }
 
 /* FOOTER */

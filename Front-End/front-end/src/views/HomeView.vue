@@ -8,28 +8,11 @@
             <img src="@/assets/logo.png" alt="VC Comunica Logo" class="logo-img">
           </div>
             <div class="nav-icons" ref="navIcons">
-            <router-link to="/new-ocorrencia" class="icon add">+</router-link>
+            <router-link :to="newOccurrenceRoute" class="icon add">+</router-link>
             <img :src="notifications.length === 0 ? notifOff : notifOn" alt="notifications" class="icon notification" @click="toggleNotif" ref="notifIcon" />
             <span class="icon" ref="menuIcon" @click="toggleMenu">☰</span>
 
-            <div v-if="showMenu" class="hamburger-menu" ref="menuPanel">
-              <div class="menu-list">
-                <router-link to="/" class="menu-item" @click.prevent="navigateHome">
-                  <span class="menu-label">Home</span>
-                  <img src="@/assets/home.png" alt="home" class="menu-icon" />
-                </router-link>
-
-                <router-link to="/ocorrencias" class="menu-item" @click="showMenu = false">
-                  <span class="menu-label">Ocorrências</span>
-                  <img src="@/assets/ocorrencias.png" alt="ocorrencias" class="menu-icon" />
-                </router-link>
-
-                <router-link to="/conta" class="menu-item" @click="showMenu = false">
-                  <span class="menu-label">Conta</span>
-                  <img src="@/assets/conta.png" alt="conta" class="menu-icon" />
-                </router-link>
-              </div>
-            </div>
+            <SidebarMenu v-model="showMenu" />
 
             <div v-if="showNotif" class="notifications" ref="notifPanel">
               <h4>Notificações</h4>
@@ -67,9 +50,6 @@
           </div>
         </div>
         
-        <div class="home-actions">
-          <router-link to="/login" class="login-btn">Login</router-link>
-        </div>
       </div>
     </header>
 
@@ -433,11 +413,12 @@
 </style>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import Footer from '@/components/footer.vue'
+import SidebarMenu from '@/components/SidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
+import { getNewOccurrenceRoute } from '@/utils/auth'
 
 const showNotif = ref(false)
 const notifPanel = ref(null)
@@ -445,6 +426,7 @@ const notifIcon = ref(null)
 const showMenu = ref(false)
 const menuPanel = ref(null)
 const menuIcon = ref(null)
+const newOccurrenceRoute = computed(() => getNewOccurrenceRoute())
 
 const notifications = ref([
   { id: 1, title: 'Estado da ocorrência', body: 'O estado da sua ocorrência foi alterado para <strong>Resolvido</strong>' },
@@ -486,14 +468,4 @@ function handleDocClick(e) {
 
 onMounted(() => document.addEventListener('click', handleDocClick))
 onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
-
-const router = useRouter()
-
-function navigateHome(e) {
-  if (e && e.preventDefault) e.preventDefault()
-  const role = localStorage.getItem('role')
-  if (role === 'trabalhador') router.push({ name: 'trabalhador-home' })
-  else router.push({ name: 'home' })
-  showMenu.value = false
-}
 </script>

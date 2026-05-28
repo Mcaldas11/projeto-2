@@ -8,7 +8,7 @@
       </router-link>
       
       <div class="nav-icons" ref="navIcons">
-        <router-link to="/new-ocorrencia" class="icon add">+</router-link>
+        <router-link :to="newOccurrenceRoute" class="icon add">+</router-link>
         <img
           :src="notifications.length === 0 ? notifOff : notifOn"
           alt="notifications"
@@ -18,24 +18,7 @@
         />
         <span class="icon" ref="menuIcon" @click="toggleMenu">☰</span>
 
-        <div v-if="showMenu" class="hamburger-menu" ref="menuPanel">
-          <div class="menu-list">
-            <router-link to="/" class="menu-item" @click.prevent="navigateHome">
-              <span class="menu-label">Home</span>
-              <img src="@/assets/home.png" alt="home" class="menu-icon" />
-            </router-link>
-
-            <router-link to="/ocorrencias" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Ocorrências</span>
-              <img src="@/assets/ocorrencias.png" alt="ocorrencias" class="menu-icon" />
-            </router-link>
-
-            <router-link to="/conta" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Conta</span>
-              <img src="@/assets/conta.png" alt="conta" class="menu-icon" />
-            </router-link>
-          </div>
-        </div>
+        <SidebarMenu v-model="showMenu" />
 
         <div v-if="showNotif" class="notifications" ref="notifPanel">
           <h4>Notificações</h4>
@@ -118,35 +101,39 @@
       <section v-else class="map-view">
         <div class="map-container">
           <div class="map-placeholder">
-            <iframe
-              class="map-embed"
-              title="Mapa - Junta de Freguesia de Vila do Conde"
-              src="https://www.openstreetmap.org/export/embed.html?bbox=-8.74894%2C41.35405%2C-8.72894%2C41.37405&amp;layer=mapnik&amp;marker=41.36405%2C-8.73894"
-              loading="lazy"
-              referrerpolicy="no-referrer-when-downgrade"
-            ></iframe>
+            <div ref="mapElement" class="map-leaflet"></div>
           </div>
 
-          <div class="map-info-card">
-            <div class="card-header">
-              <span class="icon-yellow">💡</span>
-              <h3>Iluminação</h3>
-            </div>
-            <p>
-              <strong>Status:</strong> <span class="status-badge em-resolucao">Em Resolução</span>
-            </p>
-            <p><strong>Localização:</strong><br />R. Dom Sancho I 981, 4480-876 Vila do Conde</p>
-            <p>
-              <strong>Descrição:</strong><br />A iluminação junto à entrada do campus universitário
-              está muito fraca...
-            </p>
-            <div class="reported-by">
-              <strong>Reportado por:</strong>
-              <div class="user-chip">
-                <img src="@/assets/avatar.png" class="avatar-xs" />
-                <span>Miguel Silva</span>
+          <div class="map-info-card" :class="{ empty: !selectedOccurrence }">
+            <template v-if="selectedOccurrence">
+              <div class="card-header">
+                <img :src="selectedOccurrenceMeta.icon" :alt="selectedOccurrenceMeta.label" class="icon-type" />
+                <h3>{{ selectedOccurrenceMeta.label }}</h3>
               </div>
-            </div>
+              <p>
+                <strong>Status:</strong>
+                <span :class="['status-badge', selectedOccurrence.statusClass]">{{ selectedOccurrence.situacao }}</span>
+              </p>
+              <p>
+                <strong>Localização:</strong><br />{{ selectedOccurrence.location || 'Local não disponível' }}
+              </p>
+              <p>
+                <strong>Descrição:</strong><br />{{ selectedOccurrence.detalhes }}
+              </p>
+              <div class="reported-by">
+                <strong>Reportado por:</strong>
+                <div class="user-chip">
+                  <img :src="selectedOccurrence.userImg" class="avatar-xs" alt="Reportado por" />
+                  <span>{{ selectedOccurrence.nome }}</span>
+                </div>
+              </div>
+            </template>
+            <template v-else>
+              <div class="card-header">
+                <h3>Selecione uma ocorrência</h3>
+              </div>
+              <p>Clique num marcador no mapa para ver os detalhes da ocorrência.</p>
+            </template>
           </div>
         </div>
       </section>
@@ -157,11 +144,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, nextTick, onMounted, onBeforeUnmount, ref, watch } from 'vue'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 import Footer from '@/components/footer.vue'
+import SidebarMenu from '@/components/SidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
+import { listOccurrences } from '@/services/occurrenceService'
+import { getOccurrenceStatusColor, getOccurrenceTypeMeta } from '@/utils/occurrenceTypes'
+import { resolveOccurrenceCoordinates } from '@/utils/occurrenceStorage'
+import { getNewOccurrenceRoute } from '@/utils/auth'
 
 const viewMode = ref('lista')
 const showNotif = ref(false)
@@ -178,6 +171,14 @@ const notifPanel = ref(null)
 const notifIcon = ref(null)
 const menuPanel = ref(null)
 const menuIcon = ref(null)
+const mapElement = ref(null)
+const newOccurrenceRoute = computed(() => getNewOccurrenceRoute())
+
+const selectedOccurrence = ref(null)
+const mapCenter = [41.36405, -8.73894]
+let mapInstance = null
+let markerLayer = null
+const geocodeCache = new Map()
 
 const toggleNotif = (e) => {
   e.stopPropagation()
@@ -193,35 +194,205 @@ const toggleMenu = (e) => {
 
 const removeNotif = (i) => notifications.value.splice(i, 1)
 
-const ocorrencias = ref([
-  {
-    id: 1,
-    nome: 'Mariana Silva',
-    situacao: 'Resolvido',
-    statusClass: 'resolvido',
-    tipo: 'Sinalização',
-    detalhes: 'Necessária a poda de árvores...',
-    userImg: '/img/avatar1.png',
-  },
-  {
-    id: 2,
-    nome: 'Ricardo Pereira',
-    situacao: 'Em Resolução',
-    statusClass: 'em-resolucao',
-    tipo: 'Buracos na Via',
-    detalhes: 'Reparação urgente de buraco...',
-    userImg: '/img/avatar2.png',
-  },
-  {
-    id: 3,
-    nome: 'Beatriz Costa',
-    situacao: 'À espera de equipa',
-    statusClass: 'espera',
-    tipo: 'Iluminação Pública',
-    detalhes: 'Substituição de lâmpada...',
-    userImg: '/img/avatar3.png',
-  },
-])
+const ocorrencias = ref([])
+
+const selectedOccurrenceMeta = computed(() => getOccurrenceTypeMeta(selectedOccurrence.value?.tipo))
+
+function createMarkerIcon(occurrence) {
+  const typeMeta = getOccurrenceTypeMeta(occurrence.tipo)
+  const markerColor = getOccurrenceStatusColor(occurrence.statusClass)
+  const typeBackgroundColor = typeMeta.backgroundColor || '#f59e0b'
+
+  return L.divIcon({
+    className: 'occurrence-marker-icon',
+    html: `
+      <span class="occurrence-marker-pin" style="--marker-color: ${markerColor}">
+        <span class="occurrence-marker-content">
+          <span class="occurrence-marker-badge" style="--type-color: ${typeBackgroundColor}">
+            <img src="${typeMeta.icon}" alt="${typeMeta.label}" class="occurrence-marker-symbol" />
+          </span>
+        </span>
+      </span>
+    `,
+    iconSize: [34, 48],
+    iconAnchor: [17, 48],
+    popupAnchor: [0, -42],
+  })
+}
+
+async function geocodeLocation(locationValue) {
+  const query = String(locationValue || '').trim()
+  if (!query) return null
+
+  if (geocodeCache.has(query)) {
+    return geocodeCache.get(query)
+  }
+
+  const endpoint = new URL('https://nominatim.openstreetmap.org/search')
+  endpoint.searchParams.set('format', 'jsonv2')
+  endpoint.searchParams.set('limit', '1')
+  endpoint.searchParams.set('countrycodes', 'pt')
+  endpoint.searchParams.set('q', query)
+
+  try {
+    const response = await fetch(endpoint.toString(), {
+      headers: {
+        Accept: 'application/json',
+        'Accept-Language': 'pt-PT,pt;q=0.9,en;q=0.7',
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error('Nominatim request failed')
+    }
+
+    const result = await response.json()
+    const firstResult = Array.isArray(result) ? result[0] : null
+
+    if (!firstResult) {
+      geocodeCache.set(query, null)
+      return null
+    }
+
+    const resolved = {
+      latitude: Number(firstResult.lat),
+      longitude: Number(firstResult.lon),
+      displayName: firstResult.display_name,
+    }
+
+    geocodeCache.set(query, resolved)
+    return resolved
+  } catch {
+    geocodeCache.set(query, null)
+    return null
+  }
+}
+
+async function enrichOccurrence(occurrence) {
+  const locationQuery = occurrence.location || occurrence.tipo || occurrence.detalhes
+  const geocoded = await geocodeLocation(locationQuery)
+
+  if (geocoded) {
+    return {
+      ...occurrence,
+      latitude: geocoded.latitude,
+      longitude: geocoded.longitude,
+      location: occurrence.location || geocoded.displayName,
+    }
+  }
+
+  return {
+    ...occurrence,
+    ...resolveOccurrenceCoordinates(occurrence),
+  }
+}
+
+function fitMarkers() {
+  if (!mapInstance || !markerLayer) return
+
+  const markerBounds = []
+  ocorrencias.value.forEach((occurrence) => {
+    if (occurrence.latitude == null || occurrence.longitude == null) return
+    markerBounds.push([occurrence.latitude, occurrence.longitude])
+  })
+
+  if (markerBounds.length === 0) {
+    mapInstance.setView(mapCenter, 14)
+    return
+  }
+
+  if (markerBounds.length === 1) {
+    mapInstance.setView(markerBounds[0], 16)
+    return
+  }
+
+  mapInstance.fitBounds(markerBounds, { padding: [40, 40] })
+}
+
+function renderMarkers() {
+  if (!mapInstance || !markerLayer) return
+
+  markerLayer.clearLayers()
+
+  ocorrencias.value.forEach((occurrence) => {
+    if (occurrence.latitude == null || occurrence.longitude == null) return
+
+    const marker = L.marker([occurrence.latitude, occurrence.longitude], {
+      icon: createMarkerIcon(occurrence),
+      riseOnHover: true,
+    })
+
+    marker.bindPopup(`
+      <strong>${occurrence.nome}</strong><br />
+      ${occurrence.situacao}
+    `)
+
+    marker.on('click', () => {
+      selectOccurrence(occurrence)
+    })
+
+    marker.addTo(markerLayer)
+  })
+
+  fitMarkers()
+}
+
+function initializeMap() {
+  if (mapInstance || !mapElement.value) return
+
+  mapInstance = L.map(mapElement.value, {
+    zoomControl: true,
+    scrollWheelZoom: true,
+  }).setView(mapCenter, 14)
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors',
+  }).addTo(mapInstance)
+
+  markerLayer = L.layerGroup().addTo(mapInstance)
+  renderMarkers()
+}
+
+function destroyMap() {
+  if (markerLayer) {
+    markerLayer.clearLayers()
+    markerLayer = null
+  }
+
+  if (mapInstance) {
+    mapInstance.remove()
+    mapInstance = null
+  }
+}
+
+async function loadOccurrences() {
+  const data = await listOccurrences()
+  const enrichedOccurrences = await Promise.all(data.map((occurrence) => enrichOccurrence(occurrence)))
+
+  ocorrencias.value = enrichedOccurrences
+
+  if (selectedOccurrence.value) {
+    selectedOccurrence.value =
+      enrichedOccurrences.find((occurrence) => occurrence.id === selectedOccurrence.value.id) || null
+  }
+
+  renderMarkers()
+}
+
+function selectOccurrence(marker) {
+  selectedOccurrence.value = marker
+}
+
+watch(viewMode, async (mode) => {
+  if (mode === 'mapa') {
+    await nextTick()
+    initializeMap()
+    mapInstance?.invalidateSize()
+    renderMarkers()
+  } else {
+    destroyMap()
+  }
+})
 
 function handleDocClick(e) {
   if (
@@ -242,18 +413,19 @@ function handleDocClick(e) {
   }
 }
 
-onMounted(() => document.addEventListener('click', handleDocClick))
-onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
-
-const router = useRouter()
-
-function navigateHome(e) {
-  if (e && e.preventDefault) e.preventDefault()
-  const role = localStorage.getItem('role')
-  if (role === 'trabalhador') router.push({ name: 'trabalhador-home' })
-  else router.push({ name: 'home' })
-  showMenu.value = false
-}
+onMounted(async () => {
+  document.addEventListener('click', handleDocClick)
+  await loadOccurrences()
+  if (viewMode.value === 'mapa') {
+    await nextTick()
+    initializeMap()
+    mapInstance?.invalidateSize()
+  }
+})
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleDocClick)
+  destroyMap()
+})
 </script>
 
 <style scoped>
@@ -442,35 +614,60 @@ function navigateHome(e) {
   overflow: hidden;
   height: 100%;
 }
-.map-embed {
+.map-leaflet {
   width: 100%;
   height: 100%;
-  border: 0;
-  display: block;
 }
-.marker {
-  position: absolute;
+.map-leaflet :deep(.leaflet-container) {
+  width: 100%;
+  height: 100%;
+  font-family: inherit;
+}
+.map-leaflet :deep(.leaflet-div-icon.occurrence-marker-icon) {
+  background: transparent;
+  border: none;
+}
+.map-leaflet :deep(.occurrence-marker-pin) {
   width: 30px;
   height: 30px;
-  border-radius: 50%;
+  margin-top: 5px;
+  background: var(--marker-color, #dc2626);
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.24);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-weight: bold;
-  border: 2px solid white;
+  position: relative;
 }
-.red {
-  background: #ef4444;
+.map-leaflet :deep(.occurrence-marker-content) {
+  transform: rotate(45deg);
+  position: relative;
+  z-index: 1;
 }
-.red-large {
-  background: #b91c1c;
-  width: 45px;
-  height: 45px;
-  font-size: 1.2rem;
+.map-leaflet :deep(.occurrence-marker-badge) {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--type-color, #f59e0b);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
 }
-.green {
-  background: #22c55e;
+.map-leaflet :deep(.occurrence-marker-symbol) {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  display: block;
+}
+.icon-type {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  padding: 6px;
+  border-radius: 8px;
+  background: #facc15;
 }
 .map-info-card {
   background: white;
@@ -478,12 +675,30 @@ function navigateHome(e) {
   border-radius: 15px;
   padding: 25px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+}
+.map-info-card.empty {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: #64748b;
 }
 .card-header {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 15px;
+  margin-bottom: 22px;
+}
+.map-info-card p {
+  margin: 0 0 18px;
+  font-weight: 400;
+}
+.map-info-card strong {
+  display: inline-block;
+  margin-bottom: 6px;
+  font-weight: 700;
 }
 .icon-yellow {
   background: #facc15;
@@ -495,6 +710,12 @@ function navigateHome(e) {
   align-items: center;
   gap: 8px;
   margin-top: 5px;
+}
+.reported-by {
+  margin-top: 8px;
+}
+.reported-by strong {
+  margin-bottom: 10px;
 }
 .avatar-xs {
   width: 28px;

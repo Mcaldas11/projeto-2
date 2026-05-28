@@ -13,32 +13,9 @@
           @click="toggleNotif"
           ref="notifIcon"
         />
-        <span class="icon menu-trigger" ref="menuIcon" @click="toggleMenu">☰</span>
+          <span class="icon menu-trigger" @click="toggleMenu">☰</span>
 
-        <div v-if="showMenu" class="hamburger-menu" ref="menuPanel">
-          <div class="menu-list">
-            <router-link to="/admin" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Home</span>
-              <img src="@/assets/home.png" alt="home" class="menu-icon" />
-            </router-link>
-            <router-link to="/admin" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Ocorrências</span>
-              <img src="@/assets/ocorrencias.png" alt="ocorrencias" class="menu-icon" />
-            </router-link>
-            <router-link to="/admin/rotas" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Rotas</span>
-              <img src="@/assets/ocorrencias.png" alt="rotas" class="menu-icon" />
-            </router-link>
-            <router-link to="/admin/equipas" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Equipas</span>
-              <img src="@/assets/ocorrencias.png" alt="equipas" class="menu-icon" />
-            </router-link>
-            <router-link to="/admin/trabalhadores" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Funcionarios</span>
-              <img src="@/assets/conta.png" alt="funcionarios" class="menu-icon" />
-            </router-link>
-          </div>
-        </div>
+          <AdminSidebarMenu v-model="showMenu" />
 
         <div v-if="showNotif" class="notifications" ref="notifPanel">
           <h4>Notificações</h4>
@@ -64,7 +41,15 @@
         <div class="icon-main-bg">
           <img src="@/assets/ocorrencias.png" alt="Ocorrências" class="icon-main-img" />
         </div>
-        <h1>Ocorrências</h1>
+        <div style="display:flex; align-items:center; gap:20px; justify-content:space-between; width:100%;">
+          <h1>Ocorrências</h1>
+          <div class="filter-select">
+            <label>Freguesia</label>
+            <select v-model="selectedFreguesia">
+              <option v-for="f in FREGUESIAS" :key="f" :value="f">{{ f }}</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <div class="table-container">
@@ -106,39 +91,15 @@
         </table>
       </div>
 
-      <!-- Pagination -->
-      <div class="pagination">
-        <button class="page-btn nav-btn" :disabled="currentPage === 1" @click="currentPage--">
-          ← Previous
-        </button>
-        <div class="page-numbers">
-          <button
-            v-for="p in visiblePages"
-            :key="p"
-            :class="['page-btn', { active: currentPage === p, ellipsis: p === '...' }]"
-            :disabled="p === '...'"
-            @click="p !== '...' && (currentPage = p)"
-          >
-            {{ p }}
-          </button>
-        </div>
-        <button class="page-btn nav-btn" :disabled="currentPage === totalPages" @click="currentPage++">
-          Next →
-        </button>
-      </div>
 
       <!-- Rotas Section -->
       <section class="rotas-section">
         <h2 class="section-title">Rotas</h2>
         <div class="rotas-grid">
+          <div class="map-container">
           <div class="map-placeholder">
-            <iframe
-              class="map-embed"
-              title="Mapa - Junta de Freguesia de Vila do Conde"
-              src="https://www.openstreetmap.org/export/embed.html?bbox=-8.74894%2C41.35405%2C-8.72894%2C41.37405&amp;layer=mapnik&amp;marker=41.36405%2C-8.73894"
-              loading="lazy"
-              referrerpolicy="no-referrer-when-downgrade"
-            ></iframe>
+            <div ref="mapElement" class="map-leaflet"></div>
+          </div>
           </div>
           <div class="rotas-legend">
             <div class="legend-item">
@@ -181,11 +142,24 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { listRoutesWithGeometry } from '@/services/routeService'
 import Footer from '@/components/footer.vue'
+import AdminSidebarMenu from '@/components/AdminSidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import avatarImg from '@/assets/avatar.png'
 import adminFooterLogo from '@/assets/logo_footer.png'
+import { FREGUESIAS } from '@/utils/freguesias'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
+
+const mapCenter = [41.36405, -8.73894]
+let mapInstance = null
+let markerLayer = null
+let routeLayer = null
+const mapElement = ref(null)
+const geocodeCache = new Map()
+
 
 const adminFooterColumns = [
   [
@@ -204,8 +178,6 @@ const showNotif = ref(false)
 const showMenu = ref(false)
 const notifPanel = ref(null)
 const notifIcon = ref(null)
-const menuPanel = ref(null)
-const menuIcon = ref(null)
 
 const notifications = ref([
   { id: 1, title: 'Nova ocorrência', body: 'Uma nova ocorrência foi reportada em <strong>Vila do Conde</strong>' },
@@ -227,51 +199,81 @@ function handleDocClick(e) {
   if (showNotif.value && notifPanel.value && !notifPanel.value.contains(e.target) && notifIcon.value && !notifIcon.value.contains(e.target)) {
     showNotif.value = false
   }
-  if (showMenu.value && menuPanel.value && !menuPanel.value.contains(e.target) && menuIcon.value && !menuIcon.value.contains(e.target)) {
-    showMenu.value = false
-  }
 }
 
-onMounted(() => document.addEventListener('click', handleDocClick))
-onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
+onMounted(() => {
+  document.addEventListener('click', handleDocClick)
+
+  // initialize leaflet map in the admin home rotas placeholder
+  const el = mapElement.value || document.querySelector('.map-leaflet')
+  if (el) {
+    mapInstance = L.map(el).setView(mapCenter, 13)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(mapInstance)
+
+    routeLayer = L.layerGroup().addTo(mapInstance)
+
+    ;(async () => {
+      try {
+        const routes = await listRoutesWithGeometry()
+        if (routes && routes.length) {
+          routeLayer.clearLayers()
+          const allBounds = []
+          routes.forEach((r) => {
+            if (!r.geometry || !r.geometry.coordinates) return
+            const coords = r.geometry.coordinates.map((c) => [c[1], c[0]])
+            const poly = L.polyline(coords, { color: r.color || '#3388ff', weight: 5, opacity: 0.9 })
+            poly.addTo(routeLayer)
+            allBounds.push(...coords)
+          })
+          if (allBounds.length) mapInstance.fitBounds(allBounds, { padding: [40, 40] })
+        }
+      } catch (err) {
+        // fallback: leave empty map
+      }
+    })()
+  }
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleDocClick)
+  if (mapInstance) {
+    mapInstance.remove()
+    mapInstance = null
+  }
+})
 
 // Ocorrências Data
 const allOcorrencias = ref([
-  { id: 1, nome: 'Mariana Silva', situacao: 'Resolvido', statusClass: 'resolvido', tipo: 'Sinalização', detalhes: 'Necessária a poda de árvores que estão a obstruir a visibilidade da sinalização na rotunda.', userImg: avatarImg },
-  { id: 2, nome: 'Ricardo Pereira', situacao: 'Em Resolução', statusClass: 'em-resolucao', tipo: 'Buracos na Via', detalhes: 'Reparação urgente de buraco na Rua das Flores, que está a causar acidentes.', userImg: avatarImg },
-  { id: 3, nome: 'Beatriz Costa', situacao: 'À espera de equipa', statusClass: 'espera', tipo: 'Iluminação Pública', detalhes: 'Substituição de lâmpada fundida no Parque Central, essencial para a segurança noturna.', userImg: avatarImg },
-  { id: 4, nome: 'Afonso Mendes', situacao: 'Não resolvido', statusClass: 'nao-resolvido', tipo: 'Áreas Verdes', detalhes: 'Urgente remoção de lixo e entulho depositados junto ao jardim infantil.', userImg: avatarImg },
-  { id: 5, nome: 'Joana Santos', situacao: 'Em Resolução', statusClass: 'em-resolucao', tipo: 'Canalizador', detalhes: 'Entupimento de esgoto na Rua Nova, causando mau cheiro e risco de inundação.', userImg: avatarImg },
-  { id: 6, nome: 'Rafael Cunha', situacao: 'Resolvido', statusClass: 'resolvido', tipo: 'Eletricista', detalhes: 'Curto-circuito na iluminação da Avenida da Liberdade, colocando em risco os moradores.', userImg: avatarImg },
-  { id: 7, nome: 'Daniel Sousa', situacao: 'Em Resolução', statusClass: 'em-resolucao', tipo: 'Jardineiro', detalhes: 'Necessário cortar a relva alta no jardim da Praça da República.', userImg: avatarImg },
-  { id: 8, nome: 'Margarida Castro', situacao: 'À espera de equipa', statusClass: 'espera', tipo: 'Pedreiro', detalhes: 'Calçada solta na Rua Velha, causando tropeções e quedas.', userImg: avatarImg },
-  { id: 9, nome: 'Tiago Alves', situacao: 'Não resolvido', statusClass: 'nao-resolvido', tipo: 'Pintor', detalhes: 'Pintura urgente das passadeiras na Rua do Comércio, para aumentar a segurança dos peões.', userImg: avatarImg },
-  { id: 10, nome: 'Sofia Ribeiro', situacao: 'Resolvido', statusClass: 'resolvido', tipo: 'Serralheiro', detalhes: 'Portão do jardim da Albuneca está danificado, permitindo a entrada de animais.', userImg: avatarImg },
+  { id: 1, nome: 'Mariana Silva', freguesia: 'Vila do Conde', situacao: 'Resolvido', statusClass: 'resolvido', tipo: 'Sinalização', detalhes: 'Necessária a poda de árvores que estão a obstruir a visibilidade da sinalização na rotunda.', userImg: avatarImg },
+  { id: 2, nome: 'Ricardo Pereira', freguesia: 'Azurara', situacao: 'Em Resolução', statusClass: 'em-resolucao', tipo: 'Buracos na Via', detalhes: 'Reparação urgente de buraco na Rua das Flores, que está a causar acidentes.', userImg: avatarImg },
+  { id: 3, nome: 'Beatriz Costa', freguesia: 'Argivai', situacao: 'À espera de equipa', statusClass: 'espera', tipo: 'Iluminação Pública', detalhes: 'Substituição de lâmpada fundida no Parque Central, essencial para a segurança noturna.', userImg: avatarImg },
+  { id: 4, nome: 'Afonso Mendes', freguesia: 'Mindelo', situacao: 'Não resolvido', statusClass: 'nao-resolvido', tipo: 'Áreas Verdes', detalhes: 'Urgente remoção de lixo e entulho depositados junto ao jardim infantil.', userImg: avatarImg },
+  { id: 5, nome: 'Joana Santos', freguesia: 'Vila do Conde', situacao: 'Em Resolução', statusClass: 'em-resolucao', tipo: 'Canalizador', detalhes: 'Entupimento de esgoto na Rua Nova, causando mau cheiro e risco de inundação.', userImg: avatarImg },
+  { id: 6, nome: 'Rafael Cunha', freguesia: 'Azurara', situacao: 'Resolvido', statusClass: 'resolvido', tipo: 'Eletricista', detalhes: 'Curto-circuito na iluminação da Avenida da Liberdade, colocando em risco os moradores.', userImg: avatarImg },
+  { id: 7, nome: 'Daniel Sousa', freguesia: 'Argivai', situacao: 'Em Resolução', statusClass: 'em-resolucao', tipo: 'Jardineiro', detalhes: 'Necessário cortar a relva alta no jardim da Praça da República.', userImg: avatarImg },
+  { id: 8, nome: 'Margarida Castro', freguesia: 'Mindelo', situacao: 'À espera de equipa', statusClass: 'espera', tipo: 'Pedreiro', detalhes: 'Calçada solta na Rua Velha, causando tropeções e quedas.', userImg: avatarImg },
+  { id: 9, nome: 'Tiago Alves', freguesia: 'Vila do Conde', situacao: 'Não resolvido', statusClass: 'nao-resolvido', tipo: 'Pintor', detalhes: 'Pintura urgente das passadeiras na Rua do Comércio, para aumentar a segurança dos peões.', userImg: avatarImg },
+  { id: 10, nome: 'Sofia Ribeiro', freguesia: 'Azurara', situacao: 'Resolvido', statusClass: 'resolvido', tipo: 'Serralheiro', detalhes: 'Portão do jardim da Albuneca está danificado, permitindo a entrada de animais.', userImg: avatarImg },
 ])
 
 // Pagination
 const currentPage = ref(1)
 const perPage = 10
-const totalPages = computed(() => Math.ceil(allOcorrencias.value.length / perPage))
+
+const selectedFreguesia = ref('Todas')
+
+const filteredOcorrencias = computed(() => {
+  if (!selectedFreguesia.value || selectedFreguesia.value === 'Todas') return allOcorrencias.value
+  return allOcorrencias.value.filter((o) => o.freguesia === selectedFreguesia.value)
+})
 
 const paginatedOcorrencias = computed(() => {
   const start = (currentPage.value - 1) * perPage
-  return allOcorrencias.value.slice(start, start + perPage)
+  return filteredOcorrencias.value.slice(start, start + perPage)
 })
 
-const visiblePages = computed(() => {
-  const total = totalPages.value
-  const current = currentPage.value
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
-  const pages = []
-  pages.push(1, 2, 3)
-  if (current > 4) pages.push('...')
-  const middle = [current - 1, current, current + 1].filter((p) => p > 3 && p < total - 1)
-  pages.push(...middle)
-  if (current < total - 3) pages.push('...')
-  pages.push(total - 1, total)
-  return [...new Set(pages)].filter((p) => p !== '...' ? p >= 1 && p <= total : true)
-})
 
 const toggleSort = () => {
   allOcorrencias.value.reverse()
@@ -323,7 +325,6 @@ const toggleSort = () => {
 }
 
 /* MENU & NOTIFICATIONS */
-.hamburger-menu,
 .notifications {
   position: absolute;
   top: 44px;
@@ -333,39 +334,6 @@ const toggleSort = () => {
   padding: 12px;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
   z-index: 70;
-}
-.hamburger-menu {
-  width: 220px;
-}
-.menu-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: flex-end;
-}
-.menu-item {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  text-decoration: none;
-  color: #0b2b2b;
-  font-weight: 700;
-  padding: 8px 10px;
-  border-radius: 8px;
-  width: 100%;
-  transition: background 0.15s;
-}
-.menu-item:hover {
-  background: rgba(0, 0, 0, 0.05);
-}
-.menu-label {
-  font-size: 13px;
-}
-.menu-icon {
-  width: 14px;
-  height: 14px;
-  object-fit: contain;
 }
 .notifications {
   width: 320px;
@@ -391,8 +359,11 @@ const toggleSort = () => {
 }
 .notif-body {
   color: rgba(0, 0, 0, 0.7);
-  font-size: 14px;
 }
+
+.title-filter { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.filter-select { display: flex; align-items: center; gap: 10px; }
+.filter-select select { padding: 8px 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
 .notif-empty {
   color: #666;
   font-size: 14px;
@@ -584,12 +555,6 @@ const toggleSort = () => {
   border-radius: 20px;
   overflow: hidden;
   aspect-ratio: 4/3;
-}
-.map-embed {
-  width: 100%;
-  height: 100%;
-  border: 0;
-  display: block;
 }
 .route-map-svg {
   width: 100%;

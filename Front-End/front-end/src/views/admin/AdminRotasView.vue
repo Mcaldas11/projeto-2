@@ -13,32 +13,9 @@
           @click="toggleNotif"
           ref="notifIcon"
         />
-        <span class="icon menu-trigger" ref="menuIcon" @click="toggleMenu">☰</span>
+        <span class="icon menu-trigger" @click="toggleMenu">☰</span>
 
-        <div v-if="showMenu" class="hamburger-menu" ref="menuPanel">
-          <div class="menu-list">
-            <router-link to="/admin" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Home</span>
-              <img src="@/assets/home.png" alt="home" class="menu-icon" />
-            </router-link>
-            <router-link to="/admin" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Ocorrências</span>
-              <img src="@/assets/ocorrencias.png" alt="ocorrencias" class="menu-icon" />
-            </router-link>
-            <router-link to="/admin/rotas" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Rotas</span>
-              <img src="@/assets/ocorrencias.png" alt="rotas" class="menu-icon" />
-            </router-link>
-            <router-link to="/admin/equipas" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Equipas</span>
-              <img src="@/assets/ocorrencias.png" alt="equipas" class="menu-icon" />
-            </router-link>
-            <router-link to="/admin/trabalhadores" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Funcionarios</span>
-              <img src="@/assets/conta.png" alt="funcionarios" class="menu-icon" />
-            </router-link>
-          </div>
-        </div>
+        <AdminSidebarMenu v-model="showMenu" />
 
         <div v-if="showNotif" class="notifications" ref="notifPanel">
           <h4>Notificações</h4>
@@ -60,44 +37,17 @@
       <section class="rotas-ativas">
         <div class="rotas-grid">
           <div class="map-placeholder">
-            <iframe
-              class="map-embed"
-              title="Mapa - Junta de Freguesia de Vila do Conde"
-              src="https://www.openstreetmap.org/export/embed.html?bbox=-8.74894%2C41.35405%2C-8.72894%2C41.37405&amp;layer=mapnik&amp;marker=41.36405%2C-8.73894"
-              loading="lazy"
-              referrerpolicy="no-referrer-when-downgrade"
-            ></iframe>
+            <div ref="mapElement" class="route-map-canvas"></div>
           </div>
 
           <div class="rotas-legend">
             <h3 class="legend-title">Rotas Ativas</h3>
             <div class="legend-items">
-              <div class="legend-item">
-                <div class="legend-bar" style="background: #730000"></div>
+              <div v-for="route in routes" :key="route.id" class="legend-item">
+                <div class="legend-bar" :style="{ background: route.color }"></div>
                 <div class="legend-text">
-                  <strong>Engenharia e vias</strong>
-                  <span>4 ocorrências</span>
-                </div>
-              </div>
-              <div class="legend-item">
-                <div class="legend-bar" style="background: #8b5cf6"></div>
-                <div class="legend-text">
-                  <strong>Higiene Urbana</strong>
-                  <span>7 ocorrências</span>
-                </div>
-              </div>
-              <div class="legend-item">
-                <div class="legend-bar" style="background: #f59e0b"></div>
-                <div class="legend-text">
-                  <strong>Iluminação pública</strong>
-                  <span>5 ocorrências</span>
-                </div>
-              </div>
-              <div class="legend-item">
-                <div class="legend-bar" style="background: #22c55e"></div>
-                <div class="legend-text">
-                  <strong>Espaços Verdes</strong>
-                  <span>9 ocorrências</span>
+                  <strong>{{ route.teamName }}</strong>
+                  <span>{{ route.waypoints.length }} pontos</span>
                 </div>
               </div>
             </div>
@@ -110,35 +60,11 @@
         <h2 class="section-subtitle">Proximas Rotas Otimizadas</h2>
         <p class="espera-label">Nº Ocorrências em espera</p>
         <div class="category-cards">
-          <div class="category-card">
-            <div class="card-bar" style="background: #730000"></div>
+          <div v-for="route in routes" :key="route.id" class="category-card">
+            <div class="card-bar" :style="{ background: route.color }"></div>
             <div class="card-content">
-              <strong>Engenharia e vias</strong>
-              <span>4 ocorrências</span>
-            </div>
-            <span class="info-icon" title="Mais informações">ⓘ</span>
-          </div>
-          <div class="category-card">
-            <div class="card-bar" style="background: #8b5cf6"></div>
-            <div class="card-content">
-              <strong>Higiene Urbana</strong>
-              <span>7 ocorrências</span>
-            </div>
-            <span class="info-icon" title="Mais informações">ⓘ</span>
-          </div>
-          <div class="category-card">
-            <div class="card-bar" style="background: #f59e0b"></div>
-            <div class="card-content">
-              <strong>Iluminação pública</strong>
-              <span>5 ocorrências</span>
-            </div>
-            <span class="info-icon" title="Mais informações">ⓘ</span>
-          </div>
-          <div class="category-card">
-            <div class="card-bar" style="background: #22c55e"></div>
-            <div class="card-content">
-              <strong>Espaços Verdes</strong>
-              <span>9 ocorrências</span>
+              <strong>{{ route.teamName }}</strong>
+              <span>{{ route.waypoints.length }} pontos</span>
             </div>
             <span class="info-icon" title="Mais informações">ⓘ</span>
           </div>
@@ -152,11 +78,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { nextTick, ref, onMounted, onBeforeUnmount } from 'vue'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 import Footer from '@/components/footer.vue'
+import AdminSidebarMenu from '@/components/AdminSidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import adminFooterLogo from '@/assets/logo_footer.png'
+import { listRoutesWithGeometry } from '@/services/routeService'
 
 const adminFooterColumns = [
   [
@@ -175,8 +105,10 @@ const showNotif = ref(false)
 const showMenu = ref(false)
 const notifPanel = ref(null)
 const notifIcon = ref(null)
-const menuPanel = ref(null)
-const menuIcon = ref(null)
+const mapElement = ref(null)
+const mapInstance = ref(null)
+const routeLayer = ref(null)
+const routes = ref([])
 
 const notifications = ref([
   { id: 1, title: 'Nova ocorrência', body: 'Uma nova ocorrência foi reportada em <strong>Vila do Conde</strong>' },
@@ -194,20 +126,83 @@ const toggleMenu = (e) => {
 }
 const removeNotif = (i) => notifications.value.splice(i, 1)
 
+function formatRoutePoints(route) {
+  return (route.geometry?.length ? route.geometry : route.waypoints || []).map((point) => [point.latitude, point.longitude])
+}
+
+function drawRoutes() {
+  if (!mapInstance.value || !routeLayer.value) return
+
+  routeLayer.value.clearLayers()
+
+  const bounds = []
+
+  routes.value.forEach((route) => {
+    const points = formatRoutePoints(route)
+    if (points.length < 2) return
+
+    const polyline = L.polyline(points, {
+      color: route.color,
+      weight: 5,
+      opacity: 0.95,
+      lineJoin: 'round',
+    })
+
+    polyline.addTo(routeLayer.value)
+    bounds.push(...points)
+
+    const startPoint = points[0]
+    const endPoint = points[points.length - 1]
+    L.circleMarker(startPoint, { radius: 6, color: route.color, fillColor: '#fff', fillOpacity: 1, weight: 3 }).addTo(routeLayer.value)
+    L.circleMarker(endPoint, { radius: 7, color: route.color, fillColor: route.color, fillOpacity: 1, weight: 2 }).addTo(routeLayer.value)
+  })
+
+  if (bounds.length > 0) {
+    mapInstance.value.fitBounds(bounds, { padding: [24, 24] })
+  }
+}
+
+async function initMap() {
+  if (!mapElement.value || mapInstance.value) return
+
+  mapInstance.value = L.map(mapElement.value, { zoomControl: true }).setView([41.3649, -8.7389], 14)
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors',
+    maxZoom: 19,
+  }).addTo(mapInstance.value)
+
+  routeLayer.value = L.layerGroup().addTo(mapInstance.value)
+  await nextTick()
+  drawRoutes()
+}
+
+async function loadRoutes() {
+  routes.value = await listRoutesWithGeometry()
+  drawRoutes()
+}
+
 function handleDocClick(e) {
   if (showNotif.value && notifPanel.value && !notifPanel.value.contains(e.target) && notifIcon.value && !notifIcon.value.contains(e.target)) {
     showNotif.value = false
   }
-  if (showMenu.value && menuPanel.value && !menuPanel.value.contains(e.target) && menuIcon.value && !menuIcon.value.contains(e.target)) {
-    showMenu.value = false
-  }
 }
 
-onMounted(() => document.addEventListener('click', handleDocClick))
-onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
+onMounted(async () => {
+  document.addEventListener('click', handleDocClick)
+  await loadRoutes()
+  await initMap()
+})
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleDocClick)
+  if (mapInstance.value) {
+    mapInstance.value.remove()
+    mapInstance.value = null
+  }
+})
 
 const gerarRotas = () => {
-  console.log('Gerar Rotas clicked')
+  loadRoutes()
 }
 </script>
 
@@ -237,21 +232,11 @@ const gerarRotas = () => {
 .menu-trigger { font-size: 1.4rem; }
 
 /* MENU & NOTIFICATIONS */
-.hamburger-menu, .notifications {
+.notifications {
   position: absolute; top: 44px; right: 0;
   background: #fff; border-radius: 12px; padding: 12px;
   box-shadow: 0 12px 30px rgba(0,0,0,0.15); z-index: 70;
 }
-.hamburger-menu { width: 220px; }
-.menu-list { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
-.menu-item {
-  display: flex; align-items: center; justify-content: flex-end; gap: 8px;
-  text-decoration: none; color: #0b2b2b; font-weight: 700;
-  padding: 8px 10px; border-radius: 8px; width: 100%; transition: background 0.15s;
-}
-.menu-item:hover { background: rgba(0,0,0,0.05); }
-.menu-label { font-size: 13px; }
-.menu-icon { width: 14px; height: 14px; object-fit: contain; }
 .notifications { width: 320px; }
 .notifications h4 { margin: 0 0 10px 0; font-size: 18px; }
 .notif-list { display: flex; flex-direction: column; gap: 8px; }
@@ -287,15 +272,10 @@ const gerarRotas = () => {
   overflow: hidden;
   aspect-ratio: 5/4;
 }
-.map-embed {
+.route-map-canvas {
   width: 100%;
   height: 100%;
-  border: 0;
-  display: block;
-}
-.route-map-svg {
-  width: 100%;
-  height: 100%;
+  min-height: 420px;
 }
 .legend-title {
   font-size: 18px;

@@ -5,7 +5,7 @@
         <img src="@/assets/logoP.png" alt="VC Comunica Logo" class="logo-img" />
       </div>
       <div class="nav-icons">
-        <router-link to="/nova-ocorrencia" class="icon add">+</router-link>
+        <router-link :to="newOccurrenceRoute" class="icon add">+</router-link>
         <img
           :src="notifications.length === 0 ? notifOff : notifOn"
           alt="notifications"
@@ -14,29 +14,7 @@
         />
         <span class="icon" @click="toggleMenu">☰</span>
 
-        <!-- Sidebar Menu Overlay -->
-        <div v-if="showMenu" class="sidebar-overlay" @click="showMenu = false"></div>
-        <Transition name="slide">
-          <div v-if="showMenu" class="sidebar-menu">
-            <button class="sidebar-close" @click="showMenu = false">✕</button>
-            <div class="sidebar-top">
-              <router-link to="/" class="sidebar-item" @click.prevent="navigateHome">
-                <span class="sidebar-label">Home</span>
-                <img src="@/assets/home.png" alt="home" class="sidebar-icon" />
-              </router-link>
-              <router-link to="/ocorrencias" class="sidebar-item" @click="showMenu = false">
-                <span class="sidebar-label">Ocorrências</span>
-                <img src="@/assets/ocorrencias.png" alt="ocorrencias" class="sidebar-icon" />
-              </router-link>
-            </div>
-            <div class="sidebar-bottom">
-              <router-link to="/conta" class="sidebar-item" @click="showMenu = false">
-                <span class="sidebar-label">Conta</span>
-                <img src="@/assets/conta.png" alt="conta" class="sidebar-icon" />
-              </router-link>
-            </div>
-          </div>
-        </Transition>
+        <SidebarMenu v-model="showMenu" />
 
         <div v-if="showNotif" class="notifications">
           <h4>Notificações</h4>
@@ -113,8 +91,10 @@
                 <td>{{ occ.tipo }}</td>
                 <td class="details-cell">{{ occ.detalhes }}</td>
                 <td class="actions-cell">
-                  <img src="@/assets/detalhes.png" alt="Detalhes" class="btn-table-info" />
-                  <span class="star-icon" v-if="occ.favorite">★</span>
+                  <router-link :to="`/ocorrencia/${occ.id}`" class="details-link" :aria-label="`Ver ocorrência ${occ.id}`">
+                    <img src="@/assets/detalhes.png" alt="Detalhes" class="btn-table-info" />
+                  </router-link>
+                  <span class="star-icon" v-if="occ.favorite" @click="reviewOcorrencia">★</span>
                 </td>
               </tr>
             </tbody>
@@ -130,16 +110,16 @@
       <div class="modal-card">
         <h3>Editar Perfil</h3>
         <div style="margin:16px 0; display:flex; flex-direction:column; gap:10px;">
-          <label style="font-weight:700; color:#475569">Nome</label>
+          <label style="font-weight:700; color:#475569">Nome:</label>
           <input v-model="editFirstName" class="display-box" />
-          <label style="font-weight:700; color:#475569">Apelido</label>
+          <label style="font-weight:700; color:#475569">Apelido:</label>
           <input v-model="editLastName" class="display-box" />
-          <label style="font-weight:700; color:#475569">Email</label>
+          <label style="font-weight:700; color:#475569">Email:</label>
           <input v-model="editEmail" class="display-box" />
         </div>
         <div class="modal-actions">
-          <button class="modal-btn cancel" @click="handleCancelEdit">Cancelar</button>
-          <button class="modal-btn confirm" @click="handleSaveEdit">Guardar</button>
+          <button class="modal-btn cancel" @click="handleCancelEdit">VOLTAR</button>
+          <button class="modal-btn confirm" @click="handleSaveEdit">SALVAR</button>
         </div>
       </div>
     </div>
@@ -156,16 +136,38 @@
       </div>
     </div>
 
+    <!-- Review Ocorrencia Modal -->
+    <div v-if="showREviewModal" class="modal-overlay" @click.self="showReviewModal = false">
+      <div class="modal-card">
+        <h3>Avalie a resolução da ocorrência</h3>
+        <div class="form-row">
+          <label class="field-label">Descrição:</label>
+          <textarea
+            v-model="form.description"
+            class="custom-textarea"
+            placeholder="Escreva aqui a sua avaliação..."
+          ></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn cancel" @click="handleCancelEdit">Cancelar</button>
+          <button class="modal-btn confirm" @click="handleSaveEdit">Guardar</button>
+        </div>
+      </div>
+    </div>
+
     <Footer />
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import Footer from '@/components/footer.vue'
+import SidebarMenu from '@/components/SidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
+import { readStoredOccurrences } from '@/utils/occurrenceStorage'
+import { getNewOccurrenceRoute } from '@/utils/auth'
 
 const showNotif = ref(false)
 const showMenu = ref(false)
@@ -208,6 +210,8 @@ const showEditModal = ref(false)
 const editFirstName = ref('')
 const editLastName = ref('')
 const editEmail = ref('')
+const router = useRouter()
+const newOccurrenceRoute = computed(() => getNewOccurrenceRoute())
 
 function validarEmail(email) {
   const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(".+"))@(([^<>()[\]\\.,;:\s@\"]+\.)+[^<>()[\]\\.,;:\s@\"]{2,})$/i
@@ -224,14 +228,9 @@ const toggleMenu = () => {
 }
 const removeNotif = (i) => notifications.value.splice(i, 1)
 
-const router = useRouter()
-
-function navigateHome(e) {
-  if (e && e.preventDefault) e.preventDefault()
-  const role = localStorage.getItem('role')
-  if (role === 'trabalhador') router.push({ name: 'trabalhador-home' })
-  else router.push({ name: 'home' })
-  showMenu.value = false
+const reviewOcorrencia = () => {
+  
+  
 }
 
 const editarNome = () => {
@@ -267,51 +266,10 @@ const showLogoutModal = ref(false)
 function handleLogout() {
   localStorage.removeItem('role')
   showLogoutModal.value = false
-  router.push({ name: 'home' })
+  router.replace({ name: 'home' })
 }
 
-const userOccurrences = ref([
-  {
-    id: 1,
-    situacao: 'Resolvido',
-    statusClass: 'resolvido',
-    tipo: 'Sinalização',
-    detalhes: 'Necessária a poda de árvores...',
-    favorite: true,
-  },
-  {
-    id: 2,
-    situacao: 'Em Resolução',
-    statusClass: 'em-resolucao',
-    tipo: 'Buracos na Via',
-    detalhes: 'Reparação urgente de buraco na Rua das Flores...',
-    favorite: false,
-  },
-  {
-    id: 3,
-    situacao: 'À espera de equipa',
-    statusClass: 'espera',
-    tipo: 'Iluminação Pública',
-    detalhes: 'Substituição de lâmpada fundida no Parque Central...',
-    favorite: false,
-  },
-  {
-    id: 4,
-    situacao: 'Não Resolvido',
-    statusClass: 'nao-resolvido',
-    tipo: 'Áreas Verdes',
-    detalhes: 'Urgente remoção de lixo e entulho...',
-    favorite: false,
-  },
-  {
-    id: 5,
-    situacao: 'Em Resolução',
-    statusClass: 'em-resolucao',
-    tipo: 'Canalizador',
-    detalhes: 'Entupimento de esgoto na Rua Nova...',
-    favorite: false,
-  },
-])
+const userOccurrences = ref(readStoredOccurrences())
 </script>
 
 <style scoped>
@@ -622,6 +580,10 @@ const userOccurrences = ref([
   height: 24px;
   object-fit: contain;
   cursor: pointer;
+.details-link {
+  display: inline-flex;
+  align-items: center;
+}
   display: inline-block;
 }
 .star-icon {
@@ -662,7 +624,7 @@ const userOccurrences = ref([
 }
 
 /* LOGOUT BUTTON */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
 
 .btn-logout {
   width: 100%;
@@ -714,6 +676,56 @@ const userOccurrences = ref([
   text-align: center;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
   animation: scaleIn 0.25s ease;
+}
+
+/* Edit modal specific styling to match design and use Montserrat */
+.modal-card {
+  font-family: 'Montserrat', sans-serif;
+  text-align: left;
+}
+.modal-card h3 {
+  font-size: 28px;
+  margin-bottom: 22px;
+}
+.modal-card label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #1e293b;
+}
+.modal-card .display-box {
+  background: #fff;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1.5px solid #cbd5e1;
+  color: #475569;
+  font-weight: 500;
+  box-sizing: border-box;
+}
+.modal-card .display-box::placeholder {
+  color: #c9d0d2;
+}
+.modal-card .modal-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 22px;
+}
+.modal-card .modal-btn.cancel {
+  background: transparent;
+  color: #1e293b;
+  font-weight: 700;
+  border: none;
+  padding: 8px 12px;
+}
+.modal-card .modal-btn.confirm {
+  background: #cfe8df;
+  color: #0b2b2b;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-weight: 800;
 }
 
 .modal-card h3 {
@@ -770,6 +782,13 @@ const userOccurrences = ref([
 .modal-btn.confirm:hover {
   background: #e0292d;
   box-shadow: 0 4px 16px rgba(255, 56, 60, 0.35);
+}
+
+/* Override only the Edit Profile modal's confirm hover to avoid green/darker-green effect */
+.modal-card .modal-btn.confirm:hover {
+  background: #cfe8df; /* keep pale green */
+  box-shadow: 0 6px 14px rgba(11, 43, 43, 0.08);
+  transform: translateY(-1px);
 }
 
 @keyframes fadeIn {

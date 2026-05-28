@@ -13,32 +13,9 @@
           @click="toggleNotif"
           ref="notifIcon"
         />
-        <span class="icon menu-trigger" ref="menuIcon" @click="toggleMenu">☰</span>
+        <span class="icon menu-trigger" @click="toggleMenu">☰</span>
 
-        <div v-if="showMenu" class="hamburger-menu" ref="menuPanel">
-          <div class="menu-list">
-            <router-link to="/admin" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Home</span>
-              <img src="@/assets/home.png" alt="home" class="menu-icon" />
-            </router-link>
-            <router-link to="/admin" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Ocorrências</span>
-              <img src="@/assets/ocorrencias.png" alt="ocorrencias" class="menu-icon" />
-            </router-link>
-            <router-link to="/admin/rotas" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Rotas</span>
-              <img src="@/assets/ocorrencias.png" alt="rotas" class="menu-icon" />
-            </router-link>
-            <router-link to="/admin/equipas" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Equipas</span>
-              <img src="@/assets/ocorrencias.png" alt="equipas" class="menu-icon" />
-            </router-link>
-            <router-link to="/admin/trabalhadores" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Funcionarios</span>
-              <img src="@/assets/conta.png" alt="funcionarios" class="menu-icon" />
-            </router-link>
-          </div>
-        </div>
+        <AdminSidebarMenu v-model="showMenu" />
 
         <div v-if="showNotif" class="notifications" ref="notifPanel">
           <h4>Notificações</h4>
@@ -75,7 +52,7 @@
         <div class="alert-content">
           <div class="alert-left">
             <div class="alert-title-row">
-              <span class="alert-icon">⚠</span>
+              <img src="@/assets/warning_icon.svg" alt="alerta" class="alert-icon" />
               <strong>Localização Errada</strong>
             </div>
             <div class="alert-body">
@@ -134,7 +111,7 @@
             <p>
               <strong>Status:</strong>
               <span class="status-badge em-resolucao">Em Resolução</span>
-              <span class="edit-icon" title="Editar status">✏️</span>
+              <img src="@/assets/edit_icon.svg" alt="edit_icon" class="edit-icon" /> 
             </p>
             <p><strong>Localização:</strong><br />R. Dom Sancho I 981, 4480-876 Vila do Conde</p>
             <p>
@@ -173,8 +150,8 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import { useRoute } from 'vue-router'
 import Footer from '@/components/footer.vue'
+import AdminSidebarMenu from '@/components/AdminSidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import adminFooterLogo from '@/assets/logo_footer.png'
@@ -196,10 +173,6 @@ const showNotif = ref(false)
 const showMenu = ref(false)
 const notifPanel = ref(null)
 const notifIcon = ref(null)
-const menuPanel = ref(null)
-const menuIcon = ref(null)
-const route = useRoute()
-const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 const notifications = ref([
   {
@@ -231,67 +204,22 @@ function handleDocClick(e) {
   ) {
     showNotif.value = false
   }
-  if (
-    showMenu.value &&
-    menuPanel.value &&
-    !menuPanel.value.contains(e.target) &&
-    menuIcon.value &&
-    !menuIcon.value.contains(e.target)
-  ) {
-    showMenu.value = false
-  }
 }
+
+onMounted(() => document.addEventListener('click', handleDocClick))
+onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
 
 // Gallery
-const gallery = ref([])
+const gallery = ['/img/iluminacao1.jpg', '/img/iluminacao2.jpg', '/img/iluminacao3.jpg']
 const activeImageIndex = ref(0)
-const activeImage = computed(() => gallery.value[activeImageIndex.value] || '')
+const activeImage = computed(() => gallery[activeImageIndex.value])
 
 const nextImg = () => {
-  if (!gallery.value.length) return
-  activeImageIndex.value = (activeImageIndex.value + 1) % gallery.value.length
+  activeImageIndex.value = (activeImageIndex.value + 1) % gallery.length
 }
 const prevImg = () => {
-  if (!gallery.value.length) return
-  activeImageIndex.value =
-    (activeImageIndex.value - 1 + gallery.value.length) % gallery.value.length
+  activeImageIndex.value = (activeImageIndex.value - 1 + gallery.length) % gallery.length
 }
-
-const mapFotoToUrls = (foto) => {
-  if (!Array.isArray(foto)) return []
-  return foto
-    .map((item) => {
-      if (!item) return null
-      if (typeof item === 'string') return item
-      if (typeof item === 'object') return item.url || null
-      return null
-    })
-    .filter(Boolean)
-}
-
-const loadOcorrenciaFotos = async () => {
-  try {
-    const token = localStorage.getItem('token')
-    const response = await fetch(`${apiBaseUrl}/ocorrencias/${route.params.id}`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    })
-
-    if (!response.ok) return
-
-    const data = await response.json()
-    const urls = mapFotoToUrls(data.foto)
-    gallery.value = urls
-    activeImageIndex.value = 0
-  } catch {
-    // keep gallery empty on errors
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('click', handleDocClick)
-  loadOcorrenciaFotos()
-})
-onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
 </script>
 
 <style scoped>
@@ -339,7 +267,6 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
 }
 
 /* MENU & NOTIFICATIONS */
-.hamburger-menu,
 .notifications {
   position: absolute;
   top: 44px;
@@ -349,39 +276,6 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   padding: 12px;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
   z-index: 70;
-}
-.hamburger-menu {
-  width: 220px;
-}
-.menu-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: flex-end;
-}
-.menu-item {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  text-decoration: none;
-  color: #0b2b2b;
-  font-weight: 700;
-  padding: 8px 10px;
-  border-radius: 8px;
-  width: 100%;
-  transition: background 0.15s;
-}
-.menu-item:hover {
-  background: rgba(0, 0, 0, 0.05);
-}
-.menu-label {
-  font-size: 13px;
-}
-.menu-icon {
-  width: 14px;
-  height: 14px;
-  object-fit: contain;
 }
 .notifications {
   width: 320px;
@@ -474,8 +368,8 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   margin-bottom: 12px;
 }
 .alert-icon {
-  background: #fbbf24;
-  padding: 4px 8px;
+  background: #730000;
+  padding: 8px;
   border-radius: 6px;
   font-size: 16px;
 }
@@ -615,9 +509,10 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   color: #ca8a04;
 }
 .edit-icon {
+  width: 18px;
+  height: 18px;
   margin-left: 8px;
   cursor: pointer;
-  font-size: 16px;
 }
 
 /* CIDADÃO SECTION */

@@ -5,7 +5,7 @@
         <img src="@/assets/logoP.png" alt="VC Comunica Logo" class="logo-img" />
       </div>
       <div class="nav-icons" ref="navIcons">
-        <router-link to="/new-ocorrencia" class="icon add">+</router-link>
+        <router-link :to="newOccurrenceRoute" class="icon add">+</router-link>
         <img
           :src="notifications.length === 0 ? notifOff : notifOn"
           alt="notifications"
@@ -15,24 +15,7 @@
         />
         <span class="icon" ref="menuIcon" @click="toggleMenu">☰</span>
 
-        <div v-if="showMenu" class="hamburger-menu" ref="menuPanel">
-          <div class="menu-list">
-            <router-link to="/" class="menu-item" @click.prevent="navigateHome">
-              <span class="menu-label">Home</span>
-              <img src="@/assets/home.png" alt="home" class="menu-icon" />
-            </router-link>
-
-            <router-link to="/ocorrencias" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Ocorrências</span>
-              <img src="@/assets/ocorrencias.png" alt="ocorrencias" class="menu-icon" />
-            </router-link>
-
-            <router-link to="/conta" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Conta</span>
-              <img src="@/assets/conta.png" alt="conta" class="menu-icon" />
-            </router-link>
-          </div>
-        </div>
+        <SidebarMenu v-model="showMenu" />
 
         <div v-if="showNotif" class="notifications" ref="notifPanel">
           <h4>Notificações</h4>
@@ -53,91 +36,102 @@
     </nav>
 
     <main class="content-wrapper">
-      <div class="breadcrumb-header">
-        <div class="icon-main-bg">
-          <img src="@/assets/ocorrencias.png" alt="Ocorrências" class="icon-main-img" />
+      <div v-if="selectedOccurrence">
+        <div class="breadcrumb-header">
+          <div class="icon-main-bg">
+            <img src="@/assets/ocorrencias.png" alt="Ocorrências" class="icon-main-img" />
+          </div>
+          <h1>Ocorrências > <span>{{ occurrenceTitle }}</span></h1>
         </div>
-        <h1>Ocorrências > <span>Ocorrência 35</span></h1>
-      </div>
 
-      <div class="main-details-grid">
-        <section class="image-gallery">
-          <div class="main-image-container">
-            <img :src="activeImage" class="featured-image" />
-            <div class="gallery-nav">
-              <button @click="prevImg">‹</button>
-              <div class="thumbnails">
-                <img
-                  v-for="(img, index) in gallery"
-                  :key="index"
-                  :src="img"
-                  :class="{ active: activeImage === img }"
-                  @click="activeImage = img"
-                />
+        <div class="main-details-grid">
+          <section class="image-gallery">
+            <div class="main-image-container">
+              <img :src="activeImage" class="featured-image" :alt="occurrenceTypeLabel" />
+              <div class="gallery-nav">
+                <button @click="prevImg" :disabled="gallery.length < 2">‹</button>
+                <div class="thumbnails">
+                  <img
+                    v-for="(img, index) in gallery"
+                    :key="index"
+                    :src="img"
+                    :class="{ active: activeImage === img }"
+                    @click="activeImage = img"
+                  />
+                </div>
+                <button @click="nextImg" :disabled="gallery.length < 2">›</button>
               </div>
-              <button @click="nextImg">›</button>
+            </div>
+          </section>
+
+          <section class="info-sidebar">
+            <div class="category-header">
+              <img
+                :src="occurrenceTypeMeta.icon"
+                :alt="occurrenceTypeMeta.label"
+                class="icon-yellow icon-type"
+                :style="{ backgroundColor: occurrenceTypeMeta.backgroundColor }"
+              />
+              <h3>{{ occurrenceTypeMeta.label }}</h3>
+            </div>
+
+            <div class="info-group">
+              <p>
+                <strong>Status:</strong>
+                <span :class="['status-badge', selectedOccurrence.statusClass]">{{ occurrenceStatus }}</span>
+              </p>
+              <p><strong>Localização:</strong><br />{{ occurrenceLocation }}</p>
+              <p>
+                <strong>Descrição:</strong><br />{{ occurrenceDescription }}
+              </p>
+
+              <div class="reporter-info">
+                <p><strong>Reportado por:</strong></p>
+                <div class="user-chip">
+                  <img :src="reporterAvatar" class="avatar-xs" alt="Reportado por" />
+                  <span>{{ selectedOccurrence.nome }}</span>
+                </div>
+              </div>
+              <div v-if="isWorker" class="worker-actions">
+                <button class="report-btn" @click="reportError">Reportar Erro</button>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <section class="team-section">
+          <div class="section-title">
+            <img src="@/assets/trabalhador.svg" alt="trabalhador-icon" class="team-icon" />
+            <h3>Informação da equipa:</h3>
+          </div>
+
+          <div class="team-content">
+            <div class="workers-list">
+              <p><strong>Trabalhadores alocados:</strong></p>
+              <div class="workers-grid">
+                <div class="worker-card">
+                  <img src="@/assets/trabalhador1.png" alt="José Almeida" />
+                  <span>José Almeida</span>
+                </div>
+                <div class="worker-card">
+                  <img src="@/assets/trabalhador2.png" alt="Nuno Martins" />
+                  <span>Nuno Martins</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="tech-info">
+              <p><strong>Especialização:</strong> {{ specializationLabel }}</p>
+              <p><strong>Município:</strong> {{ occurrenceMunicipality }}</p>
             </div>
           </div>
         </section>
-
-        <section class="info-sidebar">
-          <div class="category-header">
-            <img src="@/assets/iluminacao.svg" alt="Iluminação" class="icon-yellow" />
-            <h3>Iluminação</h3>
-          </div>
-
-          <div class="info-group">
-            <p>
-              <strong>Status:</strong> <span class="status-badge em-resolucao">Em Resolução</span>
-            </p>
-            <p><strong>Localização:</strong><br />R. Dom Sancho I 981, 4480-876 Vila do Conde</p>
-            <p>
-              <strong>Descrição:</strong><br />A iluminação junto à entrada do campus universitário
-              está muito fraca e com várias lâmpadas fundidas. Solicito a reparação para garantir a
-              segurança dos estudantes que circulam no local à noite.
-            </p>
-
-            <div class="reporter-info">
-              <p><strong>Reportado por:</strong></p>
-              <div class="user-chip">
-                <img src="@/assets/avatar.png" class="avatar-xs" />
-                <span>Miguel Silva</span>
-              </div>
-            </div>
-            <div v-if="isWorker" class="worker-actions">
-              <button class="report-btn" @click="reportError">Reportar Erro</button>
-            </div>
-          </div>
-        </section>
       </div>
 
-      <section class="team-section">
-        <div class="section-title">
-          <img src="@/assets/trabalhador.svg" alt="trabalhador-icon" class="team-icon" />
-          <h3>Informação da equipa:</h3>
-        </div>
-
-        <div class="team-content">
-          <div class="workers-list">
-            <p><strong>Trabalhadores alocados:</strong></p>
-            <div class="workers-grid">
-              <div class="worker-card">
-                <img src="@/assets/trabalhador1.png" alt="José Almeida" />
-                <span>José Almeida</span>
-              </div>
-              <div class="worker-card">
-                <img src="@/assets/trabalhador2.png" alt="Nuno Martins" />
-                <span>Nuno Martins</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="tech-info">
-            <p><strong>Especialização:</strong> Eletricista</p>
-            <p><strong>Município:</strong> Vila do Conde</p>
-          </div>
-        </div>
-      </section>
+      <div v-else class="not-found-state">
+        <h2>Ocorrência não encontrada</h2>
+        <p>O registo selecionado já não está disponível.</p>
+      </div>
     </main>
 
     <Footer />
@@ -145,11 +139,19 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import Footer from '@/components/footer.vue'
+import SidebarMenu from '@/components/SidebarMenu.vue'
+import about1 from '@/assets/about1.png'
+import about2 from '@/assets/about2.png'
+import about3 from '@/assets/about3.png'
+import { defaultOccurrenceAvatar } from '@/utils/occurrenceStorage'
+import { getOccurrence } from '@/services/occurrenceService'
+import { getOccurrenceTypeMeta } from '@/utils/occurrenceTypes'
+import { getNewOccurrenceRoute } from '@/utils/auth'
 
 // Estados do Header
 const showNotif = ref(false)
@@ -158,13 +160,42 @@ const notifPanel = ref(null)
 const notifIcon = ref(null)
 const menuPanel = ref(null)
 const menuIcon = ref(null)
-const gallery = ref([])
-const activeImageIndex = ref(0)
-const activeImage = computed(() => gallery.value[activeImageIndex.value] || '')
-const isWorker = ref(localStorage.getItem('role') === 'trabalhador')
-const router = useRouter()
 const route = useRoute()
-const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+const isWorker = ref(localStorage.getItem('role') === 'trabalhador')
+const newOccurrenceRoute = computed(() => getNewOccurrenceRoute())
+
+const selectedOccurrence = ref(null)
+
+async function loadOccurrence() {
+  selectedOccurrence.value = await getOccurrence(route.params.id)
+}
+
+const occurrenceTitle = computed(() => {
+  if (!selectedOccurrence.value) return 'Ocorrência'
+  return `Ocorrência ${selectedOccurrence.value.id}`
+})
+
+const occurrenceTypeMeta = computed(() => getOccurrenceTypeMeta(selectedOccurrence.value?.tipo))
+const occurrenceStatus = computed(() => selectedOccurrence.value?.situacao || 'Desconhecido')
+const occurrenceLocation = computed(() => selectedOccurrence.value?.location || 'Local não disponível')
+const occurrenceDescription = computed(
+  () => selectedOccurrence.value?.detalhes || 'Sem descrição disponível.'
+)
+const occurrenceMunicipality = computed(() => {
+  const location = selectedOccurrence.value?.location || ''
+  return location.includes('Vila do Conde') ? 'Vila do Conde' : 'Vila do Conde'
+})
+const specializationLabel = computed(() => {
+  const type = selectedOccurrence.value?.tipo || ''
+  if (type.toLowerCase().includes('ilum')) return 'Eletricista'
+  if (type.toLowerCase().includes('estrada')) return 'Obras e manutenção'
+  if (type.toLowerCase().includes('higiene')) return 'Limpeza urbana'
+  return 'Manutenção geral'
+})
+
+const gallery = ref([about1, about2, about3])
+const activeImage = ref(about1)
+const reporterAvatar = computed(() => selectedOccurrence.value?.userImg || defaultOccurrenceAvatar)
 
 const notifications = ref([
   {
@@ -188,6 +219,22 @@ const toggleMenu = (e) => {
 
 const removeNotif = (i) => notifications.value.splice(i, 1)
 
+watch(
+  selectedOccurrence,
+  (occurrence) => {
+    activeImage.value = occurrence?.image || gallery.value[0]
+  },
+  { immediate: true }
+)
+
+watch(
+  () => route.params.id,
+  async () => {
+    await loadOccurrence()
+  },
+  { immediate: true }
+)
+
 // Fechar ao clicar fora
 function handleDocClick(e) {
   if (
@@ -208,22 +255,13 @@ function handleDocClick(e) {
   }
 }
 
-const navigateHome = (e) => {
-  if (e && e.preventDefault) e.preventDefault()
-  const role = localStorage.getItem('role')
-  if (role === 'trabalhador') router.push({ name: 'trabalhador-home' })
-  else router.push({ name: 'home' })
-  showMenu.value = false
-}
-
 const nextImg = () => {
-  if (!gallery.value.length) return
-  activeImageIndex.value = (activeImageIndex.value + 1) % gallery.value.length
+  const idx = gallery.value.indexOf(activeImage.value)
+  activeImage.value = gallery.value[(idx + 1) % gallery.value.length]
 }
 const prevImg = () => {
-  if (!gallery.value.length) return
-  activeImageIndex.value =
-    (activeImageIndex.value - 1 + gallery.value.length) % gallery.value.length
+  const idx = gallery.value.indexOf(activeImage.value)
+  activeImage.value = gallery.value[(idx - 1 + gallery.value.length) % gallery.value.length]
 }
 const reportError = () => {
   // placeholder action for reporting an error from worker
@@ -231,44 +269,8 @@ const reportError = () => {
   alert('Reportar Erro: ação simulada (só visível a trabalhadores)')
 }
 
-const mapFotoToUrls = (foto) => {
-  if (!Array.isArray(foto)) return []
-  return foto
-    .map((item) => {
-      if (!item) return null
-      if (typeof item === 'string') return item
-      if (typeof item === 'object') return item.url || null
-      return null
-    })
-    .filter(Boolean)
-}
-
-const loadOcorrenciaFotos = async () => {
-  try {
-    const token = localStorage.getItem('token')
-    const response = await fetch(`${apiBaseUrl}/ocorrencias/${route.params.id}`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    })
-
-    if (!response.ok) return
-
-    const data = await response.json()
-    const urls = mapFotoToUrls(data.foto)
-    gallery.value = urls
-    activeImageIndex.value = 0
-  } catch {
-    // keep gallery empty on errors
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('click', handleDocClick)
-  loadOcorrenciaFotos()
-})
-
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleDocClick)
-})
+onMounted(() => document.addEventListener('click', handleDocClick))
+onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
 </script>
 
 <style scoped>
@@ -472,6 +474,14 @@ onBeforeUnmount(() => {
   background: #facc15;
   padding: 8px;
   border-radius: 8px;
+}
+.icon-type {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  padding: 6px;
+  border-radius: 8px;
+  background: #facc15;
 }
 .status-badge {
   padding: 4px 12px;
