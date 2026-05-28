@@ -13,32 +13,9 @@
           @click="toggleNotif"
           ref="notifIcon"
         />
-        <span class="icon menu-trigger" ref="menuIcon" @click="toggleMenu">☰</span>
+        <span class="icon menu-trigger" @click="toggleMenu">☰</span>
 
-        <div v-if="showMenu" class="hamburger-menu" ref="menuPanel">
-          <div class="menu-list">
-            <router-link to="/admin" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Home</span>
-              <img src="@/assets/home.png" alt="home" class="menu-icon" />
-            </router-link>
-            <router-link to="/admin" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Ocorrências</span>
-              <img src="@/assets/ocorrencias.png" alt="ocorrencias" class="menu-icon" />
-            </router-link>
-            <router-link to="/admin/rotas" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Rotas</span>
-              <img src="@/assets/ocorrencias.png" alt="rotas" class="menu-icon" />
-            </router-link>
-            <router-link to="/admin/equipas" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Equipas</span>
-              <img src="@/assets/ocorrencias.png" alt="equipas" class="menu-icon" />
-            </router-link>
-            <router-link to="/admin/trabalhadores" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Funcionarios</span>
-              <img src="@/assets/conta.png" alt="funcionarios" class="menu-icon" />
-            </router-link>
-          </div>
-        </div>
+        <AdminSidebarMenu v-model="showMenu" />
 
         <div v-if="showNotif" class="notifications" ref="notifPanel">
           <h4>Notificações</h4>
@@ -54,7 +31,15 @@
     </nav>
 
     <main class="main-content">
-      <h1 class="page-title">Trabalhadores</h1>
+      <div class="title-filter">
+        <h1 class="page-title">Trabalhadores</h1>
+        <div class="filter-select">
+          <label>Freguesia</label>
+          <select v-model="selectedFreguesia">
+            <option v-for="f in FREGUESIAS" :key="f" :value="f">{{ f }}</option>
+          </select>
+        </div>
+      </div>
 
       <div class="table-container">
         <table class="workers-table">
@@ -120,10 +105,12 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import Footer from '@/components/footer.vue'
+import AdminSidebarMenu from '@/components/AdminSidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import avatarImg from '@/assets/avatar.png'
 import adminFooterLogo from '@/assets/logo_footer.png'
+import { FREGUESIAS } from '@/utils/freguesias'
 
 const adminFooterColumns = [
   [
@@ -142,8 +129,6 @@ const showNotif = ref(false)
 const showMenu = ref(false)
 const notifPanel = ref(null)
 const notifIcon = ref(null)
-const menuPanel = ref(null)
-const menuIcon = ref(null)
 
 const notifications = ref([
   { id: 1, title: 'Nova ocorrência', body: 'Uma nova ocorrência foi reportada em <strong>Vila do Conde</strong>' },
@@ -165,9 +150,6 @@ function handleDocClick(e) {
   if (showNotif.value && notifPanel.value && !notifPanel.value.contains(e.target) && notifIcon.value && !notifIcon.value.contains(e.target)) {
     showNotif.value = false
   }
-  if (showMenu.value && menuPanel.value && !menuPanel.value.contains(e.target) && menuIcon.value && !menuIcon.value.contains(e.target)) {
-    showMenu.value = false
-  }
 }
 
 onMounted(() => document.addEventListener('click', handleDocClick))
@@ -176,7 +158,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
 // Workers data
 const allWorkers = ref([
   {
-    id: 1, nome: 'Olivia Rhye', email: 'olivia@untitledul.com', avatar: avatarImg,
+    id: 1, nome: 'Olivia Rhye', email: 'olivia@untitledul.com', avatar: avatarImg, freguesia: 'Vila do Conde',
     teams: [
       { name: 'Higiene Urbana', colorClass: 'tag-blue' },
       { name: 'Técnico de Saneamento', colorClass: 'tag-blue' },
@@ -184,14 +166,14 @@ const allWorkers = ref([
     ],
   },
   {
-    id: 2, nome: 'Phoenix Baker', email: 'phoenix@untitledul.com', avatar: avatarImg,
+    id: 2, nome: 'Phoenix Baker', email: 'phoenix@untitledul.com', avatar: avatarImg, freguesia: 'Azurara',
     teams: [
       { name: 'Espaços Verdes', colorClass: 'tag-green' },
       { name: 'Paisagista', colorClass: 'tag-green' },
     ],
   },
   {
-    id: 3, nome: 'Lana Steiner', email: 'lana@untitledul.com', avatar: avatarImg,
+    id: 3, nome: 'Lana Steiner', email: 'lana@untitledul.com', avatar: avatarImg, freguesia: 'Argivai',
     teams: [
       { name: 'Eletricidade', colorClass: 'tag-purple' },
       { name: 'Engenheiro Eletricista', colorClass: 'tag-purple' },
@@ -199,7 +181,7 @@ const allWorkers = ref([
     ],
   },
   {
-    id: 4, nome: 'Demi Wilkinson', email: 'demi@untitledul.com', avatar: avatarImg,
+    id: 4, nome: 'Demi Wilkinson', email: 'demi@untitledul.com', avatar: avatarImg, freguesia: 'Mindelo',
     teams: [
       { name: 'Engenharia e Vias', colorClass: 'tag-orange' },
       { name: 'Engenheiro de Estradas', colorClass: 'tag-orange' },
@@ -256,6 +238,13 @@ const allWorkers = ref([
   },
 ])
 
+const selectedFreguesia = ref('Todas')
+
+const filteredWorkers = computed(() => {
+  if (!selectedFreguesia.value || selectedFreguesia.value === 'Todas') return allWorkers.value
+  return allWorkers.value.filter((w) => w.freguesia === selectedFreguesia.value)
+})
+
 // Pagination
 const currentPage = ref(1)
 const perPage = 10
@@ -263,7 +252,7 @@ const totalPages = computed(() => Math.max(1, Math.ceil(allWorkers.value.length 
 
 const paginatedWorkers = computed(() => {
   const start = (currentPage.value - 1) * perPage
-  return allWorkers.value.slice(start, start + perPage)
+  return filteredWorkers.value.slice(start, start + perPage)
 })
 
 const visiblePages = computed(() => {
@@ -312,21 +301,11 @@ const editWorker = (id) => {
 .menu-trigger { font-size: 1.4rem; }
 
 /* MENU & NOTIFICATIONS */
-.hamburger-menu, .notifications {
+.notifications {
   position: absolute; top: 44px; right: 0;
   background: #fff; border-radius: 12px; padding: 12px;
   box-shadow: 0 12px 30px rgba(0,0,0,0.15); z-index: 70;
 }
-.hamburger-menu { width: 220px; }
-.menu-list { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
-.menu-item {
-  display: flex; align-items: center; justify-content: flex-end; gap: 8px;
-  text-decoration: none; color: #0b2b2b; font-weight: 700;
-  padding: 8px 10px; border-radius: 8px; width: 100%; transition: background 0.15s;
-}
-.menu-item:hover { background: rgba(0,0,0,0.05); }
-.menu-label { font-size: 13px; }
-.menu-icon { width: 14px; height: 14px; object-fit: contain; }
 .notifications { width: 320px; }
 .notifications h4 { margin: 0 0 10px 0; font-size: 18px; }
 .notif-list { display: flex; flex-direction: column; gap: 8px; }
@@ -346,6 +325,10 @@ const editWorker = (id) => {
   margin: 0 0 30px 0;
   font-style: italic;
 }
+
+.title-filter { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.filter-select { display: flex; align-items: center; gap: 10px; }
+.filter-select select { padding: 8px 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
 
 /* TABLE */
 .table-container {

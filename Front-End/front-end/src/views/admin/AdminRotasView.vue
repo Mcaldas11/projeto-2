@@ -13,32 +13,9 @@
           @click="toggleNotif"
           ref="notifIcon"
         />
-        <span class="icon menu-trigger" ref="menuIcon" @click="toggleMenu">☰</span>
+        <span class="icon menu-trigger" @click="toggleMenu">☰</span>
 
-        <div v-if="showMenu" class="hamburger-menu" ref="menuPanel">
-          <div class="menu-list">
-            <router-link to="/admin" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Home</span>
-              <img src="@/assets/home.png" alt="home" class="menu-icon" />
-            </router-link>
-            <router-link to="/admin" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Ocorrências</span>
-              <img src="@/assets/ocorrencias.png" alt="ocorrencias" class="menu-icon" />
-            </router-link>
-            <router-link to="/admin/rotas" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Rotas</span>
-              <img src="@/assets/ocorrencias.png" alt="rotas" class="menu-icon" />
-            </router-link>
-            <router-link to="/admin/equipas" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Equipas</span>
-              <img src="@/assets/ocorrencias.png" alt="equipas" class="menu-icon" />
-            </router-link>
-            <router-link to="/admin/trabalhadores" class="menu-item" @click="showMenu = false">
-              <span class="menu-label">Funcionarios</span>
-              <img src="@/assets/conta.png" alt="funcionarios" class="menu-icon" />
-            </router-link>
-          </div>
-        </div>
+        <AdminSidebarMenu v-model="showMenu" />
 
         <div v-if="showNotif" class="notifications" ref="notifPanel">
           <h4>Notificações</h4>
@@ -178,6 +155,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import Footer from '@/components/footer.vue'
+import AdminSidebarMenu from '@/components/AdminSidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import adminFooterLogo from '@/assets/logo_footer.png'
@@ -199,8 +177,6 @@ const showNotif = ref(false)
 const showMenu = ref(false)
 const notifPanel = ref(null)
 const notifIcon = ref(null)
-const menuPanel = ref(null)
-const menuIcon = ref(null)
 
 const notifications = ref([
   { id: 1, title: 'Nova ocorrência', body: 'Uma nova ocorrência foi reportada em <strong>Vila do Conde</strong>' },
@@ -221,9 +197,6 @@ const removeNotif = (i) => notifications.value.splice(i, 1)
 function handleDocClick(e) {
   if (showNotif.value && notifPanel.value && !notifPanel.value.contains(e.target) && notifIcon.value && !notifIcon.value.contains(e.target)) {
     showNotif.value = false
-  }
-  if (showMenu.value && menuPanel.value && !menuPanel.value.contains(e.target) && menuIcon.value && !menuIcon.value.contains(e.target)) {
-    showMenu.value = false
   }
 }
 
@@ -261,21 +234,11 @@ const gerarRotas = () => {
 .menu-trigger { font-size: 1.4rem; }
 
 /* MENU & NOTIFICATIONS */
-.hamburger-menu, .notifications {
+.notifications {
   position: absolute; top: 44px; right: 0;
   background: #fff; border-radius: 12px; padding: 12px;
   box-shadow: 0 12px 30px rgba(0,0,0,0.15); z-index: 70;
 }
-.hamburger-menu { width: 220px; }
-.menu-list { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
-.menu-item {
-  display: flex; align-items: center; justify-content: flex-end; gap: 8px;
-  text-decoration: none; color: #0b2b2b; font-weight: 700;
-  padding: 8px 10px; border-radius: 8px; width: 100%; transition: background 0.15s;
-}
-.menu-item:hover { background: rgba(0,0,0,0.05); }
-.menu-label { font-size: 13px; }
-.menu-icon { width: 14px; height: 14px; object-fit: contain; }
 .notifications { width: 320px; }
 .notifications h4 { margin: 0 0 10px 0; font-size: 18px; }
 .notif-list { display: flex; flex-direction: column; gap: 8px; }
