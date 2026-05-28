@@ -1,6 +1,7 @@
 import express from "express";
 import multer from "multer";
 
+import * as ocorrenciasControllers from "../controllers/ocorrencias.controller.js";
 import * as trabalhadoresControllers from "../controllers/trabalhadores.controller.js";
 import {
   requireFields,
@@ -34,6 +35,12 @@ router.post(
 );
 
 router.post("/login", trabalhadoresControllers.loginTrabalhador);
+router.get("/me", authMiddleware, trabalhadoresControllers.getTrabalhadorMe);
+router.get(
+  "/me/ocorrencias",
+  authMiddleware,
+  ocorrenciasControllers.getOcorrenciasResolvidasForTrabalhador,
+);
 
 router.get("/:id", validateIntegerParam("id"), trabalhadoresControllers.getTrabalhadorById);
 router.put(

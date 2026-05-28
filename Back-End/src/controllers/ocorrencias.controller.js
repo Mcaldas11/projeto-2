@@ -191,6 +191,43 @@ export const getOcorrenciasForCidadao = async (req, res, next) => {
   }
 };
 
+export const getOcorrenciasResolvidasForTrabalhador = async (req, res, next) => {
+  try {
+    if (!req.userData || !req.userData.userType || !req.userData.userType.startsWith("trabalhador")) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const trabalhador = await Trabalhador.findByPk(req.userData.userId);
+    if (!trabalhador) {
+      return next(notFoundError("trabalhador", req.userData.userId));
+    }
+
+    if (!trabalhador.idEquipa) {
+      return res.json([]);
+    }
+
+    const ocorrencias = await Ocorrencia.findAll({ where: { idEquipa: trabalhador.idEquipa } });
+    const data = ocorrencias
+      .filter((ocorrencia) => ocorrencia.dataResolucao)
+      .map((ocorrencia) => {
+        const fotos = normalizeFotosField(ocorrencia.foto).map((foto) => foto.url);
+        return {
+          ...ocorrencia.toJSON(),
+          foto: buildFotosComIndice(fotos),
+        };
+      })
+      .sort((left, right) => {
+        const leftDate = left.dataResolucao ? new Date(left.dataResolucao).getTime() : 0;
+        const rightDate = right.dataResolucao ? new Date(right.dataResolucao).getTime() : 0;
+        return rightDate - leftDate;
+      });
+
+    res.json(data);
+  } catch (error) {
+    next(genericError("Error fetching resolved ocorrencias for trabalhador"));
+  }
+};
+
 export const updateOcorrencia = async (req, res, next) => {
   try {
     const { id } = req.params;

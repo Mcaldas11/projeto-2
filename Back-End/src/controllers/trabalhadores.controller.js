@@ -118,6 +118,34 @@ export const getTrabalhadorById = async (req, res, next) => {
   }
 };
 
+export const getTrabalhadorMe = async (req, res, next) => {
+  try {
+    if (!req.userData || !req.userData.userType || !req.userData.userType.startsWith("trabalhador")) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const trabalhador = await Trabalhador.findByPk(req.userData.userId, {
+      attributes: [
+        "idTrabalhador",
+        "nomeTrabalhador",
+        "emailTrabalhador",
+        "telemovelTrabalhador",
+        "idEquipa",
+        "idFreguesia",
+        "fotoPerfil",
+      ],
+    });
+
+    if (!trabalhador) {
+      return next(notFoundError("trabalhador", req.userData.userId));
+    }
+
+    res.json(trabalhador);
+  } catch (error) {
+    next(genericError("Error fetching trabalhador profile"));
+  }
+};
+
 export const createTrabalhador = async (req, res, next) => {
   try {
     const {

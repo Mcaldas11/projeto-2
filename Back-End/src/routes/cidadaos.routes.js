@@ -35,8 +35,14 @@ router.post(
 );
 
 router.post("/login", cidadaosControllers.loginCidadao);
+router.get("/me", authMiddleware, cidadaosControllers.getCidadaoMe);
 
 // Create an occurrence for the authenticated cidadao (uses token userId)
+router.get(
+  "/me/ocorrencias",
+  authMiddleware,
+  ocorrenciasControllers.getOcorrenciasForCidadao,
+);
 router.post(
   "/me/ocorrencias",
   authMiddleware,

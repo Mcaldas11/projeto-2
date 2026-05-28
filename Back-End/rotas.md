@@ -78,6 +78,35 @@ Body:
 }
 ```
 
+### `GET /cidadaos/me`
+`Authorization: Bearer <TOKEN>`
+
+```json
+{
+  "idCidadao": 1,
+  "nome": "Ana Santos",
+  "fregCidadao": 2,
+  "nrTelemovel": "912345678",
+  "email": "ana@exemplo.pt",
+  "fotoPerfil": "https://res.cloudinary.com/.../perfil.jpg"
+}
+```
+
+### `GET /cidadaos/me/ocorrencias`
+`Authorization: Bearer <TOKEN>`
+
+```json
+[
+  {
+    "idOcorrencia": 2,
+    "descricao": "Buraco na estrada",
+    "estado": "À espera da equipa",
+    "idCidadao": 1,
+    "idFreguesia": 2
+  }
+]
+```
+
 ### `POST /cidadaos/me/ocorrencias`
 ```json
 {
@@ -177,6 +206,40 @@ Status `204`.
   "userId": 1,
   "userType": "trabalhador_admin"
 }
+```
+
+### `GET /trabalhadores/me`
+`Authorization: Bearer <TOKEN>`
+
+```json
+{
+  "idTrabalhador": 1,
+  "nomeTrabalhador": "Jose Martins",
+  "emailTrabalhador": "jose@exemplo.pt",
+  "telemovelTrabalhador": "913333333",
+  "idEquipa": 2,
+  "idFreguesia": 3,
+  "fotoPerfil": "https://res.cloudinary.com/.../perfil.jpg"
+}
+```
+
+### `GET /trabalhadores/me/ocorrencias`
+`Authorization: Bearer <TOKEN>`
+
+Lista as ocorrências da equipa do trabalhador que já têm `dataResolucao` preenchida.
+
+```json
+[
+  {
+    "idOcorrencia": 10,
+    "descricao": "Buraco na estrada",
+    "estado": "Resolvido",
+    "idCidadao": 1,
+    "idFreguesia": 2,
+    "idEquipa": 5,
+    "dataResolucao": "2026-05-28T12:00:00.000Z"
+  }
+]
 ```
 
 ### `GET /trabalhadores/:id`

@@ -81,6 +81,33 @@ export const getCidadaoById = async (req, res, next) => {
   }
 };
 
+export const getCidadaoMe = async (req, res, next) => {
+  try {
+    if (!req.userData || req.userData.userType !== "cidadao") {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const cidadao = await Cidadao.findByPk(req.userData.userId, {
+      attributes: [
+        "idCidadao",
+        "nome",
+        "fregCidadao",
+        "nrTelemovel",
+        "email",
+        "fotoPerfil",
+      ],
+    });
+
+    if (!cidadao) {
+      return next(notFoundError("cidadao", req.userData.userId));
+    }
+
+    res.json(cidadao);
+  } catch (error) {
+    next(genericError("Error fetching cidadao profile"));
+  }
+};
+
 export const createCidadao = async (req, res, next) => {
   try {
     const { password, ...rest } = req.body;
