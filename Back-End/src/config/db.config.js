@@ -22,6 +22,15 @@ Cidadao.belongsTo(Municipio, { foreignKey: "fregCidadao", as: "municipio" });
 Municipio.hasMany(Equipa, { foreignKey: "fregEquipa", as: "equipas" });
 Equipa.belongsTo(Municipio, { foreignKey: "fregEquipa", as: "municipio" });
 
+Municipio.hasMany(Trabalhador, {
+  foreignKey: "idFreguesia",
+  as: "trabalhadores",
+});
+Trabalhador.belongsTo(Municipio, {
+  foreignKey: "idFreguesia",
+  as: "municipio",
+});
+
 Equipa.hasMany(Trabalhador, { foreignKey: "idEquipa", as: "trabalhadores" });
 Trabalhador.belongsTo(Equipa, { foreignKey: "idEquipa", as: "equipa" });
 
@@ -31,8 +40,8 @@ Recurso.belongsTo(Equipa, { foreignKey: "equipaResponsavel", as: "equipa" });
 Cidadao.hasMany(Ocorrencia, { foreignKey: "idCidadao", as: "ocorrencias" });
 Ocorrencia.belongsTo(Cidadao, { foreignKey: "idCidadao", as: "cidadao" });
 
-Municipio.hasMany(Ocorrencia, { foreignKey: "idMunicipio", as: "ocorrencias" });
-Ocorrencia.belongsTo(Municipio, { foreignKey: "idMunicipio", as: "municipio" });
+Municipio.hasMany(Ocorrencia, { foreignKey: "idFreguesia", as: "ocorrencias" });
+Ocorrencia.belongsTo(Municipio, { foreignKey: "idFreguesia", as: "municipio" });
 
 Equipa.hasMany(Ocorrencia, { foreignKey: "idEquipa", as: "ocorrencias" });
 Ocorrencia.belongsTo(Equipa, { foreignKey: "idEquipa", as: "equipa" });
@@ -63,18 +72,21 @@ const syncDatabase = async () => {
 };
 
 /* delete data from the table (municipio) before seeding to avoid duplicates and maintain data integrity */
-try {
-  if (sequelize.getDialect() === "mysql")
+/*try {
+  if (sequelize.getDialect() === "mysql") {
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 0");
-  await Municipio.destroy({ truncate: true });
-  if (sequelize.getDialect() === "mysql")
+    await sequelize.query("TRUNCATE TABLE `ocorrencia`");
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 1");
+  } else {
+    await Ocorrencia.destroy({ truncate: true });
+  }
 } catch (err) {
   console.error(err);
-  if (sequelize.getDialect() === "mysql")
+  if (sequelize.getDialect() === "mysql") {
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 1");
+  }
   process.exit(1);
-}
+}*/
 
 export {
   sequelize,

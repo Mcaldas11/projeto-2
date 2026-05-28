@@ -21,7 +21,7 @@ module.exports = (sequelize, DataTypes) => {
   Municipio.associate = (models) => {
     Municipio.hasMany(models.Cidadao, { foreignKey: "fregCidadao" });
     Municipio.hasMany(models.Equipa, { foreignKey: "fregEquipa" });
-    Municipio.hasMany(models.Ocorrencia, { foreignKey: "idMunicipio" });
+    Municipio.hasMany(models.Ocorrencia, { foreignKey: "idFreguesia" });
   };
 
   return Municipio;

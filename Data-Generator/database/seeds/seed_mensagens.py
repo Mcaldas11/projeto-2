@@ -1,0 +1,92 @@
+MENSAGENS = [
+	{
+		"idMensagem": 1,
+		"texto": "Resolução rápida pela equipa — muito satisfeito com a intervenção.",
+        "classificacao": 5,
+	},
+	{
+		"idMensagem": 2,
+		"texto": "Aconteceu há semanas e ainda não houve resolução, infelizmente.",
+        "classificacao": 2,
+	},
+	{
+		"idMensagem": 3,
+		"texto": "Equipa competente, problema com o semáforo resolvido em dois dias.",
+        "classificacao": 4,
+	},
+	{
+		"idMensagem": 4,
+		"texto": "Parcialmente resolvido — a sinalização foi reposta, mas as marcas de via continuam apagadas.",
+        "classificacao": 3,
+	},
+	{
+		"idMensagem": 5,
+		"texto": "A iluminação voltou rapidamente e a sensação de insegurança diminuiu.",
+        "classificacao": 4,
+	},
+	{
+		"idMensagem": 6,
+		"texto": "A árvore no parque foi removida, obrigado — porém o equipamento infantil está danificado.",
+        "classificacao": 2,
+	},
+	{
+		"idMensagem": 7,
+		"texto": "Resposta muito lenta; o contentor continua cheio e o lixo acumula-se.",
+        "classificacao": 2,
+	},
+	{
+		"idMensagem": 8,
+		"texto": "Equipa enviada no mesmo dia — reparação do passeio bem feita.",
+        "classificacao": 4,
+	},
+	{
+		"idMensagem": 9,
+		"texto": "Infelizmente o passeio continua partido; prometeram intervenção mas nada feito.",
+        "classificacao": 2, 
+	},
+	{
+		"idMensagem": 10,
+		"texto": "Marcas de via repostas e trânsito mais seguro — agradeço a rapidez.",
+        "classificacao": 4,
+	},
+	{
+		"idMensagem": 11,
+		"texto": "Lâmpada substituída mas há mais postes sem luz na rua.",
+        "classificacao": 3,
+	},
+	{
+		"idMensagem": 12,
+		"texto": "Área limpa e mantida após a reclamação — excelente serviço.",
+        "classificacao": 5,
+	},
+	{
+		"idMensagem": 13,
+		"texto": "Problema reportado novamente; parece não haver coordenação entre equipas.",
+        "classificacao": 2,
+	},
+	{
+		"idMensagem": 14,
+		"texto": "Resolvido em pouco tempo, a intervenção foi profissional.",
+        "classificacao": 4,
+	},
+	{
+		"idMensagem": 15,
+		"texto": "Ainda aguardo atualização; o problema persiste e afeta a circulação.",
+        "classificacao": 2,
+	},
+	{
+		"idMensagem": 16,
+		"texto": "A equipa deixou explicações claras e agendou a reparação — bom acompanhamento.",
+        "classificacao": 4,
+	},
+	{
+		"idMensagem": 17,
+		"texto": "Intervenção incompleta: a raiz da árvore foi retirada mas o banco continua partido.",
+        "classificacao": 2,
+	},
+	{
+		"idMensagem": 18,
+		"texto": "Agradeço a rapidez — problema totalmente resolvido e sem custos para os moradores.",
+        "classificacao": 4,
+	},
+]

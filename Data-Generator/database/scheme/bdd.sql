@@ -73,7 +73,7 @@ COLLATE = utf8mb4_0900_ai_ci;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `Grupo04`.`ocorrencia` (
   `idOcorrencia` INT NOT NULL AUTO_INCREMENT,
-  `foto` VARCHAR(255) NULL DEFAULT NULL,
+  `foto` TEXT NULL DEFAULT NULL,
   `descricao` TEXT NULL DEFAULT NULL,
   `localizacao` VARCHAR(255) NULL DEFAULT NULL,
   `dataOcorrencia` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS `Grupo04`.`ocorrencia` (
   `severidade` ENUM('Baixa', 'Média', 'Alta') NULL DEFAULT NULL,
   `estado` ENUM('À espera de equipa', 'Em resolução', 'Resolvido', 'Não resolvido') NOT NULL DEFAULT 'À espera de equipa',
   `idCidadao` INT NULL DEFAULT NULL,
-  `idMunicipio` INT NOT NULL,
+  `idFreguesia` INT NOT NULL,
   `idEquipa` INT NULL DEFAULT NULL,
   `dataAgendada` DATETIME NULL DEFAULT NULL,
   `feedback` TEXT NULL DEFAULT NULL,
@@ -90,13 +90,13 @@ CREATE TABLE IF NOT EXISTS `Grupo04`.`ocorrencia` (
   `dataResolucao` DATETIME NULL DEFAULT NULL,
   PRIMARY KEY (`idOcorrencia`),
   INDEX `idCidadao` (`idCidadao` ASC) VISIBLE,
-  INDEX `idMunicipio` (`idMunicipio` ASC) VISIBLE,
+  INDEX `idFreguesia` (`idFreguesia` ASC) VISIBLE,
   INDEX `idEquipa` (`idEquipa` ASC) VISIBLE,
   CONSTRAINT `ocorrencia_ibfk_1`
     FOREIGN KEY (`idCidadao`)
     REFERENCES `Grupo04`.`cidadao` (`idCidadao`),
   CONSTRAINT `ocorrencia_ibfk_2`
-    FOREIGN KEY (`idMunicipio`)
+    FOREIGN KEY (`idFreguesia`)
     REFERENCES `Grupo04`.`municipio` (`idFreguesia`),
   CONSTRAINT `ocorrencia_ibfk_3`
     FOREIGN KEY (`idEquipa`)
@@ -159,13 +159,18 @@ CREATE TABLE IF NOT EXISTS `Grupo04`.`trabalhador` (
   `emailTrabalhador` VARCHAR(150) NOT NULL,
   `telemovelTrabalhador` VARCHAR(20) NULL DEFAULT NULL,
   `idEquipa` INT NULL DEFAULT NULL,
+  `idFreguesia` INT NULL DEFAULT NULL,
   `credenciaisTrabalhadores` TEXT NULL DEFAULT NULL,
   PRIMARY KEY (`idTrabalhador`),
   UNIQUE INDEX `emailTrabalhador` (`emailTrabalhador` ASC) VISIBLE,
   INDEX `idEquipa` (`idEquipa` ASC) VISIBLE,
+  INDEX `idFreguesia` (`idFreguesia` ASC) VISIBLE,
   CONSTRAINT `trabalhador_ibfk_1`
     FOREIGN KEY (`idEquipa`)
-    REFERENCES `Grupo04`.`equipa` (`idEquipa`))
+    REFERENCES `Grupo04`.`equipa` (`idEquipa`),
+  CONSTRAINT `trabalhador_ibfk_2`
+    FOREIGN KEY (`idFreguesia`)
+    REFERENCES `Grupo04`.`municipio` (`idFreguesia`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;

@@ -13,7 +13,7 @@ class OcorrenciaSchema:
     severidade: str | None = None
     estado: str = "À espera de equipa"
     idCidadao: int | None = None
-    idMunicipio: int | None = None
+    idFreguesia: int | None = None
     idEquipa: int | None = None
     dataAgendada: str | None = None
     feedback: str | None = None

@@ -33,6 +33,10 @@ const CidadaoModel = (sequelize) =>
         type: DataTypes.TEXT,
         allowNull: true, // Assuming it can be null if not set
       },
+      fotoPerfil: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
     },
     {
       tableName: "cidadao",

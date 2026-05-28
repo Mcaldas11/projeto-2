@@ -1,6 +1,7 @@
 import express from "express";
 
 import * as mensagensControllers from "../controllers/mensagens.controller.js";
+import authMiddleware from "../middlewares/auth.middleware.js";
 import { requireFields, requireJsonObject, validateIntegerParam } from "../middlewares/validation.middleware.js";
 import { requiredFieldsByResource } from "../utils/required-fields.utils.js";
 
@@ -20,8 +21,9 @@ router.put(
   validateIntegerParam("id"),
   requireJsonObject,
   requireFields(requiredFieldsByResource.mensagens),
+  authMiddleware,
   mensagensControllers.updateMensagem,
 );
-router.delete("/:id", validateIntegerParam("id"), mensagensControllers.deleteMensagem);
+router.delete("/:id", authMiddleware, validateIntegerParam("id"), mensagensControllers.deleteMensagem);
 
 export default router;

@@ -1,10 +1,30 @@
 import express from "express";
+import multer from "multer";
 
+import * as ocorrenciasControllers from "../controllers/ocorrencias.controller.js";
 import * as trabalhadoresControllers from "../controllers/trabalhadores.controller.js";
-import { requireFields, requireJsonObject, validateIntegerParam } from "../middlewares/validation.middleware.js";
+import {
+  requireFields,
+  requireJsonObject,
+  validateIntegerParam,
+} from "../middlewares/validation.middleware.js";
 import { requiredFieldsByResource } from "../utils/required-fields.utils.js";
+import authMiddleware from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
+
+const uploadFoto = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const allowed = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    if (allowed.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Apenas JPG, PNG, GIF ou WEBP sao permitidos"));
+    }
+  },
+});
 
 router.get("/", trabalhadoresControllers.getAllTrabalhadores);
 router.post(
@@ -15,15 +35,28 @@ router.post(
 );
 
 router.post("/login", trabalhadoresControllers.loginTrabalhador);
+router.get("/me", authMiddleware, trabalhadoresControllers.getTrabalhadorMe);
+router.get(
+  "/me/ocorrencias",
+  authMiddleware,
+  ocorrenciasControllers.getOcorrenciasResolvidasForTrabalhador,
+);
 
 router.get("/:id", validateIntegerParam("id"), trabalhadoresControllers.getTrabalhadorById);
 router.put(
   "/:id",
+  authMiddleware,
   validateIntegerParam("id"),
   requireJsonObject,
-  requireFields(requiredFieldsByResource.trabalhadores),
   trabalhadoresControllers.updateTrabalhador,
 );
-router.delete("/:id", validateIntegerParam("id"), trabalhadoresControllers.deleteTrabalhador);
+router.patch(
+  "/:id/foto",
+  authMiddleware,
+  validateIntegerParam("id"),
+  uploadFoto.single("file"),
+  trabalhadoresControllers.updateTrabalhadorFoto,
+);
+router.delete("/:id", authMiddleware, validateIntegerParam("id"), trabalhadoresControllers.deleteTrabalhador);
 
 export default router;

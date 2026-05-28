@@ -1,0 +1,362 @@
+[
+  {
+    "idOcorrencia": 1,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779898835/ocorrencias/seed/yv5ykabk3hy1a5ymoadz.jpg"
+    ],
+    "descricao": "Buraco no asfalto na Avenida Principal",
+    "localizacao": "Avenida Principal, 52, 4481-402 Vila do Conde",
+    "dataOcorrencia": "2026-04-29 16:13:11",
+    "nomeAutor": "Rúben Soares",
+    "nrTelemovelAutor": "910139234",
+    "severidade": "Baixa",
+    "estado": "À espera de equipa",
+    "idCidadao": 1,
+    "idFreguesia": 15,
+    "idEquipa": null,
+    "dataAgendada": null,
+    "feedback": null,
+    "tipo_ocorrencia": "Estradas e passeios",
+    "dataResolucao": null
+  },
+  {
+    "idOcorrencia": 2,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779898837/ocorrencias/seed/jlos3qoeppliampyao5s.jpg"
+    ],
+    "descricao": "Passeio danificado e com perigo de queda",
+    "localizacao": "Rua do Comércio, 14, 4482-215 Vila do Conde",
+    "dataOcorrencia": "2026-05-01 09:22:00",
+    "nomeAutor": "Gaspar Gaspar",
+    "nrTelemovelAutor": "927684891",
+    "severidade": "Média",
+    "estado": "Em resolução",
+    "idCidadao": 2,
+    "idFreguesia": 13,
+    "idEquipa": null,
+    "dataAgendada": null,
+    "feedback": null,
+    "tipo_ocorrencia": "Estradas e passeios",
+    "dataResolucao": null
+  },
+  {
+    "idOcorrencia": 3,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779898838/ocorrencias/seed/qhec1iamkfndukd6pznb.webp"
+    ],
+    "descricao": "Calçada partida em frente ao prédio",
+    "localizacao": "Rua da Escola, 87, 4484-311 Vilar de Pinheiro",
+    "dataOcorrencia": "2026-05-04 11:45:33",
+    "nomeAutor": "Rafaela da Amorim",
+    "nrTelemovelAutor": "932165227",
+    "severidade": "Alta",
+    "estado": "Não resolvido",
+    "idCidadao": 3,
+    "idFreguesia": 14,
+    "idEquipa": null,
+    "dataAgendada": null,
+    "feedback": null,
+    "tipo_ocorrencia": "Estradas e passeios",
+    "dataResolucao": null
+  },
+  {
+    "idOcorrencia": 4,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779898839/ocorrencias/seed/vr8wuukjlo7qv900m9be.jpg"
+    ],
+    "descricao": "Asfalto esburacado dificultando circulação",
+    "localizacao": "Rua Nova, 120, 4481-250 Vila do Conde",
+    "dataOcorrencia": "2026-05-06 18:05:22",
+    "nomeAutor": "João Fernandes",
+    "nrTelemovelAutor": "912398451",
+    "severidade": "Baixa",
+    "estado": "Resolvido",
+    "idCidadao": 4,
+    "idFreguesia": 13,
+    "idEquipa": null,
+    "dataAgendada": null,
+    "feedback": null,
+    "tipo_ocorrencia": "Estradas e passeios",
+    "dataResolucao": null
+  },
+  {
+    "idOcorrencia": 5,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779898840/ocorrencias/seed/f8wd76mo51ezlc2pome6.jpg"
+    ],
+    "descricao": "Semáforo avariado na rotunda",
+    "localizacao": "Rotunda do Mercado, 8, 4485-190 Árvore",
+    "dataOcorrencia": "2026-05-08 08:10:12",
+    "nomeAutor": "Soraia Nascimento",
+    "nrTelemovelAutor": "935792582",
+    "severidade": "Baixa",
+    "estado": "À espera de equipa",
+    "idCidadao": 5,
+    "idFreguesia": 1,
+    "idEquipa": null,
+    "dataAgendada": null,
+    "feedback": null,
+    "tipo_ocorrencia": "Sinalização de trânsito",
+    "dataResolucao": null
+  },
+  {
+    "idOcorrencia": 6,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779898841/ocorrencias/seed/aah5mnufjdrahakq1shj.jpg"
+    ],
+    "descricao": "Placa de trânsito caída no chão",
+    "localizacao": "Rua do Centro, 3, 4480-612 Vilar e Mosteiró",
+    "dataOcorrencia": "2026-05-09 13:40:00",
+    "nomeAutor": "Alexandre Miranda",
+    "nrTelemovelAutor": "938691709",
+    "severidade": "Média",
+    "estado": "Em resolução",
+    "idCidadao": 6,
+    "idFreguesia": 17,
+    "idEquipa": null,
+    "dataAgendada": null,
+    "feedback": null,
+    "tipo_ocorrencia": "Sinalização de trânsito",
+    "dataResolucao": null
+  },
+  {
+    "idOcorrencia": 7,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779898841/ocorrencias/seed/hekmnjdnttgh1dbhohah.jpg"
+    ],
+    "descricao": "Marcas de via apagadas e invisíveis",
+    "localizacao": "Avenida Central, 44, 4480-550 Azurara",
+    "dataOcorrencia": "2026-05-12 10:15:45",
+    "nomeAutor": "Eduarda Domingues",
+    "nrTelemovelAutor": "929164731",
+    "severidade": "Alta",
+    "estado": "Não resolvido",
+    "idCidadao": 7,
+    "idFreguesia": 3,
+    "idEquipa": null,
+    "dataAgendada": null,
+    "feedback": null,
+    "tipo_ocorrencia": "Sinalização de trânsito",
+    "dataResolucao": null
+  },
+  {
+    "idOcorrencia": 8,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779898842/ocorrencias/seed/egjjqk2j5ar6pcghtfel.jpg"
+    ],
+    "descricao": "Sinal de proibição danificado",
+    "localizacao": "Rua da Praia, 19, 4486-321 Vila Chã",
+    "dataOcorrencia": "2026-05-13 17:10:05",
+    "nomeAutor": "Carlota Matos",
+    "nrTelemovelAutor": "926113032",
+    "severidade": "Baixa",
+    "estado": "Resolvido",
+    "idCidadao": 8,
+    "idFreguesia": 12,
+    "idEquipa": null,
+    "dataAgendada": null,
+    "feedback": null,
+    "tipo_ocorrencia": "Sinalização de trânsito",
+    "dataResolucao": null
+  },
+  {
+    "idOcorrencia": 9,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779898843/ocorrencias/seed/pxvyypus0c6xaiziu4dr.jpg"
+    ],
+    "descricao": "Candeeiro apagado há semanas na rua",
+    "localizacao": "Rua da Igreja, 10, 4480-401 Mindelo",
+    "dataOcorrencia": "2026-05-14 20:02:19",
+    "nomeAutor": "Lucas Magalhães-Sousa",
+    "nrTelemovelAutor": "932067873",
+    "severidade": "Baixa",
+    "estado": "À espera de equipa",
+    "idCidadao": 9,
+    "idFreguesia": 10,
+    "idEquipa": null,
+    "dataAgendada": null,
+    "feedback": null,
+    "tipo_ocorrencia": "Iluminação",
+    "dataResolucao": null
+  },
+  {
+    "idOcorrencia": 10,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779898844/ocorrencias/seed/nuuh8g2xujvt2wzpjvgi.jpg"
+    ],
+    "descricao": "Lâmpada fundida deixando escuridão total",
+    "localizacao": "Rua das Flores, 62, 4486-115 Touguinha e Touguinhó",
+    "dataOcorrencia": "2026-05-15 21:50:00",
+    "nomeAutor": "Martim Brito",
+    "nrTelemovelAutor": "915470488",
+    "severidade": "Média",
+    "estado": "Em resolução",
+    "idCidadao": 10,
+    "idFreguesia": 16,
+    "idEquipa": null,
+    "dataAgendada": null,
+    "feedback": null,
+    "tipo_ocorrencia": "Iluminação",
+    "dataResolucao": null
+  },
+  {
+    "idOcorrencia": 11,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779898844/ocorrencias/seed/xfhqveaejl8xn6gsfo1e.jpg"
+    ],
+    "descricao": "Vários candeeiros desligados no bairro",
+    "localizacao": "Rua da Fonte, 5, 4485-650 Guilhabreu",
+    "dataOcorrencia": "2026-05-16 22:30:45",
+    "nomeAutor": "Joana Domingues",
+    "nrTelemovelAutor": "920680316",
+    "severidade": "Alta",
+    "estado": "Não resolvido",
+    "idCidadao": 11,
+    "idFreguesia": 6,
+    "idEquipa": null,
+    "dataAgendada": null,
+    "feedback": null,
+    "tipo_ocorrencia": "Iluminação",
+    "dataResolucao": null
+  },
+  {
+    "idOcorrencia": 12,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779898845/ocorrencias/seed/znm0fhq2lho2ii5st3kq.jpg"
+    ],
+    "descricao": "Zona sem iluminação criando insegurança",
+    "localizacao": "Rua do Monte, 23, 4480-528 Macieira da Maia",
+    "dataOcorrencia": "2026-05-17 19:25:10",
+    "nomeAutor": "Rui Maia",
+    "nrTelemovelAutor": "919467603",
+    "severidade": "Baixa",
+    "estado": "Resolvido",
+    "idCidadao": 12,
+    "idFreguesia": 9,
+    "idEquipa": null,
+    "dataAgendada": null,
+    "feedback": null,
+    "tipo_ocorrencia": "Iluminação",
+    "dataResolucao": null
+  },
+  {
+    "idOcorrencia": 13,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779898846/ocorrencias/seed/qfthspv0pwz1xrqwmruj.jpg"
+    ],
+    "descricao": "Lixo acumulado junto ao contentor",
+    "localizacao": "Rua do Povo, 77, 4481-233 Canidelo",
+    "dataOcorrencia": "2026-05-18 10:05:00",
+    "nomeAutor": "Leonardo Mendes",
+    "nrTelemovelAutor": "931453726",
+    "severidade": "Baixa",
+    "estado": "À espera de equipa",
+    "idCidadao": 13,
+    "idFreguesia": 19,
+    "idEquipa": null,
+    "dataAgendada": null,
+    "feedback": null,
+    "tipo_ocorrencia": "Higiene e limpeza",
+    "dataResolucao": null
+  },
+  {
+    "idOcorrencia": 14,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779898847/ocorrencias/seed/ji00jifs7gcffvgts7qh.jpg"
+    ],
+    "descricao": "Rua suja com detritos espalhados",
+    "localizacao": "Rua do Pinhal, 11, 4486-210 Bagunte, Ferreiró, Outeiro Maior e Parada",
+    "dataOcorrencia": "2026-05-18 14:12:30",
+    "nomeAutor": "Ana Moreira",
+    "nrTelemovelAutor": "919441917",
+    "severidade": "Média",
+    "estado": "Em resolução",
+    "idCidadao": 14,
+    "idFreguesia": 15,
+    "idEquipa": null,
+    "dataAgendada": null,
+    "feedback": null,
+    "tipo_ocorrencia": "Higiene e limpeza",
+    "dataResolucao": null
+  },
+  {
+    "idOcorrencia": 15,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779898848/ocorrencias/seed/mowbwkqmpaf6hixry0zn.jpg"
+    ],
+    "descricao": "Mato crescido na berma da estrada",
+    "localizacao": "Rua do Castro, 2, 4480-742 Canidelo",
+    "dataOcorrencia": "2026-05-19 09:50:00",
+    "nomeAutor": "Gonçalo Henriques",
+    "nrTelemovelAutor": "917047842",
+    "severidade": "Alta",
+    "estado": "Não resolvido",
+    "idCidadao": 15,
+    "idFreguesia": 19,
+    "idEquipa": null,
+    "dataAgendada": null,
+    "feedback": null,
+    "tipo_ocorrencia": "Higiene e limpeza",
+    "dataResolucao": null
+  },
+  {
+    "idOcorrencia": 16,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779898848/ocorrencias/seed/gezs16cz1rgbxsiesfd3.jpg"
+    ],
+    "descricao": "Árvore caída no parque infantil",
+    "localizacao": "Parque da Ribeira, 6, 4480-601 Vilar de Pinheiro",
+    "dataOcorrencia": "2026-05-20 16:40:00",
+    "nomeAutor": "Rita Guerreiro",
+    "nrTelemovelAutor": "932228482",
+    "severidade": "Baixa",
+    "estado": "À espera de equipa",
+    "idCidadao": 16,
+    "idFreguesia": 14,
+    "idEquipa": null,
+    "dataAgendada": null,
+    "feedback": null,
+    "tipo_ocorrencia": "Parques e jardins",
+    "dataResolucao": null
+  },
+  {
+    "idOcorrencia": 17,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779898849/ocorrencias/seed/soprpugjaxkrmng3bjem.jpg"
+    ],
+    "descricao": "Banco do parque partido e perigoso",
+    "localizacao": "Jardim Municipal, 18, 4480-201 Mindelo",
+    "dataOcorrencia": "2026-05-21 11:15:00",
+    "nomeAutor": "Leonor Vaz",
+    "nrTelemovelAutor": "920042063",
+    "severidade": "Média",
+    "estado": "Em resolução",
+    "idCidadao": 17,
+    "idFreguesia": 10,
+    "idEquipa": null,
+    "dataAgendada": null,
+    "feedback": null,
+    "tipo_ocorrencia": "Parques e jardins",
+    "dataResolucao": null
+  },
+  {
+    "idOcorrencia": 18,
+    "foto": [
+      "https://res.cloudinary.com/dtumemmlh/image/upload/v1779898850/ocorrencias/seed/sffi2blybjgd5xlnu8ax.jpg"
+    ],
+    "descricao": "Relva alta e descuidada na zona",
+    "localizacao": "Rua do Parque, 44, 4481-340 Vila do Conde",
+    "dataOcorrencia": "2026-05-22 08:30:00",
+    "nomeAutor": "Soraia Anjos",
+    "nrTelemovelAutor": "928093658",
+    "severidade": "Alta",
+    "estado": "Resolvido",
+    "idCidadao": 18,
+    "idFreguesia": 13,
+    "idEquipa": null,
+    "dataAgendada": null,
+    "feedback": null,
+    "tipo_ocorrencia": "Parques e jardins",
+    "dataResolucao": null
+  }
+]
