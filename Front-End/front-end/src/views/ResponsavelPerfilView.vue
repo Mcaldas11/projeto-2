@@ -14,7 +14,6 @@
           @click="toggleNotif"
         />
         <span class="icon menu-hamburger" @click="toggleMenu">☰</span>
-
         <SidebarMenu v-model="showMenu" />
 
         <div v-if="showNotif" class="notifications">
@@ -69,7 +68,7 @@
           </div>
 
           <div class="detail-field">
-            <label>Freguesia de Atuação</label>
+            <label>Freguesia</label>
             <div class="display-box disabled-box">{{ worker.freguesia }}</div>
           </div>
         </div>
@@ -106,7 +105,13 @@
         <div class="dashboard-block worker-routes">
           <h3>Rotas & Agendamentos Semanais</h3>
           <div class="routes-list-wrapper">
-            <div v-for="route in rotas" :key="route.id" class="route-minimal-card">
+            <button
+              v-for="route in rotas"
+              :key="route.id"
+              type="button"
+              class="route-minimal-card route-link"
+              @click="openRoute(route)"
+            >
               <div class="route-info-side">
                 <h4>{{ route.nome }}</h4>
                 <p>{{ route.descricao }}</p>
@@ -115,7 +120,7 @@
                 <span class="r-date">{{ route.data }}</span>
                 <span class="r-time">⏰ {{ route.hora }}</span>
               </div>
-            </div>
+            </button>
             <div v-if="rotas.length === 0" class="notif-empty">Nenhuma rota planeada.</div>
           </div>
         </div>
@@ -162,11 +167,11 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import Footer from '@/components/footer.vue'
-import SidebarMenu from '@/components/SidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import avatarImg from '@/assets/avatar.png'
 import { getAuthToken } from '@/utils/auth'
+import SidebarMenu from '@/components/SidebarMenu.vue'
 
 const router = useRouter()
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
@@ -184,32 +189,26 @@ const splitName = (fullName = '') => {
   }
 }
 
-const createFallbackWorker = (profile = null) => {
+const createWorkerProfile = (profile = null) => {
   const { firstName, lastName } = splitName(profile?.nomeTrabalhador || profile?.name || '')
 
   return {
-    nome: firstName || profile?.firstName || 'Carlos',
-    apelido: lastName || profile?.lastName || 'Sousa',
-    email: profile?.emailTrabalhador || profile?.email || 'csousa@vccomunica.pt',
-    genero: 'Masculino',
-    equipa: 'Sem equipa definida',
-    freguesia: 'Sem freguesia definida',
-    credenciais: 'Não disponível nesta vista',
+    nome: firstName || profile?.firstName || '',
+    apelido: lastName || profile?.lastName || '',
+    email: profile?.emailTrabalhador || profile?.email || '',
+    genero: profile?.genero || '',
+    equipa: '',
+    freguesia: '',
+    credenciais: '',
     avatar: profile?.fotoPerfil || avatarImg,
-    ratingMedia: '4.7',
+    ratingMedia: '',
   }
 }
 
 // Sistema de Notificações e Menu
 const showNotif = ref(false)
 const showMenu = ref(false)
-const notifications = ref([
-  {
-    id: 1,
-    title: 'Nova Rota Atribuída',
-    body: 'Foi adicionada uma nova rota de piquete em <strong>Vila do Conde</strong>.',
-  },
-])
+const notifications = ref([])
 
 const toggleNotif = () => {
   showNotif.value = !showNotif.value
@@ -222,7 +221,7 @@ const toggleMenu = () => {
 const removeNotif = (i) => notifications.value.splice(i, 1)
 
 const storedProfile = JSON.parse(localStorage.getItem('userProfile') || 'null')
-const worker = ref(createFallbackWorker(storedProfile))
+const worker = ref(createWorkerProfile(storedProfile))
 
 async function loadResponsibleProfile() {
   if (!API_BASE_URL) {
@@ -261,19 +260,15 @@ async function loadResponsibleProfile() {
     const municipio = municipioResponse?.ok ? await municipioResponse.json() : null
 
     worker.value = {
-      nome: firstName || storedProfile?.firstName || 'Carlos',
-      apelido: lastName || storedProfile?.lastName || 'Sousa',
-      email: profile.emailTrabalhador || storedProfile?.email || 'csousa@vccomunica.pt',
-      genero: 'Masculino',
-      equipa:
-        equipa?.especializacao ||
-        (profile.idEquipa ? `Equipa #${profile.idEquipa}` : 'Sem equipa definida'),
-      freguesia:
-        municipio?.nome ||
-        (profile.idFreguesia ? `Freguesia #${profile.idFreguesia}` : 'Sem freguesia definida'),
-      credenciais: 'Não disponível nesta vista',
+      nome: firstName || storedProfile?.firstName || '',
+      apelido: lastName || storedProfile?.lastName || '',
+      email: profile.emailTrabalhador || storedProfile?.email || '',
+      genero: profile.genero || '',
+      equipa: equipa?.especializacao || '',
+      freguesia: municipio?.nome || '',
+      credenciais: '',
       avatar: profile.fotoPerfil || storedProfile?.fotoPerfil || avatarImg,
-      ratingMedia: '4.7',
+      ratingMedia: '',
     }
 
     localStorage.setItem(
@@ -286,7 +281,7 @@ async function loadResponsibleProfile() {
       }),
     )
   } catch {
-    worker.value = createFallbackWorker(storedProfile)
+    worker.value = createWorkerProfile(storedProfile)
   }
 }
 
@@ -364,40 +359,17 @@ async function handleSaveEdit() {
 }
 
 // Ocorrências vinculadas à freguesia do funcionário
-const ocorrencias = ref([
-  {
-    id: 101,
-    tipo: 'Estradas e passeios',
-    status: 'Em resolução',
-    statusClass: 'em-resolucao',
-    local: 'Rua da Praia, Nº 45',
-  },
-  {
-    id: 102,
-    tipo: 'Iluminação Pública',
-    status: 'Espera',
-    statusClass: 'espera',
-    local: 'Avenida Baltazar, Poste C2',
-  },
-])
+const ocorrencias = ref([])
 
 // Rotas exclusivas do Trabalhador
-const rotas = ref([
-  {
-    id: 1,
-    nome: 'Rota Semanal Norte',
-    descricao: 'Reparação de calçada danificada.',
-    data: '29 Mai 2026',
-    hora: '08:30',
-  },
-  {
-    id: 2,
-    nome: 'Intervenção urgente',
-    descricao: 'Substituição de lâmpadas fundidas.',
-    data: '29 Mai 2026',
-    hora: '14:00',
-  },
-])
+const rotas = ref([])
+
+const openRoute = (route) => {
+  router.push({
+    name: 'responsavel-rotas',
+    query: { routeId: String(route.id) },
+  })
+}
 
 // Logout do Operador
 const showLogoutModal = ref(false)
@@ -721,6 +693,17 @@ onMounted(() => {
   border-left: 4px solid #730000;
   padding: 16px;
   border-radius: 8px;
+}
+.route-link {
+  width: 100%;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+.route-link:hover {
+  background: #eef5f3;
 }
 .route-info-side h4 {
   margin: 0 0 4px 0;

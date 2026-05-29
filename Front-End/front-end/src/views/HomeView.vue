@@ -5,11 +5,17 @@
       <div class="content-wrapper">
         <nav class="navbar">
           <div class="logo-area">
-            <img src="@/assets/logo.png" alt="VC Comunica Logo" class="logo-img">
+            <img src="@/assets/logo.png" alt="VC Comunica Logo" class="logo-img" />
           </div>
-            <div class="nav-icons" ref="navIcons">
+          <div class="nav-icons" ref="navIcons">
             <router-link :to="newOccurrenceRoute" class="icon add">+</router-link>
-            <img :src="notifications.length === 0 ? notifOff : notifOn" alt="notifications" class="icon notification" @click="toggleNotif" ref="notifIcon" />
+            <img
+              :src="notifications.length === 0 ? notifOff : notifOn"
+              alt="notifications"
+              class="icon notification"
+              @click="toggleNotif"
+              ref="notifIcon"
+            />
             <span class="icon" ref="menuIcon" @click="toggleMenu">☰</span>
 
             <SidebarMenu v-model="showMenu" />
@@ -17,7 +23,12 @@
             <div v-if="showNotif" class="notifications" ref="notifPanel">
               <h4>Notificações</h4>
               <div class="notif-list">
-                <div v-for="(n, i) in notifications" :key="n.id" class="notif-item" @click.stop="removeNotif(i)">
+                <div
+                  v-for="(n, i) in notifications"
+                  :key="n.id"
+                  class="notif-item"
+                  @click.stop="removeNotif(i)"
+                >
                   <div class="notif-title">{{ n.title }}</div>
                   <div class="notif-body" v-html="n.body"></div>
                 </div>
@@ -28,10 +39,10 @@
         </nav>
 
         <div class="hero-main">
-          <h1 class="hero-title">A sua cidade,<br>a sua voz!</h1>
+          <h1 class="hero-title">A sua cidade,<br />a sua voz!</h1>
           <p class="hero-subtitle">
-            A VC Comunica é a sua plataforma para reportar problemas urbanos.
-            Junte-se a nós e construa uma cidade mais eficiente e conectada.
+            A VC Comunica é a sua plataforma para reportar problemas urbanos. Junte-se a nós e
+            construa uma cidade mais eficiente e conectada.
           </p>
         </div>
 
@@ -49,20 +60,24 @@
             <p class="stat-label">Ocorrências em análise</p>
           </div>
         </div>
-        
       </div>
     </header>
 
     <section class="about-section">
       <div class="about-text">
-        <h2 class="section-title">Sobre<br>Nós</h2>
-        <p>A VC Comunica é uma plataforma inovadora, criada para conectar cidadãos e autoridades.</p>
-        <p>Nosso objetivo é facilitar a comunicação de ocorrências, promover a transparência e construir uma cidade mais segura e eficiente para todos.</p>
+        <h2 class="section-title">Sobre<br />Nós</h2>
+        <p>
+          A VC Comunica é uma plataforma inovadora, criada para conectar cidadãos e autoridades.
+        </p>
+        <p>
+          Nosso objetivo é facilitar a comunicação de ocorrências, promover a transparência e
+          construir uma cidade mais segura e eficiente para todos.
+        </p>
       </div>
       <div class="about-gallery">
-        <img src="@/assets/about1.png" alt="Ocorrência 1" class="about-img">
-        <img src="@/assets/about2.png" alt="Ocorrência 2" class="about-img">
-        <img src="@/assets/about3.png" alt="Ocorrência 3" class="about-img">
+        <img src="@/assets/about1.png" alt="Ocorrência 1" class="about-img" />
+        <img src="@/assets/about2.png" alt="Ocorrência 2" class="about-img" />
+        <img src="@/assets/about3.png" alt="Ocorrência 3" class="about-img" />
       </div>
     </section>
 
@@ -92,7 +107,11 @@
       <div class="steps-grid">
         <div class="step">
           <h3>1. Escolhe o tipo de ocorrência</h3>
-          <p>Escolha a categoria da ocorrência que pretende reportar. Estas podem ser de 5 tipos diferentes, sendo estes: Estradas e passeios, Sinalização de trânsito, Iluminação, Higiene e limpeza e Parques e jardins.</p>
+          <p>
+            Escolha a categoria da ocorrência que pretende reportar. Estas podem ser de 5 tipos
+            diferentes, sendo estes: Estradas e passeios, Sinalização de trânsito, Iluminação,
+            Higiene e limpeza e Parques e jardins.
+          </p>
         </div>
         <div class="step">
           <h3>2. Descrição da ocorrência e detalhes pessoais</h3>
@@ -100,12 +119,15 @@
         </div>
         <div class="step">
           <h3>3. Adicionar fotos</h3>
-          <p>Para adicionar fotos, basta selecionar as imagens relevantes do seu dispositivo. Certifique-se de que as fotos são nítidas e ilustram claramente a ocorrência.</p>
+          <p>
+            Para adicionar fotos, basta selecionar as imagens relevantes do seu dispositivo.
+            Certifique-se de que as fotos são nítidas e ilustram claramente a ocorrência.
+          </p>
         </div>
       </div>
     </section>
 
-    <Footer/>
+    <Footer />
   </div>
 </template>
 
@@ -130,7 +152,10 @@
 
 .overlay {
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: rgba(0, 0, 0, 0.4);
   z-index: 1;
 }
@@ -153,8 +178,13 @@
   gap: 10px;
 }
 
-.logo-img { height: 40px; }
-.logo-text { font-weight: bold; font-size: 1.5rem; }
+.logo-img {
+  height: 40px;
+}
+.logo-text {
+  font-weight: bold;
+  font-size: 1.5rem;
+}
 
 .nav-icons {
   display: flex;
@@ -194,7 +224,7 @@
   color: #0b2b2b;
   border-radius: 12px;
   padding: 12px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
   z-index: 60;
 }
 
@@ -208,12 +238,14 @@
   color: #0b2b2b;
   border-radius: 12px;
   padding: 8px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
   z-index: 70;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  transition: transform 0.18s ease, opacity 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    opacity 0.18s ease;
   transform-origin: top right;
 }
 
@@ -227,7 +259,7 @@
 }
 
 .menu-item:hover {
-  background: rgba(0,0,0,0.05);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 /* Menu list + icon sizing */
@@ -247,8 +279,15 @@
   padding: 8px 10px;
 }
 
-.menu-label { font-size: 13px; margin-right: 8px }
-.menu-icon { width: 14px; height: 14px; object-fit: contain }
+.menu-label {
+  font-size: 13px;
+  margin-right: 8px;
+}
+.menu-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+}
 
 .notifications h4 {
   margin: 0 0 10px 0;
@@ -258,12 +297,32 @@
   font-size: 18px;
 }
 
-.notif-list { display: flex; flex-direction: column; gap: 12px }
-.notif-item { background: #dff3ec; padding: 12px; border-radius: 8px; cursor: pointer }
-.notif-title { font-weight: 700; margin-bottom: 6px }
-.notif-body { color: rgba(0,0,0,0.7); font-size: 14px }
+.notif-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.notif-item {
+  background: #dff3ec;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.notif-title {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.notif-body {
+  color: rgba(0, 0, 0, 0.7);
+  font-size: 14px;
+}
 
-.notif-empty { color: #666; font-size: 14px; text-align: center; padding: 12px }
+.notif-empty {
+  color: #666;
+  font-size: 14px;
+  text-align: center;
+  padding: 12px;
+}
 
 .hero-main {
   margin-bottom: 80px;
@@ -448,7 +507,9 @@
   text-align: right;
 }
 
-.logo-img-small { height: 80px; }
+.logo-img-small {
+  height: 80px;
+}
 
 .copyright {
   font-size: 0.8rem;
@@ -472,14 +533,26 @@
   text-decoration: none;
 }
 
-.login-btn:hover { opacity: 0.95 }
+.login-btn:hover {
+  opacity: 0.95;
+}
 
 /* Responsividade Básica */
 @media (max-width: 1024px) {
-  .hero-title { font-size: 3.5rem; }
-  .about-section, .steps-grid { flex-direction: column; grid-template-columns: 1fr; }
-  .stats-container { flex-direction: column; }
-  .teams-grid { grid-template-columns: 1fr; }
+  .hero-title {
+    font-size: 3.5rem;
+  }
+  .about-section,
+  .steps-grid {
+    flex-direction: column;
+    grid-template-columns: 1fr;
+  }
+  .stats-container {
+    flex-direction: column;
+  }
+  .teams-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
 
@@ -499,10 +572,7 @@ const menuPanel = ref(null)
 const menuIcon = ref(null)
 const newOccurrenceRoute = computed(() => getNewOccurrenceRoute())
 
-const notifications = ref([
-  { id: 1, title: 'Estado da ocorrência', body: 'O estado da sua ocorrência foi alterado para <strong>Resolvido</strong>' },
-  { id: 2, title: 'Estado da ocorrência', body: 'O estado da sua ocorrência foi alterado para <strong>Resolvido</strong>' },
-])
+const notifications = ref([])
 
 function toggleNotif(event) {
   showNotif.value = !showNotif.value

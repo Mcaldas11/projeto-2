@@ -3,10 +3,10 @@
     <nav class="navbar">
       <router-link to="/">
         <div class="logo-area">
-        <img src="@/assets/logo.svg" alt="VC Comunica Logo" class="logo-img"/>
-      </div>
+          <img src="@/assets/logo.svg" alt="VC Comunica Logo" class="logo-img" />
+        </div>
       </router-link>
-      
+
       <div class="nav-icons" ref="navIcons">
         <router-link :to="newOccurrenceRoute" class="icon add">+</router-link>
         <img
@@ -107,19 +107,25 @@
           <div class="map-info-card" :class="{ empty: !selectedOccurrence }">
             <template v-if="selectedOccurrence">
               <div class="card-header">
-                <img :src="selectedOccurrenceMeta.icon" :alt="selectedOccurrenceMeta.label" class="icon-type" />
+                <img
+                  :src="selectedOccurrenceMeta.icon"
+                  :alt="selectedOccurrenceMeta.label"
+                  class="icon-type"
+                />
                 <h3>{{ selectedOccurrenceMeta.label }}</h3>
               </div>
               <p>
                 <strong>Status:</strong>
-                <span :class="['status-badge', selectedOccurrence.statusClass]">{{ selectedOccurrence.situacao }}</span>
+                <span :class="['status-badge', selectedOccurrence.statusClass]">{{
+                  selectedOccurrence.situacao
+                }}</span>
               </p>
               <p>
-                <strong>Localização:</strong><br />{{ selectedOccurrence.location || 'Local não disponível' }}
+                <strong>Localização:</strong><br />{{
+                  selectedOccurrence.location || 'Local não disponível'
+                }}
               </p>
-              <p>
-                <strong>Descrição:</strong><br />{{ selectedOccurrence.detalhes }}
-              </p>
+              <p><strong>Descrição:</strong><br />{{ selectedOccurrence.detalhes }}</p>
               <div class="reported-by">
                 <strong>Reportado por:</strong>
                 <div class="user-chip">
@@ -159,13 +165,7 @@ import { getNewOccurrenceRoute } from '@/utils/auth'
 const viewMode = ref('lista')
 const showNotif = ref(false)
 const showMenu = ref(false)
-const notifications = ref([
-  {
-    id: 1,
-    title: 'Estado da ocorrência',
-    body: 'O estado foi alterado para <strong>Resolvido</strong>',
-  },
-])
+const notifications = ref([])
 
 const notifPanel = ref(null)
 const notifIcon = ref(null)
@@ -367,13 +367,16 @@ function destroyMap() {
 
 async function loadOccurrences() {
   const data = await listOccurrences()
-  const enrichedOccurrences = await Promise.all(data.map((occurrence) => enrichOccurrence(occurrence)))
+  const enrichedOccurrences = await Promise.all(
+    data.map((occurrence) => enrichOccurrence(occurrence)),
+  )
 
   ocorrencias.value = enrichedOccurrences
 
   if (selectedOccurrence.value) {
     selectedOccurrence.value =
-      enrichedOccurrences.find((occurrence) => occurrence.id === selectedOccurrence.value.id) || null
+      enrichedOccurrences.find((occurrence) => occurrence.id === selectedOccurrence.value.id) ||
+      null
   }
 
   renderMarkers()
@@ -742,7 +745,4 @@ onBeforeUnmount(() => {
   background: #ffedd5;
   color: #9a3412;
 }
-
-
-
 </style>

@@ -1,90 +1,208 @@
-import {
-  addWorkerToTeam,
-  getTeamById,
-  readStoredTeams,
-  readStoredWorkers,
-  removeWorkerFromTeam,
-  saveTeams,
-  saveWorkers,
-  persistTeamState,
-} from '@/utils/teamStorage'
+import avatarImg from '@/assets/avatar.png'
+import { getAuthToken } from '@/utils/auth'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
+const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || ''
+const DEFAULT_MAX_PER_ROUTE = 8
+
+const buildHeaders = (extraHeaders = {}, withAuth = false) => {
+  const headers = { ...extraHeaders }
+
+  if (withAuth) {
+    const token = getAuthToken()
+    if (token) {
+      headers.Authorization = `Bearer ${token}`
+    }
+  }
+
+  return headers
+}
+
+const fetchJson = async (endpoint, options = {}, withAuth = false) => {
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
+    headers: buildHeaders(options.headers || {}, withAuth),
+  })
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null)
+    throw new Error(payload?.message || `Failed to load ${endpoint}`)
+  }
+
+  return response.json()
+}
+
+const getMunicipioNameById = (municipiosById, idFreguesia) =>
+  municipiosById.get(String(idFreguesia)) || 'Sem freguesia'
+
+const normalizeName = (value, fallback) => String(value || fallback || '').trim()
+
+const isUnresolvedState = (estado) => /não resolvid|nao resolvid/i.test(String(estado || ''))
+const isResolvedState = (estado) => /resolvid/i.test(String(estado || ''))
+const isActiveState = (estado) =>
+  /à espera da equipa|a espera da equipa|em resolução|em resolucao/i.test(String(estado || ''))
+
+const buildTeamStats = (teamId, ocorrencias) => {
+  const stats = {
+    ativas: 0,
+    concluidas: 0,
+    naoResolvidas: 0,
+  }
+
+  ocorrencias.forEach((ocorrencia) => {
+    if (String(ocorrencia.idEquipa ?? '') !== String(teamId)) {
+      return
+    }
+
+    if (isUnresolvedState(ocorrencia.estado)) {
+      stats.naoResolvidas += 1
+      return
+    }
+
+    if (isResolvedState(ocorrencia.estado)) {
+      stats.concluidas += 1
+      return
+    }
+
+    if (isActiveState(ocorrencia.estado)) {
+      stats.ativas += 1
+      return
+    }
+
+    stats.ativas += 1
+  })
+
+  return stats
+}
+
+const normalizeWorker = (worker, municipiosById) => ({
+  id: worker.idTrabalhador ?? worker.id,
+  name: normalizeName(
+    worker.nomeTrabalhador || worker.name,
+    `Trabalhador ${worker.idTrabalhador ?? worker.id ?? ''}`,
+  ),
+  email: worker.emailTrabalhador || worker.email || '',
+  avatar: worker.fotoPerfil || worker.avatar || avatarImg,
+  freguesia: getMunicipioNameById(municipiosById, worker.idFreguesia),
+  idEquipa: worker.idEquipa ?? null,
+})
+
+const normalizeTeam = (equipa, index, municipalitiesById, workers, occurrenceStatsByTeamId) => {
+  const teamId = equipa.idEquipa ?? equipa.id ?? index + 1
+  const teamMembers = workers
+    .filter((worker) => String(worker.idEquipa ?? '') === String(teamId))
+    .map((worker) => normalizeWorker(worker, municipalitiesById))
+
+  return {
+    id: teamId,
+    name: normalizeName(equipa.especializacao || equipa.name, `Equipa ${index + 1}`),
+    freguesia: getMunicipioNameById(municipalitiesById, equipa.fregEquipa),
+    members: teamMembers,
+    stats: occurrenceStatsByTeamId.get(String(teamId)) || {
+      ativas: 0,
+      concluidas: 0,
+      naoResolvidas: 0,
+    },
+    maxPerRoute: equipa.maxPerRoute ?? DEFAULT_MAX_PER_ROUTE,
+  }
+}
+
+const buildTeamsFromBackend = ({ equipas, trabalhadores, municipios, ocorrencias }) => {
+  const municipiosById = new Map(
+    municipios.map((municipio) => [String(municipio.idFreguesia), municipio.nome]),
+  )
+  const occurrenceStatsByTeamId = new Map()
+
+  equipas.forEach((equipa) => {
+    const teamId = String(equipa.idEquipa ?? equipa.id)
+    occurrenceStatsByTeamId.set(teamId, buildTeamStats(teamId, ocorrencias))
+  })
+
+  return equipas.map((equipa, index) =>
+    normalizeTeam(equipa, index, municipiosById, trabalhadores, occurrenceStatsByTeamId),
+  )
+}
 
 async function listTeams() {
   if (!API_BASE_URL) {
-    return readStoredTeams()
+    throw new Error('Define VITE_API_URL para carregar as equipas da base de dados.')
   }
 
-  const response = await fetch(`${API_BASE_URL}/equipas`)
-  if (!response.ok) {
-    throw new Error('Failed to load teams from backend')
-  }
+  const [equipas, trabalhadores, municipios, ocorrencias] = await Promise.all([
+    fetchJson('/equipas'),
+    fetchJson('/trabalhadores'),
+    fetchJson('/municipios'),
+    fetchJson('/ocorrencias', {}, true),
+  ])
 
-  const data = await response.json()
-  saveTeams(Array.isArray(data) ? data : [])
-  return readStoredTeams()
+  return buildTeamsFromBackend({
+    equipas: Array.isArray(equipas) ? equipas : [],
+    trabalhadores: Array.isArray(trabalhadores) ? trabalhadores : [],
+    municipios: Array.isArray(municipios) ? municipios : [],
+    ocorrencias: Array.isArray(ocorrencias) ? ocorrencias : [],
+  })
 }
 
 async function listWorkers() {
   if (!API_BASE_URL) {
-    return readStoredWorkers()
+    throw new Error('Define VITE_API_URL para carregar os trabalhadores da base de dados.')
   }
 
-  const response = await fetch(`${API_BASE_URL}/trabalhadores`)
-  if (!response.ok) {
-    throw new Error('Failed to load workers from backend')
-  }
+  const [trabalhadores, municipios] = await Promise.all([
+    fetchJson('/trabalhadores'),
+    fetchJson('/municipios'),
+  ])
 
-  const data = await response.json()
-  saveWorkers(Array.isArray(data) ? data : [])
-  return readStoredWorkers()
+  const municipiosById = new Map(
+    (Array.isArray(municipios) ? municipios : []).map((municipio) => [
+      String(municipio.idFreguesia),
+      municipio.nome,
+    ]),
+  )
+  const normalizedWorkers = (Array.isArray(trabalhadores) ? trabalhadores : []).map((worker) =>
+    normalizeWorker(worker, municipiosById),
+  )
+
+  return normalizedWorkers
 }
 
 async function assignWorkerToTeam(teamId, workerId) {
   if (!API_BASE_URL) {
-    return addWorkerToTeam(teamId, workerId)
+    throw new Error('Define VITE_API_URL para alterar equipas na base de dados.')
   }
 
-  const response = await fetch(`${API_BASE_URL}/equipas/${teamId}/workers`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+  await fetchJson(
+    `/trabalhadores/${workerId}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ idEquipa: Number(teamId) }),
     },
-    body: JSON.stringify({ workerId }),
-  })
+    true,
+  )
 
-  if (!response.ok) {
-    throw new Error('Failed to assign worker to team in backend')
-  }
-
-  const updatedTeam = await response.json()
-  const teams = readStoredTeams().map((team) => (String(team.id) === String(teamId) ? updatedTeam : team))
-  persistTeamState(teams)
-  return { teams, added: true }
+  return { teams: await listTeams(), added: true }
 }
 
 async function unassignWorkerFromTeam(teamId, workerId) {
   if (!API_BASE_URL) {
-    return removeWorkerFromTeam(teamId, workerId)
+    throw new Error('Define VITE_API_URL para alterar equipas na base de dados.')
   }
 
-  const response = await fetch(`${API_BASE_URL}/equipas/${teamId}/workers/${workerId}`, {
-    method: 'DELETE',
-  })
+  await fetchJson(
+    `/trabalhadores/${workerId}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ idEquipa: null }),
+    },
+    true,
+  )
 
-  if (!response.ok) {
-    throw new Error('Failed to remove worker from team in backend')
-  }
-
-  const updatedTeam = await response.json()
-  const teams = readStoredTeams().map((team) => (String(team.id) === String(teamId) ? updatedTeam : team))
-  persistTeamState(teams)
-  return teams
+  return listTeams()
 }
 
-function getTeam(teamId) {
-  return getTeamById(teamId)
-}
-
-export { API_BASE_URL, listTeams, listWorkers, assignWorkerToTeam, unassignWorkerFromTeam, getTeam, persistTeamState }
+export { API_BASE_URL, listTeams, listWorkers, assignWorkerToTeam, unassignWorkerFromTeam }

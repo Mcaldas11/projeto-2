@@ -2,7 +2,9 @@
   <div class="page-container">
     <nav class="navbar">
       <div class="logo-area">
-        <img src="@/assets/logoP.png" alt="VC Comunica Logo" class="logo-img" />
+        <router-link to="/admin/perfil">
+          <img src="@/assets/logoP.png" alt="VC Comunica Logo" class="logo-img" />
+        </router-link>
       </div>
       <div class="nav-right">
         <span class="admin-label">Admin</span>
@@ -36,112 +38,111 @@
     </nav>
 
     <main class="content-wrapper">
-      <!-- Breadcrumb -->
-      <div class="breadcrumb-header">
-        <div class="icon-main-bg">
-          <img src="@/assets/ocorrencias.png" alt="Ocorrências" class="icon-main-img" />
+      <div v-if="loadError" class="load-error">{{ loadError }}</div>
+      <div v-else-if="isLoading" class="load-state"></div>
+      <template v-else>
+        <div class="breadcrumb-header">
+          <div class="icon-main-bg">
+            <img src="@/assets/ocorrencias.png" alt="Ocorrências" class="icon-main-img" />
+          </div>
+          <h1>
+            Ocorrências <span class="breadcrumb-sep">&gt;</span>
+            <span class="breadcrumb-current">{{ occurrence?.tipo || 'Detalhe' }}</span>
+          </h1>
         </div>
-        <h1>
-          Ocorrências <span class="breadcrumb-sep">&gt;</span>
-          <span class="breadcrumb-current">Ocorrencia...</span>
-        </h1>
-      </div>
 
-      <!-- Alert Banner -->
-      <div class="alert-banner">
-        <div class="alert-content">
-          <div class="alert-left">
-            <div class="alert-title-row">
-              <img src="@/assets/warning_icon.svg" alt="alerta" class="alert-icon" />
-              <strong>Localização Errada</strong>
+        <div class="alert-banner">
+          <div class="alert-content">
+            <div class="alert-left">
+              <div class="alert-title-row">
+                <img src="@/assets/warning_icon.svg" alt="alerta" class="alert-icon" />
+                <strong>{{ occurrence?.situacao || 'Ocorrência' }}</strong>
+              </div>
+              <div class="alert-body">
+                <p><strong>Descrição:</strong></p>
+                <p>{{ occurrence?.detalhes || 'Sem descrição disponível.' }}</p>
+                <div class="alert-actions">
+                  <strong>Ações:</strong>
+                  <div class="alert-buttons">
+                    <button class="btn-action dark">Fechar Ocorrência</button>
+                    <button class="btn-action dark">Contactar Cidadão</button>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="alert-body">
-              <p><strong>Descrição:</strong></p>
+            <div class="alert-right">
+              <p><strong>Reportado por:</strong> {{ citizen?.nome || occurrence?.nome || '-' }}</p>
+              <p><strong>Data:</strong> {{ formattedOccurrenceDate }}</p>
+              <p><strong>Hora:</strong> {{ formattedOccurrenceTime }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="main-details-grid">
+          <section class="image-gallery">
+            <div class="main-image-container">
+              <img :src="activeImage" class="featured-image" />
+              <div class="gallery-nav">
+                <button :disabled="gallery.length <= 1" @click="prevImg">‹</button>
+                <div class="thumbnails">
+                  <img
+                    v-for="(img, index) in gallery"
+                    :key="`${img}-${index}`"
+                    :src="img"
+                    :class="{ active: activeImageIndex === index }"
+                    @click="activeImageIndex = index"
+                  />
+                </div>
+                <button :disabled="gallery.length <= 1" @click="nextImg">›</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="info-sidebar">
+            <div class="category-header">
+              <span class="icon-yellow">{{ categoryIcon }}</span>
+              <h3>{{ occurrence?.tipo || 'Ocorrência' }}</h3>
+            </div>
+
+            <div class="info-group">
               <p>
-                Deslocação ao local efetuada para verificação de anomalia na iluminação pública.
-                Após inspeção técnica no ponto indicado, confirmou-se que o sistema se encontra em
-                pleno estado de funcionamento, não tendo sido detetada qualquer irregularidade ou
-                falha no momento da visita.
+                <strong>Status:</strong>
+                <span :class="['status-badge', occurrence?.statusClass || 'em-resolucao']">
+                  {{ occurrence?.situacao || 'Sem estado' }}
+                </span>
               </p>
-              <div class="alert-actions">
-                <strong>Ações:</strong>
-                <div class="alert-buttons">
-                  <button class="btn-action dark">Fechar Ocorrência</button>
-                  <button class="btn-action dark">Contactar Cidadão</button>
+              <p>
+                <strong>Localização:</strong><br />
+                {{ occurrence?.location || occurrence?.detalhes || 'Sem localização disponível.' }}
+              </p>
+              <p>
+                <strong>Descrição:</strong><br />
+                {{ occurrence?.detalhes || 'Sem descrição disponível.' }}
+              </p>
+              <p v-if="assignedTeamName"><strong>Equipa:</strong><br />{{ assignedTeamName }}</p>
+            </div>
+          </section>
+        </div>
+
+        <section class="cidadao-section">
+          <h2>Informação Cidadão:</h2>
+          <div class="cidadao-card">
+            <img :src="citizenAvatar" alt="Cidadão" class="cidadao-avatar" />
+            <div class="cidadao-details">
+              <h3>{{ citizen?.nome || occurrence?.nome || 'Cidadão' }}</h3>
+              <div class="cidadao-grid">
+                <div>
+                  <p><strong>Nº Telemóvel:</strong> {{ citizen?.nrTelemovel || '-' }}</p>
+                  <p><strong>Freguesia:</strong> {{ municipalityName }}</p>
+                </div>
+                <div>
+                  <p><strong>Email:</strong> {{ citizen?.email || '-' }}</p>
                 </div>
               </div>
             </div>
           </div>
-          <div class="alert-right">
-            <p><strong>Reportado por:</strong> Sofia Pereira</p>
-            <p><strong>Data:</strong> 12/07/2023</p>
-            <p><strong>Hora:</strong> 14:43</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Main Details Grid -->
-      <div class="main-details-grid">
-        <section class="image-gallery">
-          <div class="main-image-container">
-            <img :src="activeImage" class="featured-image" />
-            <div class="gallery-nav">
-              <button @click="prevImg">‹</button>
-              <div class="thumbnails">
-                <img
-                  v-for="(img, index) in gallery"
-                  :key="index"
-                  :src="img"
-                  :class="{ active: activeImageIndex === index }"
-                  @click="activeImageIndex = index"
-                />
-              </div>
-              <button @click="nextImg">›</button>
-            </div>
-          </div>
         </section>
-
-        <section class="info-sidebar">
-          <div class="category-header">
-            <span class="icon-yellow">💡</span>
-            <h3>Iluminação</h3>
-          </div>
-
-          <div class="info-group">
-            <p>
-              <strong>Status:</strong>
-              <span class="status-badge em-resolucao">Em Resolução</span>
-              <img src="@/assets/edit_icon.svg" alt="edit_icon" class="edit-icon" /> 
-            </p>
-            <p><strong>Localização:</strong><br />R. Dom Sancho I 981, 4480-876 Vila do Conde</p>
-            <p>
-              <strong>Descrição:</strong><br />A iluminação junto à entrada do campus universitário
-              está muito fraca e com várias lâmpadas fundidas. Solicito a reparação para garantir a
-              segurança dos estudantes que circulam no local à noite.
-            </p>
-          </div>
-        </section>
-      </div>
-
-      <!-- Informação Cidadão -->
-      <section class="cidadao-section">
-        <h2>Informação Cidadão:</h2>
-        <div class="cidadao-card">
-          <img src="@/assets/avatar.png" alt="Cidadão" class="cidadao-avatar" />
-          <div class="cidadao-details">
-            <h3>Miguel Silva</h3>
-            <div class="cidadao-grid">
-              <div>
-                <p><strong>Nº Telemóvel:</strong> (+351) 912 345 678</p>
-                <p><strong>Freguesia:</strong> Vila do Conde</p>
-              </div>
-              <div>
-                <p><strong>Email:</strong> miguel.silva@example.com</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      </template>
     </main>
 
     <Footer :columns="adminFooterColumns" :logo-src="adminFooterLogo" />
@@ -149,12 +150,18 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import Footer from '@/components/footer.vue'
 import AdminSidebarMenu from '@/components/AdminSidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import adminFooterLogo from '@/assets/logo_footer.png'
+import avatarImg from '@/assets/avatar.png'
+import { API_BASE_URL } from '@/services/municipalityService'
+import { getOccurrence } from '@/services/occurrenceService'
+
+const route = useRoute()
 
 const adminFooterColumns = [
   [
@@ -164,23 +171,23 @@ const adminFooterColumns = [
     { label: 'Equipas', to: '/admin/equipas' },
     { label: 'Funcionarios', to: '/admin/trabalhadores' },
   ],
-  [
-    { label: 'Sobre', to: '/sobre' },
-  ],
+  [{ label: 'Sobre', to: '/sobre' }],
 ]
 
 const showNotif = ref(false)
 const showMenu = ref(false)
 const notifPanel = ref(null)
 const notifIcon = ref(null)
+const isLoading = ref(true)
+const loadError = ref('')
+const occurrence = ref(null)
+const citizen = ref(null)
+const municipalityName = ref('Sem freguesia')
+const assignedTeamName = ref('')
+const gallery = ref([])
+const activeImageIndex = ref(0)
 
-const notifications = ref([
-  {
-    id: 1,
-    title: 'Nova ocorrência',
-    body: 'Uma nova ocorrência foi reportada em <strong>Vila do Conde</strong>',
-  },
-])
+const notifications = ref([])
 
 const toggleNotif = (e) => {
   e.stopPropagation()
@@ -209,17 +216,96 @@ function handleDocClick(e) {
 onMounted(() => document.addEventListener('click', handleDocClick))
 onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
 
-// Gallery
-const gallery = ['/img/iluminacao1.jpg', '/img/iluminacao2.jpg', '/img/iluminacao3.jpg']
-const activeImageIndex = ref(0)
-const activeImage = computed(() => gallery[activeImageIndex.value])
+const activeImage = computed(() => gallery.value[activeImageIndex.value] || avatarImg)
+const citizenAvatar = computed(() => citizen.value?.fotoPerfil || avatarImg)
+
+const categoryIcon = computed(() => {
+  const type = String(occurrence.value?.tipo || '').toLowerCase()
+  if (type.includes('ilum')) return '💡'
+  if (type.includes('via') || type.includes('estrada')) return '🛣'
+  if (type.includes('verde')) return '🌳'
+  if (type.includes('hig')) return '🧹'
+  return '📍'
+})
+
+const formattedOccurrenceDate = computed(() => {
+  const value = occurrence.value?.dataOcorrencia
+  if (!value) return '-'
+  return new Date(value).toLocaleDateString('pt-PT')
+})
+
+const formattedOccurrenceTime = computed(() => {
+  const value = occurrence.value?.dataOcorrencia
+  if (!value) return '-'
+  return new Date(value).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })
+})
 
 const nextImg = () => {
-  activeImageIndex.value = (activeImageIndex.value + 1) % gallery.length
+  if (!gallery.value.length) return
+  activeImageIndex.value = (activeImageIndex.value + 1) % gallery.value.length
 }
 const prevImg = () => {
-  activeImageIndex.value = (activeImageIndex.value - 1 + gallery.length) % gallery.length
+  if (!gallery.value.length) return
+  activeImageIndex.value =
+    (activeImageIndex.value - 1 + gallery.value.length) % gallery.value.length
 }
+
+const fetchJson = async (path) => {
+  const response = await fetch(`${API_BASE_URL}${path}`)
+  if (!response.ok) {
+    throw new Error(`Falha ao carregar ${path}`)
+  }
+
+  return response.json()
+}
+
+async function loadDetail() {
+  isLoading.value = true
+  loadError.value = ''
+
+  try {
+    const occurrenceId = route.params.id
+    if (!occurrenceId) {
+      throw new Error('Ocorrência inválida.')
+    }
+
+    const loadedOccurrence = await getOccurrence(occurrenceId)
+    occurrence.value = loadedOccurrence
+
+    const nextGallery =
+      Array.isArray(loadedOccurrence?.photos) && loadedOccurrence.photos.length
+        ? loadedOccurrence.photos
+            .map((photo) => (typeof photo === 'string' ? photo : photo.url || photo.secure_url))
+            .filter(Boolean)
+        : loadedOccurrence?.image
+          ? [loadedOccurrence.image]
+          : []
+    gallery.value = nextGallery.length ? nextGallery : [avatarImg]
+    activeImageIndex.value = 0
+
+    const relatedRequests = []
+    if (loadedOccurrence?.idCidadao != null) {
+      relatedRequests.push(fetchJson(`/cidadaos/${loadedOccurrence.idCidadao}`))
+    }
+    if (loadedOccurrence?.idFreguesia != null) {
+      relatedRequests.push(fetchJson(`/municipios/${loadedOccurrence.idFreguesia}`))
+    }
+    if (loadedOccurrence?.idEquipa != null) {
+      relatedRequests.push(fetchJson(`/equipas/${loadedOccurrence.idEquipa}`))
+    }
+
+    const [loadedCitizen, loadedMunicipality, loadedTeam] = await Promise.all(relatedRequests)
+    citizen.value = loadedCitizen || null
+    municipalityName.value = loadedMunicipality?.nome || 'Sem freguesia'
+    assignedTeamName.value = loadedTeam?.especializacao || loadedTeam?.name || ''
+  } catch (error) {
+    loadError.value = error?.message || 'Não foi possível carregar os detalhes da ocorrência.'
+  } finally {
+    isLoading.value = false
+  }
+}
+
+watch(() => route.params.id, loadDetail, { immediate: true })
 </script>
 
 <style scoped>
@@ -315,6 +401,25 @@ const prevImg = () => {
   max-width: 1100px;
   margin: 40px auto;
   padding: 0 20px;
+}
+
+.load-state,
+.load-error {
+  margin: 12px 0 24px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.load-state {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.load-error {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
 }
 
 /* BREADCRUMB */

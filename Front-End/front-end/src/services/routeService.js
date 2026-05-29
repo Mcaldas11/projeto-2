@@ -1,6 +1,4 @@
-import { readStoredRoutes, saveRoutes } from '@/utils/routeStorage'
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
+const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || ''
 const OSRM_BASE_URL = import.meta.env.VITE_OSRM_BASE_URL || 'https://router.project-osrm.org'
 
 function joinCoordinates(waypoints = []) {
@@ -38,7 +36,7 @@ async function buildRouteGeometry(route) {
 
 async function listRoutes() {
   if (!API_BASE_URL) {
-    return readStoredRoutes()
+    throw new Error('Define VITE_API_URL para carregar as rotas da base de dados.')
   }
 
   const response = await fetch(`${API_BASE_URL}/routes`)
@@ -47,8 +45,7 @@ async function listRoutes() {
   }
 
   const data = await response.json()
-  saveRoutes(Array.isArray(data) ? data : [])
-  return readStoredRoutes()
+  return Array.isArray(data) ? data : []
 }
 
 async function listRoutesWithGeometry() {

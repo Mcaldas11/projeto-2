@@ -2,10 +2,11 @@
   <div class="page-container">
     <nav class="navbar">
       <div class="logo-area">
-        <img src="@/assets/logoP.png" alt="VC Comunica Logo" class="logo-img" />
+        <router-link to="/admin/perfil">
+          <img src="@/assets/logoP.png" alt="VC Comunica Logo" class="logo-img" />
+        </router-link>
       </div>
       <div class="nav-right">
-        <span class="admin-label">Admin</span>
         <img
           :src="notifications.length === 0 ? notifOff : notifOn"
           alt="notifications"
@@ -20,7 +21,12 @@
         <div v-if="showNotif" class="notifications" ref="notifPanel">
           <h4>Notificações</h4>
           <div class="notif-list">
-            <div v-for="(n, i) in notifications" :key="n.id" class="notif-item" @click.stop="removeNotif(i)">
+            <div
+              v-for="(n, i) in notifications"
+              :key="n.id"
+              class="notif-item"
+              @click.stop="removeNotif(i)"
+            >
               <div class="notif-title">{{ n.title }}</div>
               <div class="notif-body" v-html="n.body"></div>
             </div>
@@ -36,17 +42,21 @@
         <div class="filter-select">
           <label>Freguesia</label>
           <select v-model="selectedFreguesia">
-            <option v-for="f in FREGUESIAS" :key="f" :value="f">{{ f }}</option>
+            <option v-for="f in freguesiasOptions" :key="f" :value="f">{{ f }}</option>
           </select>
         </div>
       </div>
 
-      <div class="table-container">
+      <div v-if="loadError" class="load-error">{{ loadError }}</div>
+
+      <div v-else-if="isLoading" class="load-state"></div>
+
+      <div v-else class="table-container">
         <table class="workers-table">
           <thead>
             <tr>
               <th>Nome</th>
-              <th>Descrição</th>
+              <th>Email</th>
               <th>Equipa</th>
               <th></th>
             </tr>
@@ -68,8 +78,20 @@
                 </span>
               </td>
               <td class="actions-cell">
-                <img src="@/assets/edit_btn_icon.svg" alt="edit" class="btn-icon" title="Editar" @click="editWorker(worker.id)" />
-                <img src="@/assets/delete_icon.svg" alt="delete" class="btn-icon" title="Eliminar" @click="deleteWorker(worker.id)" />
+                <img
+                  src="@/assets/edit_btn_icon.svg"
+                  alt="edit"
+                  class="btn-icon"
+                  title="Editar"
+                  @click="editWorker(worker.id)"
+                />
+                <img
+                  src="@/assets/delete_icon.svg"
+                  alt="delete"
+                  class="btn-icon"
+                  title="Eliminar"
+                  @click="deleteWorker(worker.id)"
+                />
               </td>
             </tr>
           </tbody>
@@ -92,7 +114,11 @@
             {{ p }}
           </button>
         </div>
-        <button class="page-btn nav-btn" :disabled="currentPage === totalPages" @click="currentPage++">
+        <button
+          class="page-btn nav-btn"
+          :disabled="currentPage === totalPages"
+          @click="currentPage++"
+        >
           Next →
         </button>
       </div>
@@ -103,14 +129,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import Footer from '@/components/footer.vue'
 import AdminSidebarMenu from '@/components/AdminSidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import avatarImg from '@/assets/avatar.png'
 import adminFooterLogo from '@/assets/logo_footer.png'
-import { FREGUESIAS } from '@/utils/freguesias'
+import { listFreguesias } from '@/services/municipalityService'
+import { listTeams, listWorkers } from '@/services/teamService'
 
 const adminFooterColumns = [
   [
@@ -120,19 +147,18 @@ const adminFooterColumns = [
     { label: 'Equipas', to: '/admin/equipas' },
     { label: 'Funcionarios', to: '/admin/trabalhadores' },
   ],
-  [
-    { label: 'Sobre', to: '/sobre' },
-  ],
+  [{ label: 'Sobre', to: '/sobre' }],
 ]
 
 const showNotif = ref(false)
 const showMenu = ref(false)
 const notifPanel = ref(null)
 const notifIcon = ref(null)
+const isLoading = ref(true)
+const loadError = ref('')
+const freguesiasOptions = ref(['Todas'])
 
-const notifications = ref([
-  { id: 1, title: 'Nova ocorrência', body: 'Uma nova ocorrência foi reportada em <strong>Vila do Conde</strong>' },
-])
+const notifications = ref([])
 
 const toggleNotif = (e) => {
   e.stopPropagation()
@@ -147,7 +173,13 @@ const toggleMenu = (e) => {
 const removeNotif = (i) => notifications.value.splice(i, 1)
 
 function handleDocClick(e) {
-  if (showNotif.value && notifPanel.value && !notifPanel.value.contains(e.target) && notifIcon.value && !notifIcon.value.contains(e.target)) {
+  if (
+    showNotif.value &&
+    notifPanel.value &&
+    !notifPanel.value.contains(e.target) &&
+    notifIcon.value &&
+    !notifIcon.value.contains(e.target)
+  ) {
     showNotif.value = false
   }
 }
@@ -155,88 +187,7 @@ function handleDocClick(e) {
 onMounted(() => document.addEventListener('click', handleDocClick))
 onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
 
-// Workers data
-const allWorkers = ref([
-  {
-    id: 1, nome: 'Olivia Rhye', email: 'olivia@untitledul.com', avatar: avatarImg, freguesia: 'Vila do Conde',
-    teams: [
-      { name: 'Higiene Urbana', colorClass: 'tag-blue' },
-      { name: 'Técnico de Saneamento', colorClass: 'tag-blue' },
-      { name: 'Coleta de resíduos', colorClass: 'tag-blue' },
-    ],
-  },
-  {
-    id: 2, nome: 'Phoenix Baker', email: 'phoenix@untitledul.com', avatar: avatarImg, freguesia: 'Azurara',
-    teams: [
-      { name: 'Espaços Verdes', colorClass: 'tag-green' },
-      { name: 'Paisagista', colorClass: 'tag-green' },
-    ],
-  },
-  {
-    id: 3, nome: 'Lana Steiner', email: 'lana@untitledul.com', avatar: avatarImg, freguesia: 'Argivai',
-    teams: [
-      { name: 'Eletricidade', colorClass: 'tag-purple' },
-      { name: 'Engenheiro Eletricista', colorClass: 'tag-purple' },
-      { name: 'Instalações elétricas', colorClass: 'tag-purple' },
-    ],
-  },
-  {
-    id: 4, nome: 'Demi Wilkinson', email: 'demi@untitledul.com', avatar: avatarImg, freguesia: 'Mindelo',
-    teams: [
-      { name: 'Engenharia e Vias', colorClass: 'tag-orange' },
-      { name: 'Engenheiro de Estradas', colorClass: 'tag-orange' },
-      { name: 'Pavimentações', colorClass: 'tag-orange' },
-    ],
-  },
-  {
-    id: 5, nome: 'Candice Wu', email: 'candice@untitledul.com', avatar: avatarImg,
-    teams: [
-      { name: 'Higiene Urbana', colorClass: 'tag-blue' },
-      { name: 'Coordenador de Limpeza', colorClass: 'tag-blue' },
-      { name: 'Gestão de resíduos', colorClass: 'tag-blue' },
-    ],
-  },
-  {
-    id: 6, nome: 'Natali Craig', email: 'natali@untitledul.com', avatar: avatarImg,
-    teams: [
-      { name: 'Espaços Verdes', colorClass: 'tag-green' },
-      { name: 'Arborista', colorClass: 'tag-green' },
-      { name: 'Manutenção de árvores', colorClass: 'tag-green' },
-    ],
-  },
-  {
-    id: 7, nome: 'Drew Cano', email: 'drew@untitledul.com', avatar: avatarImg,
-    teams: [
-      { name: 'Eletricidade', colorClass: 'tag-purple' },
-      { name: 'Técnico Eletricista', colorClass: 'tag-purple' },
-      { name: 'Manutenção elétrica', colorClass: 'tag-purple' },
-    ],
-  },
-  {
-    id: 8, nome: 'Orlando Diggs', email: 'orlando@untitledul.com', avatar: avatarImg,
-    teams: [
-      { name: 'Engenharia e Vias', colorClass: 'tag-orange' },
-      { name: 'Engenheiro de Tráfego', colorClass: 'tag-orange' },
-      { name: 'Análise de tráfego', colorClass: 'tag-orange' },
-    ],
-  },
-  {
-    id: 9, nome: 'Andi Lane', email: 'andi@untitledul.com', avatar: avatarImg,
-    teams: [
-      { name: 'Higiene Urbana', colorClass: 'tag-blue' },
-      { name: 'Supervisor de Coleta', colorClass: 'tag-blue' },
-      { name: 'Controle de equipe', colorClass: 'tag-blue' },
-    ],
-  },
-  {
-    id: 10, nome: 'Kate Morrison', email: 'kate@untitledul.com', avatar: avatarImg,
-    teams: [
-      { name: 'Espaços Verdes', colorClass: 'tag-green' },
-      { name: 'Gestor Ambiental', colorClass: 'tag-green' },
-      { name: 'Conservação de áreas verdes', colorClass: 'tag-green' },
-    ],
-  },
-])
+const allWorkers = ref([])
 
 const selectedFreguesia = ref('Todas')
 
@@ -248,7 +199,7 @@ const filteredWorkers = computed(() => {
 // Pagination
 const currentPage = ref(1)
 const perPage = 10
-const totalPages = computed(() => Math.max(1, Math.ceil(allWorkers.value.length / perPage)))
+const totalPages = computed(() => Math.max(1, Math.ceil(filteredWorkers.value.length / perPage)))
 
 const paginatedWorkers = computed(() => {
   const start = (currentPage.value - 1) * perPage
@@ -256,11 +207,7 @@ const paginatedWorkers = computed(() => {
 })
 
 const visiblePages = computed(() => {
-  const pages = []
-  pages.push(1, 2, 3)
-  pages.push('...')
-  pages.push(8, 9, 10)
-  return pages
+  return Array.from({ length: totalPages.value }, (_, index) => index + 1)
 })
 
 const deleteWorker = (id) => {
@@ -269,6 +216,62 @@ const deleteWorker = (id) => {
 const editWorker = (id) => {
   console.log('Edit worker:', id)
 }
+
+const teamColorClasses = ['tag-blue', 'tag-green', 'tag-purple', 'tag-orange']
+
+function buildWorkerCards(workers, teams) {
+  const teamById = new Map(
+    teams.map((team) => [String(team.id), team.name || team.especializacao || `Equipa ${team.id}`]),
+  )
+
+  return workers.map((worker, index) => ({
+    id: worker.id,
+    nome: worker.name,
+    email: worker.email,
+    avatar: worker.avatar || avatarImg,
+    freguesia: worker.freguesia || 'Sem freguesia',
+    teams: worker.idEquipa
+      ? [
+          {
+            name: teamById.get(String(worker.idEquipa)) || 'Sem equipa',
+            colorClass: teamColorClasses[index % teamColorClasses.length],
+          },
+        ]
+      : [{ name: 'Sem equipa', colorClass: 'tag-orange' }],
+  }))
+}
+
+async function loadWorkersFromBackend() {
+  isLoading.value = true
+  loadError.value = ''
+
+  try {
+    const [loadedWorkers, loadedTeams, loadedFreguesias] = await Promise.all([
+      listWorkers(),
+      listTeams(),
+      listFreguesias(),
+    ])
+
+    freguesiasOptions.value = [
+      'Todas',
+      ...loadedFreguesias.map((freguesia) => freguesia?.nome).filter(Boolean),
+    ]
+
+    allWorkers.value = buildWorkerCards(loadedWorkers, loadedTeams)
+  } catch (error) {
+    loadError.value = error?.message || 'Não foi possível carregar os trabalhadores.'
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(async () => {
+  await loadWorkersFromBackend()
+})
+
+watch(selectedFreguesia, () => {
+  currentPage.value = 1
+})
 </script>
 
 <style scoped>
@@ -287,31 +290,77 @@ const editWorker = (id) => {
   background: white;
   border-bottom: 1px solid #f0f0f0;
 }
-.logo-img { height: 40px; }
+.logo-img {
+  height: 40px;
+}
 .nav-right {
   display: flex;
   gap: 15px;
   align-items: center;
   position: relative;
 }
-.admin-label { font-weight: 700; font-size: 16px; color: #1a1a1a; }
-.icon { cursor: pointer; font-size: 1.2rem; }
-.icon.notification { width: 28px; height: 28px; object-fit: contain; cursor: pointer; }
-.menu-trigger { font-size: 1.4rem; }
+.admin-label {
+  font-weight: 700;
+  font-size: 16px;
+  color: #1a1a1a;
+}
+.icon {
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+.icon.notification {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  cursor: pointer;
+}
+.menu-trigger {
+  font-size: 1.4rem;
+}
 
 /* MENU & NOTIFICATIONS */
 .notifications {
-  position: absolute; top: 44px; right: 0;
-  background: #fff; border-radius: 12px; padding: 12px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.15); z-index: 70;
+  position: absolute;
+  top: 44px;
+  right: 0;
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  z-index: 70;
 }
-.notifications { width: 320px; }
-.notifications h4 { margin: 0 0 10px 0; font-size: 18px; }
-.notif-list { display: flex; flex-direction: column; gap: 8px; }
-.notif-item { background: #dff3ec; padding: 12px; border-radius: 8px; cursor: pointer; }
-.notif-title { font-weight: 700; margin-bottom: 4px; }
-.notif-body { color: rgba(0,0,0,0.7); font-size: 14px; }
-.notif-empty { color: #666; font-size: 14px; text-align: center; padding: 12px; }
+.notifications {
+  width: 320px;
+}
+.notifications h4 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+}
+.notif-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.notif-item {
+  background: #dff3ec;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.notif-title {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.notif-body {
+  color: rgba(0, 0, 0, 0.7);
+  font-size: 14px;
+}
+.notif-empty {
+  color: #666;
+  font-size: 14px;
+  text-align: center;
+  padding: 12px;
+}
 
 /* MAIN CONTENT */
 .main-content {
@@ -325,9 +374,22 @@ const editWorker = (id) => {
   font-style: italic;
 }
 
-.title-filter { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
-.filter-select { display: flex; align-items: center; gap: 10px; }
-.filter-select select { padding: 8px 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
+.title-filter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.filter-select {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.filter-select select {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
 
 /* TABLE */
 .table-container {
@@ -441,11 +503,28 @@ const editWorker = (id) => {
   color: #475569;
   transition: all 0.15s;
 }
-.page-btn:hover:not(:disabled):not(.active) { background: #f8fafc; }
-.page-btn.active { background: #730000; color: #fff; border-color: #730000; }
-.page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.page-btn.ellipsis { border: none; cursor: default; background: none; }
-.nav-btn { display: flex; align-items: center; gap: 6px; }
+.page-btn:hover:not(:disabled):not(.active) {
+  background: #f8fafc;
+}
+.page-btn.active {
+  background: #730000;
+  color: #fff;
+  border-color: #730000;
+}
+.page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.page-btn.ellipsis {
+  border: none;
+  cursor: default;
+  background: none;
+}
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 
 /* FOOTER */
 .main-footer {
@@ -456,13 +535,34 @@ const editWorker = (id) => {
   align-items: flex-end;
   margin-top: 80px;
 }
-.footer-links { display: flex; gap: 60px; }
-.col { display: flex; flex-direction: column; gap: 10px; }
-.col a { text-decoration: none; color: #2d5a27; font-weight: 600; }
-.logo-img-small { height: 80px; }
-.copyright { font-size: 0.8rem; color: #888; margin-top: 10px; }
+.footer-links {
+  display: flex;
+  gap: 60px;
+}
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.col a {
+  text-decoration: none;
+  color: #2d5a27;
+  font-weight: 600;
+}
+.logo-img-small {
+  height: 80px;
+}
+.copyright {
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 10px;
+}
 
 @media (max-width: 1024px) {
-  .navbar, .main-content, .main-footer { padding: 20px; }
+  .navbar,
+  .main-content,
+  .main-footer {
+    padding: 20px;
+  }
 }
 </style>

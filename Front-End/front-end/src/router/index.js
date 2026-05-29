@@ -13,6 +13,7 @@ import TrabalhadorProfile from '../views/TrabalhadorProfile.vue'
 import EquipasPage from '../views/EquipasPage.vue'
 
 import ResponsavelPerfilView from '../views/ResponsavelPerfilView.vue'
+import ResponsavelRotasView from '../views/ResponsavelRotasView.vue'
 
 // Admin Views
 import AdminHomeView from '../views/admin/AdminHomeView.vue'
@@ -59,6 +60,12 @@ const router = createRouter({
       component: ResponsavelPerfilView,
       meta: { requiresWorker: true },
     },
+    {
+      path: '/responsavel/rotas',
+      name: 'responsavel-rotas',
+      component: ResponsavelRotasView,
+      meta: { requiresWorker: true },
+    },
 
     // Admin Routes
     { path: '/admin', name: 'admin-home', component: AdminHomeView, meta: { requiresAdmin: true } },
@@ -98,6 +105,11 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   if ((to.name === 'conta' || to.name === 'new-ocorrencia') && !isAuthenticated()) {
     return next({ name: 'login', query: { redirect: to.fullPath } })
+  }
+  if (to.name === 'admin-rotas' || to.name === 'responsavel-rotas') {
+    const role = localStorage.getItem('role')
+    if (role === 'admin' || role === 'trabalhador' || role === 'responsavel') return next()
+    return next({ name: 'login' })
   }
   if (to.meta && to.meta.requiresWorker) {
     const role = localStorage.getItem('role')

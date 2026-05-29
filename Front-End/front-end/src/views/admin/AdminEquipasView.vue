@@ -2,10 +2,11 @@
   <div class="page-container">
     <nav class="navbar">
       <div class="logo-area">
-        <img src="@/assets/logoP.png" alt="VC Comunica Logo" class="logo-img" />
+        <router-link to="/admin/perfil">
+          <img src="@/assets/logoP.png" alt="VC Comunica Logo" class="logo-img" />
+        </router-link>
       </div>
       <div class="nav-right">
-        <span class="admin-label">Admin</span>
         <img
           :src="notifications.length === 0 ? notifOff : notifOn"
           alt="notifications"
@@ -20,7 +21,12 @@
         <div v-if="showNotif" class="notifications" ref="notifPanel">
           <h4>Notificações</h4>
           <div class="notif-list">
-            <div v-for="(n, i) in notifications" :key="n.id" class="notif-item" @click.stop="removeNotif(i)">
+            <div
+              v-for="(n, i) in notifications"
+              :key="n.id"
+              class="notif-item"
+              @click.stop="removeNotif(i)"
+            >
               <div class="notif-title">{{ n.title }}</div>
               <div class="notif-body" v-html="n.body"></div>
             </div>
@@ -36,12 +42,18 @@
         <div class="filter-select">
           <label>Freguesia</label>
           <select v-model="selectedFreguesia">
-            <option v-for="f in FREGUESIAS" :key="f" :value="f">{{ f }}</option>
+            <option v-for="f in availableFreguesias" :key="f" :value="f">{{ f }}</option>
           </select>
         </div>
       </div>
 
-      <div class="teams-list">
+      <div v-if="loadError" class="load-error">
+        {{ loadError }}
+      </div>
+
+      <div v-else-if="isLoading" class="load-state"></div>
+
+      <div v-else-if="selectedFreguesia" class="teams-list">
         <div v-for="team in filteredTeams" :key="team.id" class="team-card">
           <div class="team-layout">
             <!-- Left side: Team members -->
@@ -53,17 +65,19 @@
                 <div v-for="member in team.members" :key="member.id" class="member-row">
                   <img :src="member.avatar" class="member-avatar" />
                   <span class="member-name">{{ member.name }}</span>
-                  <button class="btn-delete-member" title="Remover" @click="handleRemoveMember(team.id, member.id)">🗑</button>
+                  <button
+                    class="btn-delete-member"
+                    title="Remover"
+                    @click="handleRemoveMember(team.id, member.id)"
+                  >
+                    🗑
+                  </button>
                 </div>
               </div>
             </div>
 
             <!-- Right side: Stats & Controls -->
             <div class="team-right">
-              <div class="team-actions">
-                <button class="btn-add-worker" @click="openWorkerModal(team)">+ Trabalhador</button>
-              </div>
-
               <div class="stats-row">
                 <div class="stat-card stat-green">
                   <span class="stat-label">Ocorrências Ativas</span>
@@ -147,7 +161,6 @@ import {
   assignWorkerToTeam,
   listTeams,
   listWorkers,
-  persistTeamState,
   unassignWorkerFromTeam,
 } from '@/services/teamService'
 
@@ -159,9 +172,7 @@ const adminFooterColumns = [
     { label: 'Equipas', to: '/admin/equipas' },
     { label: 'Funcionarios', to: '/admin/trabalhadores' },
   ],
-  [
-    { label: 'Sobre', to: '/sobre' },
-  ],
+  [{ label: 'Sobre', to: '/sobre' }],
 ]
 
 const showNotif = ref(false)
@@ -173,10 +184,10 @@ const workers = ref([])
 const showWorkerModal = ref(false)
 const activeTeamId = ref(null)
 const workerNotice = ref('')
+const isLoading = ref(true)
+const loadError = ref('')
 
-const notifications = ref([
-  { id: 1, title: 'Nova ocorrência', body: 'Uma nova ocorrência foi reportada em <strong>Vila do Conde</strong>' },
-])
+const notifications = ref([])
 
 const toggleNotif = (e) => {
   e.stopPropagation()
@@ -190,23 +201,22 @@ const toggleMenu = (e) => {
 }
 const removeNotif = (i) => notifications.value.splice(i, 1)
 
-const activeTeam = computed(() => teams.value.find((team) => String(team.id) === String(activeTeamId.value)) || null)
+const activeTeam = computed(
+  () => teams.value.find((team) => String(team.id) === String(activeTeamId.value)) || null,
+)
 
-const selectedFreguesia = ref('Todas')
+const selectedFreguesia = ref('')
+
+const availableFreguesias = computed(() => FREGUESIAS.filter((f) => f !== 'Todas'))
 
 const filteredTeams = computed(() => {
-  if (!selectedFreguesia.value || selectedFreguesia.value === 'Todas') return teams.value
+  if (!selectedFreguesia.value) return []
 
-  return teams.value
-    .map((team) => ({
-      ...team,
-      members: team.members.filter((member) => member.freguesia === selectedFreguesia.value),
-    }))
-    .filter((team) => team.members.length > 0)
+  return teams.value.filter((team) => team.freguesia === selectedFreguesia.value)
 })
 
 const visibleWorkers = computed(() => {
-  if (!selectedFreguesia.value || selectedFreguesia.value === 'Todas') return workers.value
+  if (!selectedFreguesia.value) return []
   return workers.value.filter((worker) => worker.freguesia === selectedFreguesia.value)
 })
 
@@ -233,12 +243,6 @@ const canAddWorker = (worker) => {
   return activeTeam.value ? assignedTeam !== activeTeam.value.name : false
 }
 
-function openWorkerModal(team) {
-  activeTeamId.value = team.id
-  workerNotice.value = ''
-  showWorkerModal.value = true
-}
-
 function closeWorkerModal() {
   showWorkerModal.value = false
   workerNotice.value = ''
@@ -247,51 +251,79 @@ function closeWorkerModal() {
 async function handleAddWorker(worker) {
   if (!activeTeam.value) return
 
-  const result = await assignWorkerToTeam(activeTeam.value.id, worker.id)
-  if (result?.added) {
-    teams.value = result.teams || teams.value
-    workerNotice.value = `${worker.name} foi adicionado a ${activeTeam.value.name}.`
-    return
-  }
+  try {
+    const result = await assignWorkerToTeam(activeTeam.value.id, worker.id)
+    if (result?.added) {
+      teams.value = result.teams || teams.value
+      workerNotice.value = `${worker.name} foi adicionado a ${activeTeam.value.name}.`
+      return
+    }
 
-  if (result?.reason === 'already-assigned') {
-    workerNotice.value = `${worker.name} já está alocado noutra equipa.`
-    return
-  }
+    if (result?.reason === 'already-assigned') {
+      workerNotice.value = `${worker.name} já está alocado noutra equipa.`
+      return
+    }
 
-  workerNotice.value = 'Não foi possível adicionar o trabalhador.'
+    workerNotice.value = 'Não foi possível adicionar o trabalhador.'
+  } catch (error) {
+    workerNotice.value = error?.message || 'Não foi possível adicionar o trabalhador.'
+  }
 }
 
 async function handleRemoveMember(teamId, memberId) {
-  teams.value = await unassignWorkerFromTeam(teamId, memberId)
+  try {
+    teams.value = await unassignWorkerFromTeam(teamId, memberId)
+  } catch (error) {
+    workerNotice.value = error?.message || 'Não foi possível remover o trabalhador.'
+  }
 }
 
-function loadInitialTeamsAndWorkers() {
-  return Promise.all([listTeams(), listWorkers()]).then(([loadedTeams, loadedWorkers]) => {
+async function loadInitialTeamsAndWorkers() {
+  isLoading.value = true
+  loadError.value = ''
+
+  try {
+    const [loadedTeams, loadedWorkers] = await Promise.all([listTeams(), listWorkers()])
     teams.value = loadedTeams
     workers.value = loadedWorkers
-  })
+  } catch (error) {
+    loadError.value = error?.message || 'Não foi possível carregar os dados da base de dados.'
+  } finally {
+    isLoading.value = false
+  }
 }
 
 function handleDocClick(e) {
-  if (showNotif.value && notifPanel.value && !notifPanel.value.contains(e.target) && notifIcon.value && !notifIcon.value.contains(e.target)) {
+  if (
+    showNotif.value &&
+    notifPanel.value &&
+    !notifPanel.value.contains(e.target) &&
+    notifIcon.value &&
+    !notifIcon.value.contains(e.target)
+  ) {
     showNotif.value = false
   }
 }
 
 onMounted(async () => {
   await loadInitialTeamsAndWorkers()
+  // select first available freguesia by default
+  if (!selectedFreguesia.value) {
+    const first =
+      availableFreguesias.value && availableFreguesias.value.length > 0
+        ? availableFreguesias.value[0]
+        : ''
+    if (first) selectedFreguesia.value = first
+  }
   document.addEventListener('click', handleDocClick)
 })
 onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
 
 const decrementMax = (team) => {
   if (team.maxPerRoute > 1) team.maxPerRoute--
-  persistTeamState(teams.value)
 }
 const incrementMax = (team) => {
   team.maxPerRoute++
-  persistTeamState(teams.value)
 }
 </script>
 
@@ -311,33 +343,110 @@ const incrementMax = (team) => {
   background: white;
   border-bottom: 1px solid #f0f0f0;
 }
-.logo-img { height: 40px; }
-.nav-right {
-  display: flex; gap: 15px; align-items: center; position: relative;
+.logo-img {
+  height: 40px;
 }
-.admin-label { font-weight: 700; font-size: 16px; color: #1a1a1a; }
-.icon { cursor: pointer; font-size: 1.2rem; }
-.icon.notification { width: 28px; height: 28px; object-fit: contain; cursor: pointer; }
-.menu-trigger { font-size: 1.4rem; }
+.nav-right {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  position: relative;
+}
+.admin-label {
+  font-weight: 700;
+  font-size: 16px;
+  color: #1a1a1a;
+}
+.icon {
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+.icon.notification {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  cursor: pointer;
+}
+.menu-trigger {
+  font-size: 1.4rem;
+}
 
 /* MENU & NOTIFICATIONS */
 .notifications {
-  position: absolute; top: 44px; right: 0;
-  background: #fff; border-radius: 12px; padding: 12px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.15); z-index: 70;
+  position: absolute;
+  top: 44px;
+  right: 0;
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  z-index: 70;
 }
-.notifications { width: 320px; }
-.notifications h4 { margin: 0 0 10px 0; font-size: 18px; }
-.notif-list { display: flex; flex-direction: column; gap: 8px; }
-.notif-item { background: #dff3ec; padding: 12px; border-radius: 8px; cursor: pointer; }
-.notif-title { font-weight: 700; margin-bottom: 4px; }
-.notif-body { color: rgba(0,0,0,0.7); font-size: 14px; }
-.notif-empty { color: #666; font-size: 14px; text-align: center; padding: 12px; }
+.notifications {
+  width: 320px;
+}
+.notifications h4 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+}
+.notif-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.notif-item {
+  background: #dff3ec;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.notif-title {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.notif-body {
+  color: rgba(0, 0, 0, 0.7);
+  font-size: 14px;
+}
+.notif-empty {
+  color: #666;
+  font-size: 14px;
+  text-align: center;
+  padding: 12px;
+}
 
 /* MAIN CONTENT */
 .main-content {
   padding: 40px 80px;
   min-height: 70vh;
+}
+
+.load-state,
+.load-error {
+  margin: 12px 0 24px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.load-state {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.load-error {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+.empty-state {
+  margin-top: 8px;
+  padding: 18px;
+  border-radius: 12px;
+  background: #f8fafc;
+  color: #475569;
+  border: 1px dashed #cbd5e1;
+  font-weight: 600;
 }
 .page-title {
   font-size: 36px;
@@ -345,9 +454,22 @@ const incrementMax = (team) => {
   margin: 0 0 30px 0;
 }
 
-.title-filter { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
-.filter-select { display: flex; align-items: center; gap: 10px; }
-.filter-select select { padding: 8px 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
+.title-filter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.filter-select {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.filter-select select {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
 
 /* TEAM CARDS */
 .teams-list {
@@ -405,7 +527,9 @@ const incrementMax = (team) => {
   opacity: 0.5;
   transition: opacity 0.15s;
 }
-.btn-delete-member:hover { opacity: 1; }
+.btn-delete-member:hover {
+  opacity: 1;
+}
 
 /* TEAM ACTIONS */
 .team-actions {
@@ -424,7 +548,9 @@ const incrementMax = (team) => {
   cursor: pointer;
   transition: background 0.15s;
 }
-.btn-add-worker:hover { background: #f8fafc; }
+.btn-add-worker:hover {
+  background: #f8fafc;
+}
 
 /* STATS */
 .stats-row {
@@ -499,7 +625,9 @@ const incrementMax = (team) => {
   background: #22c55e;
   color: #fff;
 }
-.counter-btn:hover { opacity: 0.8; }
+.counter-btn:hover {
+  opacity: 0.8;
+}
 .counter-value {
   font-size: 20px;
   font-weight: 800;
@@ -628,7 +756,9 @@ const incrementMax = (team) => {
   cursor: pointer;
   background: #730000;
   color: #fff;
-  transition: transform 0.15s, opacity 0.15s;
+  transition:
+    transform 0.15s,
+    opacity 0.15s;
 }
 
 .worker-add-btn:hover:not(:disabled) {
@@ -658,15 +788,40 @@ const incrementMax = (team) => {
   align-items: flex-end;
   margin-top: 80px;
 }
-.footer-links { display: flex; gap: 60px; }
-.col { display: flex; flex-direction: column; gap: 10px; }
-.col a { text-decoration: none; color: #2d5a27; font-weight: 600; }
-.logo-img-small { height: 80px; }
-.copyright { font-size: 0.8rem; color: #888; margin-top: 10px; }
+.footer-links {
+  display: flex;
+  gap: 60px;
+}
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.col a {
+  text-decoration: none;
+  color: #2d5a27;
+  font-weight: 600;
+}
+.logo-img-small {
+  height: 80px;
+}
+.copyright {
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 10px;
+}
 
 @media (max-width: 1024px) {
-  .navbar, .main-content, .main-footer { padding: 20px; }
-  .team-layout { grid-template-columns: 1fr; }
-  .stats-row { flex-direction: column; }
+  .navbar,
+  .main-content,
+  .main-footer {
+    padding: 20px;
+  }
+  .team-layout {
+    grid-template-columns: 1fr;
+  }
+  .stats-row {
+    flex-direction: column;
+  }
 }
 </style>

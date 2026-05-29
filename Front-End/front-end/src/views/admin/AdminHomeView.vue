@@ -2,10 +2,11 @@
   <div class="page-container">
     <nav class="navbar">
       <div class="logo-area">
-        <img src="@/assets/logoP.png" alt="VC Comunica Logo" class="logo-img" />
+        <router-link to="/admin/perfil">
+          <img src="@/assets/logoP.png" alt="VC Comunica Logo" class="logo-img" />
+        </router-link>
       </div>
       <div class="nav-right">
-        <span class="admin-label">Admin</span>
         <img
           :src="notifications.length === 0 ? notifOff : notifOn"
           alt="notifications"
@@ -13,9 +14,9 @@
           @click="toggleNotif"
           ref="notifIcon"
         />
-          <span class="icon menu-trigger" @click="toggleMenu">☰</span>
+        <span class="icon menu-trigger" @click="toggleMenu">☰</span>
 
-          <AdminSidebarMenu v-model="showMenu" />
+        <AdminSidebarMenu v-model="showMenu" />
 
         <div v-if="showNotif" class="notifications" ref="notifPanel">
           <h4>Notificações</h4>
@@ -41,7 +42,15 @@
         <div class="icon-main-bg">
           <img src="@/assets/ocorrencias.png" alt="Ocorrências" class="icon-main-img" />
         </div>
-        <div style="display:flex; align-items:center; gap:20px; justify-content:space-between; width:100%;">
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            justify-content: space-between;
+            width: 100%;
+          "
+        >
           <h1>Ocorrências</h1>
           <div class="filter-select">
             <label>Freguesia</label>
@@ -58,7 +67,9 @@
           <thead>
             <tr>
               <th>Nome</th>
-              <th class="sortable" @click="toggleSort">Situação <span class="sort-arrow">↕</span></th>
+              <th class="sortable" @click="toggleSort">
+                Situação <span class="sort-arrow">↕</span>
+              </th>
               <th>
                 Tipo de Problema
                 <img src="@/assets/detalhes.png" alt="Info" class="th-icon" />
@@ -92,15 +103,14 @@
         </table>
       </div>
 
-
       <!-- Rotas Section -->
       <section class="rotas-section">
         <h2 class="section-title">Rotas</h2>
         <div class="rotas-grid">
           <div class="map-container">
-          <div class="map-placeholder">
-            <div ref="mapElement" class="map-leaflet"></div>
-          </div>
+            <div class="map-placeholder">
+              <div ref="mapElement" class="map-leaflet"></div>
+            </div>
           </div>
           <div class="rotas-legend">
             <div class="legend-item">
@@ -156,11 +166,8 @@ import 'leaflet/dist/leaflet.css'
 
 const mapCenter = [41.36405, -8.73894]
 let mapInstance = null
-let markerLayer = null
 let routeLayer = null
 const mapElement = ref(null)
-const geocodeCache = new Map()
-
 
 const adminFooterColumns = [
   [
@@ -170,9 +177,7 @@ const adminFooterColumns = [
     { label: 'Equipas', to: '/admin/equipas' },
     { label: 'Funcionarios', to: '/admin/trabalhadores' },
   ],
-  [
-    { label: 'Sobre', to: '/sobre' },
-  ],
+  [{ label: 'Sobre', to: '/sobre' }],
 ]
 
 const showNotif = ref(false)
@@ -180,11 +185,9 @@ const showMenu = ref(false)
 const notifPanel = ref(null)
 const notifIcon = ref(null)
 
-const notifications = ref([
-  { id: 1, title: 'Nova ocorrência', body: 'Uma nova ocorrência foi reportada em <strong>Vila do Conde</strong>' },
-])
+const notifications = ref([])
 
-const freguesias = ref(['Todas'])
+const freguesias = ref([])
 const freguesiaLabelById = ref(new Map())
 
 const toggleNotif = (e) => {
@@ -200,7 +203,13 @@ const toggleMenu = (e) => {
 const removeNotif = (i) => notifications.value.splice(i, 1)
 
 function handleDocClick(e) {
-  if (showNotif.value && notifPanel.value && !notifPanel.value.contains(e.target) && notifIcon.value && !notifIcon.value.contains(e.target)) {
+  if (
+    showNotif.value &&
+    notifPanel.value &&
+    !notifPanel.value.contains(e.target) &&
+    notifIcon.value &&
+    !notifIcon.value.contains(e.target)
+  ) {
     showNotif.value = false
   }
 }
@@ -213,11 +222,10 @@ onMounted(() => {
   if (el) {
     mapInstance = L.map(el).setView(mapCenter, 13)
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
+      attribution: '&copy; OpenStreetMap contributors',
     }).addTo(mapInstance)
 
     routeLayer = L.layerGroup().addTo(mapInstance)
-
     ;(async () => {
       try {
         const routes = await listRoutesWithGeometry()
@@ -227,13 +235,17 @@ onMounted(() => {
           routes.forEach((r) => {
             if (!r.geometry || !r.geometry.coordinates) return
             const coords = r.geometry.coordinates.map((c) => [c[1], c[0]])
-            const poly = L.polyline(coords, { color: r.color || '#3388ff', weight: 5, opacity: 0.9 })
+            const poly = L.polyline(coords, {
+              color: r.color || '#3388ff',
+              weight: 5,
+              opacity: 0.9,
+            })
             poly.addTo(routeLayer)
             allBounds.push(...coords)
           })
           if (allBounds.length) mapInstance.fitBounds(allBounds, { padding: [40, 40] })
         }
-      } catch (err) {
+      } catch {
         // fallback: leave empty map
       }
     })()
@@ -267,7 +279,6 @@ const paginatedOcorrencias = computed(() => {
   return filteredOcorrencias.value.slice(start, start + perPage)
 })
 
-
 const toggleSort = () => {
   allOcorrencias.value.reverse()
 }
@@ -286,12 +297,9 @@ const normalizeBackendOccurrence = (occurrence) => ({
 onMounted(async () => {
   try {
     const backendFreguesias = await listFreguesias()
-    freguesias.value = [
-      'Todas',
-      ...backendFreguesias
-        .map((freguesia) => freguesia?.nome)
-        .filter(Boolean),
-    ]
+    freguesias.value = backendFreguesias
+      .map((freguesia) => freguesia?.nome)
+      .filter((nome) => nome && nome !== 'Todas')
     freguesiaLabelById.value = new Map(
       backendFreguesias
         .filter((freguesia) => freguesia?.idFreguesia != null && freguesia?.nome)
@@ -387,9 +395,22 @@ onMounted(async () => {
   color: rgba(0, 0, 0, 0.7);
 }
 
-.title-filter { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
-.filter-select { display: flex; align-items: center; gap: 10px; }
-.filter-select select { padding: 8px 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
+.title-filter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.filter-select {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.filter-select select {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
 .notif-empty {
   color: #666;
   font-size: 14px;

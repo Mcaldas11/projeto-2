@@ -109,32 +109,9 @@ import workerFooterLogo from '@/assets/logoP.png'
 
 const showNotif = ref(false)
 const showMenu = ref(false)
-const notifications = ref([
-  { id: 1, title: 'Nova Tarefa', body: 'Foi atribuída uma nova ocorrência de <b>Iluminação</b>.' },
-])
+const notifications = ref([])
 
 const tasks = ref([
-  {
-    id: 101,
-    status: 'Resolvido',
-    statusClass: 'resolvido',
-    type: 'Iluminação',
-    typeClass: 'type-yellow',
-  },
-  {
-    id: 102,
-    status: 'Em Resolução',
-    statusClass: 'em-resolucao',
-    type: 'Estrada e Passeios',
-    typeClass: 'type-red',
-  },
-  {
-    id: 103,
-    status: 'À espera de equipa',
-    statusClass: 'espera',
-    type: 'Estrada e Passeios',
-    typeClass: 'type-red',
-  },
   {
     id: 104,
     status: 'Não Resolvido',
@@ -166,7 +143,6 @@ const setWorkerRole = (e) => {
 
   e.preventDefault()
   router.push({ name: 'ocorrencias' })
-  
 }
 
 const navigateHome = (e) => {

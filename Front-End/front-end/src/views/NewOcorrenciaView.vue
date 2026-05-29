@@ -77,7 +77,9 @@
               <option value="Higiene e limpeza">Higiene e limpeza</option>
               <option value="Parques e jardins">Parques e jardins</option>
             </select>
-            <span v-if="validationErrors.tipo_ocorrencia" class="field-error">Escolhe o tipo de ocorrência.</span>
+            <span v-if="validationErrors.tipo_ocorrencia" class="field-error"
+              >Escolhe o tipo de ocorrência.</span
+            >
           </div>
         </div>
 
@@ -94,7 +96,9 @@
               <option value="Média">Média</option>
               <option value="Alta">Alta</option>
             </select>
-            <span v-if="validationErrors.severidade" class="field-error">Escolhe a severidade.</span>
+            <span v-if="validationErrors.severidade" class="field-error"
+              >Escolhe a severidade.</span
+            >
           </div>
         </div>
 
@@ -107,7 +111,9 @@
               placeholder="A iluminação junto à entrada do campus universitário está muito fraca..."
               @blur="validateField('description')"
             ></textarea>
-            <span v-if="validationErrors.description" class="field-error">Escreve uma descrição.</span>
+            <span v-if="validationErrors.description" class="field-error"
+              >Escreve uma descrição.</span
+            >
           </div>
         </div>
 
@@ -143,13 +149,7 @@ import { createOccurrence } from '@/services/occurrenceService'
 // Estados do Header
 const showNotif = ref(false)
 const showMenu = ref(false)
-const notifications = ref([
-  {
-    id: 1,
-    title: 'Estado da ocorrência',
-    body: 'O estado da sua ocorrência foi alterado para <strong>Resolvido</strong>',
-  },
-])
+const notifications = ref([])
 
 const toggleNotif = () => {
   showNotif.value = !showNotif.value
@@ -190,7 +190,12 @@ function validateForm() {
   validateField('tipo_ocorrencia')
   validateField('severidade')
   validateField('description')
-  return !validationErrors.value.location && !validationErrors.value.tipo_ocorrencia && !validationErrors.value.severidade && !validationErrors.value.description
+  return (
+    !validationErrors.value.location &&
+    !validationErrors.value.tipo_ocorrencia &&
+    !validationErrors.value.severidade &&
+    !validationErrors.value.description
+  )
 }
 
 const triggerFile = () => fileInput.value.click()
@@ -214,7 +219,12 @@ const handleSubmit = async () => {
   form.value.severidade = ''
   form.value.description = ''
   form.value.files = []
-  validationErrors.value = { location: false, tipo_ocorrencia: false, severidade: false, description: false }
+  validationErrors.value = {
+    location: false,
+    tipo_ocorrencia: false,
+    severidade: false,
+    description: false,
+  }
 
   router.push({ path: '/ocorrencias' })
 }

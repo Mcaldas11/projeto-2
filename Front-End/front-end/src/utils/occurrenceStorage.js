@@ -1,7 +1,5 @@
 import avatarImg from '@/assets/avatar.png'
 import { normalizeTypeKey } from '@/utils/occurrenceTypes'
-
-const STORAGE_KEY = 'vc-comunica-occurrences'
 const DEFAULT_MAP_COORDS = {
   latitude: 41.36405,
   longitude: -8.73894,
@@ -82,7 +80,8 @@ function getStatusClassFromState(stateValue, fallback = 'em-resolucao') {
 function backendOccurrenceToUi(occurrence = {}) {
   const fotos = extractPhotoUrls(occurrence.foto || occurrence.fotos)
   const typeLabel = occurrence.tipo_ocorrencia || occurrence.tipo || ''
-  const statusClass = occurrence.statusClass || getStatusClassFromState(occurrence.estado || occurrence.situacao)
+  const statusClass =
+    occurrence.statusClass || getStatusClassFromState(occurrence.estado || occurrence.situacao)
 
   return {
     id: occurrence.idOcorrencia ?? occurrence.id ?? Date.now(),
@@ -123,7 +122,9 @@ function resolveOccurrenceCoordinates(occurrence = {}) {
     return typeCoords
   }
 
-  const { latitudeOffset, longitudeOffset } = hashToOffset(occurrence.location || occurrence.detalhes || occurrence.id)
+  const { latitudeOffset, longitudeOffset } = hashToOffset(
+    occurrence.location || occurrence.detalhes || occurrence.id,
+  )
 
   return {
     latitude: DEFAULT_MAP_COORDS.latitude + latitudeOffset,
@@ -148,90 +149,27 @@ function normalizeOccurrence(occurrence, index = 0) {
   }
 }
 
-const seedOccurrences = [
-  {
-    id: 1,
-    nome: 'Mariana Silva',
-    situacao: 'Resolvido',
-    statusClass: 'resolvido',
-    tipo: 'Sinalização',
-    detalhes: 'Necessária a poda de árvores...',
-    location: 'Rua Dom Sancho I, Vila do Conde',
-    userImg: avatarImg,
-    latitude: 41.3662,
-    longitude: -8.7441,
-  },
-  {
-    id: 2,
-    nome: 'Ricardo Pereira',
-    situacao: 'Em Resolução',
-    statusClass: 'em-resolucao',
-    tipo: 'Buracos na Via',
-    detalhes: 'Reparação urgente de buraco...',
-    location: 'Avenida Júlio Graça, Vila do Conde',
-    userImg: avatarImg,
-    latitude: 41.3608,
-    longitude: -8.7344,
-  },
-  {
-    id: 3,
-    nome: 'Beatriz Costa',
-    situacao: 'À espera de equipa',
-    statusClass: 'espera',
-    tipo: 'Iluminação Pública',
-    detalhes: 'Substituição de lâmpada...',
-    location: 'Parque João Paulo II, Vila do Conde',
-    userImg: avatarImg,
-    latitude: 41.3649,
-    longitude: -8.7388,
-  },
-]
-
 function readStoredOccurrences() {
-  if (typeof localStorage === 'undefined') return [...seedOccurrences]
-
-  try {
-    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null')
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      const normalized = parsed.map((occurrence, index) => normalizeOccurrence(occurrence, index))
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized))
-      return normalized
-    }
-  } catch {
-    // fall back to seed data
-  }
-
-  const normalizedSeeds = seedOccurrences.map((occurrence, index) => normalizeOccurrence(occurrence, index))
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizedSeeds))
-  return [...normalizedSeeds]
+  return []
 }
 
 function saveOccurrences(occurrences) {
-  if (typeof localStorage === 'undefined') return
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(occurrences))
-}
-
-function addOccurrence(occurrence) {
-  const occurrences = readStoredOccurrences()
-  occurrences.unshift(normalizeOccurrence(occurrence))
-  saveOccurrences(occurrences)
   return occurrences
 }
 
+function addOccurrence(occurrence) {
+  return [normalizeOccurrence(occurrence)]
+}
+
 function getOccurrenceById(occurrenceId) {
-  return readStoredOccurrences().find((occurrence) => String(occurrence.id) === String(occurrenceId)) || null
+  return null
 }
 
 function getOccurrenceMarkers() {
-  return readStoredOccurrences().map((occurrence) => ({
-    ...occurrence,
-    ...resolveOccurrenceCoordinates(occurrence),
-  }))
+  return []
 }
 
 export {
-  STORAGE_KEY,
-  seedOccurrences,
   readStoredOccurrences,
   saveOccurrences,
   addOccurrence,

@@ -122,7 +122,12 @@ const normalizeFullName = (value) => {
 export const getAllTrabalhadores = async (req, res, next) => {
   try {
     const trabalhadores = await Trabalhador.findAll();
-    res.json(trabalhadores);
+    const filtered = trabalhadores.filter((t) => {
+      const email = (t.emailTrabalhador || "").trim();
+      return !isAdminEmail(email);
+    });
+
+    res.json(filtered);
   } catch (error) {
     next(genericError("Error fetching trabalhadores"));
   }

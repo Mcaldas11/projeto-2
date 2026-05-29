@@ -243,30 +243,12 @@ import SidebarMenu from '@/components/SidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 
-// As 3 equipas únicas extraídas do escopo do ficheiro "equipas_vcc.csv"
-const availableTeams = ref([
-  { id: 1, especializacao: 'Estradas e passeios' },
-  { id: 2, especializacao: 'Sinalização de trânsito' },
-  { id: 3, especializacao: 'Iluminação urbana' },
-])
+const availableTeams = ref([])
 
-// Freguesias correspondentes aos IDs do CSV mapeados para os seus nomes reais em Vila do Conde
-const availableFreguesias = ref([
-  { id: 1, nome: 'Vila do Conde' },
-  { id: 2, nome: 'Azurara' },
-  { id: 3, nome: 'Árvore' },
-  { id: 4, nome: 'Aveleda' },
-  { id: 5, nome: 'Bagunte' },
-  { id: 6, nome: 'Canidelo' },
-  { id: 7, nome: 'Fajozes' },
-  { id: 8, nome: 'Gião' },
-  { id: 9, nome: 'Guilhabreu' },
-  { id: 10, nome: 'Labruge' },
-])
+const availableFreguesias = ref([])
 
-// Estados dos Seletores
-const selectedTeamId = ref(1)
-const selectedFreguesiaId = ref(1)
+const selectedTeamId = ref(null)
+const selectedFreguesiaId = ref(null)
 
 // Computed Labels para o Cabeçalho
 const selectedTeamLabel = computed(() => {
@@ -279,70 +261,14 @@ const selectedFreguesiaLabel = computed(() => {
   return match ? match.nome : ''
 })
 
-// Mocks Reativos de Ocorrências (Atualizam dinamicamente conforme a combinação de filtros)
-const ocorrencias = ref([
-  {
-    id: 301,
-    tipo: 'Abatimento de Via Grave',
-    situacao: 'Em resolução',
-    statusClass: 'em-resolucao',
-    local: 'Rua das Flores, Intersecção Sul',
-  },
-  {
-    id: 302,
-    tipo: 'Passeio Danificado por Raízes',
-    situacao: 'Espera',
-    statusClass: 'espera',
-    local: 'Avenida Principal, Lote 4B',
-  },
-])
+const ocorrencias = ref([])
 
-function updateDashboard() {
-  // Simulação de alteração de dados baseada na Freguesia e Tipo de Equipa selecionados
-  if (selectedTeamId.value === 1) {
-    ocorrencias.value = [
-      {
-        id: 301,
-        tipo: 'Abatimento de Via Grave',
-        situacao: 'Em resolução',
-        statusClass: 'em-resolucao',
-        local: `Zona Central de ${selectedFreguesiaLabel.value}`,
-      },
-      {
-        id: 302,
-        tipo: 'Passeio Danificado',
-        situacao: 'Espera',
-        statusClass: 'espera',
-        local: 'Rua de Acesso Secundário',
-      },
-    ]
-  } else if (selectedTeamId.value === 2) {
-    ocorrencias.value = [
-      {
-        id: 401,
-        tipo: 'Sinal Stop Encoberto',
-        situacao: 'Em resolução',
-        statusClass: 'em-resolucao',
-        local: `Cruzamento Principal em ${selectedFreguesiaLabel.value}`,
-      },
-    ]
-  } else {
-    ocorrencias.value = [
-      {
-        id: 501,
-        tipo: 'Luminárias Apagadas',
-        situacao: 'Espera',
-        statusClass: 'espera',
-        local: `Alinhamento de Postes em ${selectedFreguesiaLabel.value}`,
-      },
-    ]
-  }
-}
+function updateDashboard() {}
 
 // Restantes estados base e auxiliares
 const showNotif = ref(false)
 const showMenu = ref(false)
-const notifications = ref([{ id: 1, title: 'Atualização', body: 'Plano de rotas sincronizado.' }])
+const notifications = ref([])
 
 const toggleNotif = () => {
   showNotif.value = !showNotif.value
@@ -354,71 +280,14 @@ const toggleMenu = () => {
 }
 const removeNotif = (i) => notifications.value.splice(i, 1)
 
-const teamStats = ref({ mediaAvaliacoes: '4.8' })
-const trabalhadores = ref([
-  {
-    id: 1,
-    nome: 'Carlos',
-    apelido: 'Sousa',
-    cargo: 'Encarregado Técnico',
-    disponibilidade: 'Em Serviço',
-  },
-  {
-    id: 2,
-    nome: 'Manuel',
-    apelido: 'Antunes',
-    cargo: 'Operador de Piquete',
-    disponibilidade: 'Em Serviço',
-  },
-  {
-    id: 3,
-    nome: 'Ricardo',
-    apelido: 'Pereira',
-    cargo: 'Técnico Especialista',
-    disponibilidade: 'Disponível',
-  },
-])
+const teamStats = ref({ mediaAvaliacoes: '0' })
+const trabalhadores = ref([])
 
-const recursos = ref({
-  veiculos: ['Carrinha Caixa Aberta (44-UX-12)', 'Camião de Elevação Articulado'],
-  ferramentas: [
-    { nome: 'Gerador Elétrico Portátil', qtd: 1 },
-    { nome: 'Martelo Demolidor Pneumático', qtd: 2 },
-    { nome: 'Sinalizadores Luminosos LED', qtd: 12 },
-  ],
-})
+const recursos = ref({ veiculos: [], ferramentas: [] })
 
-const rotas = ref([
-  {
-    id: 51,
-    codigo: 'R-NORTE',
-    nome: 'Piquete Contínuo Marginal',
-    itinerario: 'Eixo Marginal - Porto de Pesca',
-    data: 'Hoje',
-    turno: '08:00 - 16:00',
-  },
-])
+const rotas = ref([])
 
-const avaliacoes = ref([
-  {
-    id: 1,
-    autor: 'Anabela Costa',
-    estrelas: 5,
-    comentario:
-      'Reparação rapidíssima do buraco na estrada após a denúncia na aplicação. Equipa simpática!',
-    data: '22 Mai 2026',
-    ocorrenciaTipo: 'Reparação de Via',
-  },
-  {
-    id: 2,
-    autor: 'Rui Fernandes',
-    estrelas: 4,
-    comentario:
-      'Trabalho limpo e seguro. Deixaram a via perfeitamente sinalizada durante o processo.',
-    data: '18 Mai 2026',
-    ocorrenciaTipo: 'Nivelamento de Calçada',
-  },
-])
+const avaliacoes = ref([])
 
 function voltarPainel() {
   alert('A retornar ao Painel Geral...')

@@ -52,7 +52,7 @@
         <div class="details-grid">
           <div class="detail-field">
             <label>Género</label>
-            <div >
+            <div>
               <select name="genero" class="display-box select-box">
                 <option value="Masculino">Masculino</option>
                 <option value="Feminino">Feminino</option>
@@ -62,9 +62,11 @@
           </div>
           <div class="detail-field">
             <label>Freguesia</label>
-            <div >
+            <div>
               <select name="freguesia" class="display-box select-box">
-                <option v-for="freguesia in freguesias" :key="freguesia.id" :value="freguesia.nome">{{ freguesia.nome }}</option>
+                <option v-for="freguesia in freguesias" :key="freguesia.id" :value="freguesia.nome">
+                  {{ freguesia.nome }}
+                </option>
               </select>
             </div>
           </div>
@@ -78,7 +80,10 @@
             <thead>
               <tr>
                 <th>Situação <span class="sort-icon">↓</span></th>
-                <th>Tipo de Problema <img src="@/assets/detalhes.png" alt="Detalhes" class="th-icon" /></th>
+                <th>
+                  Tipo de Problema
+                  <img src="@/assets/detalhes.png" alt="Detalhes" class="th-icon" />
+                </th>
                 <th>Detalhes</th>
                 <th class="actions-col"></th>
               </tr>
@@ -91,7 +96,11 @@
                 <td>{{ occ.tipo }}</td>
                 <td class="details-cell">{{ occ.detalhes }}</td>
                 <td class="actions-cell">
-                  <router-link :to="`/ocorrencia/${occ.id}`" class="details-link" :aria-label="`Ver ocorrência ${occ.id}`">
+                  <router-link
+                    :to="`/ocorrencia/${occ.id}`"
+                    class="details-link"
+                    :aria-label="`Ver ocorrência ${occ.id}`"
+                  >
                     <img src="@/assets/detalhes.png" alt="Detalhes" class="btn-table-info" />
                   </router-link>
                   <span class="star-icon" v-if="occ.favorite" @click="reviewOcorrencia">★</span>
@@ -109,12 +118,12 @@
     <div v-if="showEditModal" class="modal-overlay" @click.self="showEditModal = false">
       <div class="modal-card">
         <h3>Editar Perfil</h3>
-        <div style="margin:16px 0; display:flex; flex-direction:column; gap:10px;">
-          <label style="font-weight:700; color:#475569">Nome:</label>
+        <div style="margin: 16px 0; display: flex; flex-direction: column; gap: 10px">
+          <label style="font-weight: 700; color: #475569">Nome:</label>
           <input v-model="editFirstName" class="display-box" />
-          <label style="font-weight:700; color:#475569">Apelido:</label>
+          <label style="font-weight: 700; color: #475569">Apelido:</label>
           <input v-model="editLastName" class="display-box" />
-          <label style="font-weight:700; color:#475569">Email:</label>
+          <label style="font-weight: 700; color: #475569">Email:</label>
           <input v-model="editEmail" class="display-box" />
         </div>
         <div class="modal-actions">
@@ -166,47 +175,22 @@ import Footer from '@/components/footer.vue'
 import SidebarMenu from '@/components/SidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
-import avatarImg from '@/assets/avatar.png'
 import { listOccurrences } from '@/services/occurrenceService'
+import { listFreguesias } from '@/services/municipalityService'
 import { getNewOccurrenceRoute } from '@/utils/auth'
 
 const showNotif = ref(false)
 const showMenu = ref(false)
-const notifications = ref([
-  {
-    id: 1,
-    title: 'Estado da ocorrência',
-    body: 'O estado foi alterado para <strong>Resolvido</strong>',
-  },
-])
+const notifications = ref([])
 
-const freguesias = ref([
-  {
-    id: 1,
-    nome: 'Vila do Conde',
-  },
-  {
-    id: 2,
-    nome: 'Azurara',
-  },
-  {
-    id: 3,
-    nome: 'Argivai',
-  },
-  {
-    id: 4,
-    nome: 'Mindelo',
-  }
-])
-
-
+const freguesias = ref([])
 
 // User profile (reactive) - initialize from localStorage if present
 const storedProfile = JSON.parse(localStorage.getItem('userProfile') || 'null')
-const userFirstName = ref(storedProfile?.firstName || 'Alexandra')
-const userLastName = ref(storedProfile?.lastName || 'Reis')
-const userEmail = ref(storedProfile?.email || 'alexandra.reis@gmail.com')
-const profilePhoto = ref(storedProfile?.fotoPerfil || avatarImg)
+const userFirstName = ref(storedProfile?.firstName || '')
+const userLastName = ref(storedProfile?.lastName || '')
+const userEmail = ref(storedProfile?.email || '')
+const profilePhoto = ref(storedProfile?.fotoPerfil || '')
 
 const showEditModal = ref(false)
 const editFirstName = ref('')
@@ -216,7 +200,8 @@ const router = useRouter()
 const newOccurrenceRoute = computed(() => getNewOccurrenceRoute())
 
 function validarEmail(email) {
-  const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(".+"))@(([^<>()[\]\\.,;:\s@\"]+\.)+[^<>()[\]\\.,;:\s@\"]{2,})$/i
+  const re =
+    /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(".+"))@(([^<>()[\]\\.,;:\s@\"]+\.)+[^<>()[\]\\.,;:\s@\"]{2,})$/i
   return re.test(String(email).toLowerCase())
 }
 
@@ -230,10 +215,7 @@ const toggleMenu = () => {
 }
 const removeNotif = (i) => notifications.value.splice(i, 1)
 
-const reviewOcorrencia = () => {
-  
-  
-}
+const reviewOcorrencia = () => {}
 
 const editarNome = () => {
   editFirstName.value = userFirstName.value
@@ -292,9 +274,15 @@ const userOccurrences = ref([])
 
 onMounted(async () => {
   try {
-    userOccurrences.value = await listOccurrences()
+    const [loadedOccurrences, loadedFreguesias] = await Promise.all([
+      listOccurrences(),
+      listFreguesias(),
+    ])
+    userOccurrences.value = loadedOccurrences
+    freguesias.value = loadedFreguesias
   } catch {
     userOccurrences.value = []
+    freguesias.value = []
   }
 })
 </script>
@@ -514,7 +502,7 @@ onMounted(async () => {
   width: 100%;
   padding: 14px;
   border-radius: 10px;
-  border-color: #F9F9F9;
+  border-color: #f9f9f9;
   color: #94a3b8;
   font-weight: 500;
 }
@@ -607,10 +595,10 @@ onMounted(async () => {
   height: 24px;
   object-fit: contain;
   cursor: pointer;
-.details-link {
-  display: inline-flex;
-  align-items: center;
-}
+  .details-link {
+    display: inline-flex;
+    align-items: center;
+  }
   display: inline-block;
 }
 .star-icon {
@@ -657,7 +645,7 @@ onMounted(async () => {
   width: 100%;
   padding: 16px;
   margin-top: 50px;
-  background: #FF383C;
+  background: #ff383c;
   color: #fff;
   border: none;
   border-radius: 12px;
@@ -665,7 +653,10 @@ onMounted(async () => {
   font-weight: 600;
   font-size: 16px;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
 }
 
 .btn-logout:hover {
@@ -784,7 +775,9 @@ onMounted(async () => {
   font-size: 14px;
   border: none;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .modal-btn:hover {
@@ -802,7 +795,7 @@ onMounted(async () => {
 }
 
 .modal-btn.confirm {
-  background: #FF383C;
+  background: #ff383c;
   color: #fff;
 }
 
@@ -819,12 +812,22 @@ onMounted(async () => {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes scaleIn {
-  from { transform: scale(0.9); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 </style>

@@ -1,14 +1,7 @@
-import {
-  addOccurrence,
-  getOccurrenceById,
-  getOccurrenceMarkers,
-  backendOccurrenceToUi,
-  readStoredOccurrences,
-  saveOccurrences,
-} from '@/utils/occurrenceStorage'
+import { backendOccurrenceToUi, resolveOccurrenceCoordinates } from '@/utils/occurrenceStorage'
 import { getAuthToken, getAuthUserType } from '@/utils/auth'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
+const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || ''
 
 function buildAuthHeaders(extraHeaders = {}) {
   const token = getAuthToken()
@@ -36,7 +29,7 @@ function mapOccurrencePayload(payload = {}) {
 
 async function listOccurrences() {
   if (!API_BASE_URL) {
-    return readStoredOccurrences()
+    throw new Error('Define VITE_API_URL para carregar as ocorrências da base de dados.')
   }
 
   const userType = getAuthUserType()
@@ -50,14 +43,15 @@ async function listOccurrences() {
   }
 
   const data = await response.json()
-  const normalized = Array.isArray(data) ? data.map((occurrence) => backendOccurrenceToUi(occurrence)) : []
-  saveOccurrences(normalized)
-  return readStoredOccurrences()
+  const normalized = Array.isArray(data)
+    ? data.map((occurrence) => backendOccurrenceToUi(occurrence))
+    : []
+  return normalized
 }
 
 async function getOccurrence(occurrenceId) {
   if (!API_BASE_URL) {
-    return getOccurrenceById(occurrenceId)
+    throw new Error('Define VITE_API_URL para carregar a ocorrência da base de dados.')
   }
 
   const response = await fetch(`${API_BASE_URL}/ocorrencias/${occurrenceId}`, {
@@ -73,7 +67,7 @@ async function getOccurrence(occurrenceId) {
 
 async function createOccurrence(payload) {
   if (!API_BASE_URL) {
-    return addOccurrence(payload)
+    throw new Error('Define VITE_API_URL para criar ocorrências na base de dados.')
   }
 
   const userType = getAuthUserType()
@@ -82,7 +76,9 @@ async function createOccurrence(payload) {
   const mappedPayload = mapOccurrencePayload(payload)
 
   if (!isCitizen) {
-    throw new Error('Criação de ocorrências pelo trabalhador ainda não está ligada ao backend deste front.')
+    throw new Error(
+      'Criação de ocorrências pelo trabalhador ainda não está ligada ao backend deste front.',
+    )
   }
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -104,11 +100,14 @@ async function createOccurrence(payload) {
 
 async function listOccurrenceMarkers() {
   if (!API_BASE_URL) {
-    return getOccurrenceMarkers()
+    throw new Error('Define VITE_API_URL para carregar os marcadores da base de dados.')
   }
 
   const occurrences = await listOccurrences()
-  return occurrences
+  return occurrences.map((occurrence) => ({
+    ...occurrence,
+    ...resolveOccurrenceCoordinates(occurrence),
+  }))
 }
 
 export { listOccurrences, getOccurrence, createOccurrence, listOccurrenceMarkers, API_BASE_URL }

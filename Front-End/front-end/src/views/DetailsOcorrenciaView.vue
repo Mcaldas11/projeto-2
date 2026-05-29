@@ -41,7 +41,9 @@
           <div class="icon-main-bg">
             <img src="@/assets/ocorrencias.png" alt="Ocorrências" class="icon-main-img" />
           </div>
-          <h1>Ocorrências > <span>{{ occurrenceTitle }}</span></h1>
+          <h1>
+            Ocorrências > <span>{{ occurrenceTitle }}</span>
+          </h1>
         </div>
 
         <div class="main-details-grid">
@@ -78,12 +80,12 @@
             <div class="info-group">
               <p>
                 <strong>Status:</strong>
-                <span :class="['status-badge', selectedOccurrence.statusClass]">{{ occurrenceStatus }}</span>
+                <span :class="['status-badge', selectedOccurrence.statusClass]">{{
+                  occurrenceStatus
+                }}</span>
               </p>
               <p><strong>Localização:</strong><br />{{ occurrenceLocation }}</p>
-              <p>
-                <strong>Descrição:</strong><br />{{ occurrenceDescription }}
-              </p>
+              <p><strong>Descrição:</strong><br />{{ occurrenceDescription }}</p>
 
               <div class="reporter-info">
                 <p><strong>Reportado por:</strong></p>
@@ -177,13 +179,14 @@ const occurrenceTitle = computed(() => {
 
 const occurrenceTypeMeta = computed(() => getOccurrenceTypeMeta(selectedOccurrence.value?.tipo))
 const occurrenceStatus = computed(() => selectedOccurrence.value?.situacao || 'Desconhecido')
-const occurrenceLocation = computed(() => selectedOccurrence.value?.location || 'Local não disponível')
+const occurrenceLocation = computed(
+  () => selectedOccurrence.value?.location || 'Local não disponível',
+)
 const occurrenceDescription = computed(
-  () => selectedOccurrence.value?.detalhes || 'Sem descrição disponível.'
+  () => selectedOccurrence.value?.detalhes || 'Sem descrição disponível.',
 )
 const occurrenceMunicipality = computed(() => {
-  const location = selectedOccurrence.value?.location || ''
-  return location.includes('Vila do Conde') ? 'Vila do Conde' : 'Vila do Conde'
+  return selectedOccurrence.value?.municipio || selectedOccurrence.value?.freguesia || ''
 })
 const specializationLabel = computed(() => {
   const type = selectedOccurrence.value?.tipo || ''
@@ -197,13 +200,7 @@ const gallery = ref([about1, about2, about3])
 const activeImage = ref(about1)
 const reporterAvatar = computed(() => selectedOccurrence.value?.userImg || defaultOccurrenceAvatar)
 
-const notifications = ref([
-  {
-    id: 1,
-    title: 'Estado da ocorrência',
-    body: 'O estado foi alterado para <strong>Resolvido</strong>',
-  },
-])
+const notifications = ref([])
 
 const toggleNotif = (e) => {
   e.stopPropagation()
@@ -224,7 +221,7 @@ watch(
   (occurrence) => {
     activeImage.value = occurrence?.image || gallery.value[0]
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 watch(
@@ -232,7 +229,7 @@ watch(
   async () => {
     await loadOccurrence()
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 // Fechar ao clicar fora

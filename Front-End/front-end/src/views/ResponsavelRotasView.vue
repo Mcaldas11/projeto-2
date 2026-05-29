@@ -2,44 +2,19 @@
   <div class="page-container">
     <nav class="navbar">
       <div class="logo-area">
-        <router-link to="/admin/perfil">
+        <router-link to="/responsavel/perfil">
           <img src="@/assets/logoP.png" alt="VC Comunica Logo" class="logo-img" />
         </router-link>
       </div>
       <div class="nav-right">
-        <img
-          :src="notifications.length === 0 ? notifOff : notifOn"
-          alt="notifications"
-          class="icon notification"
-          @click="toggleNotif"
-          ref="notifIcon"
-        />
         <span class="icon menu-trigger" @click="toggleMenu">☰</span>
-
-        <AdminSidebarMenu v-model="showMenu" />
-
-        <div v-if="showNotif" class="notifications" ref="notifPanel">
-          <h4>Notificações</h4>
-          <div class="notif-list">
-            <div
-              v-for="(n, i) in notifications"
-              :key="n.id"
-              class="notif-item"
-              @click.stop="removeNotif(i)"
-            >
-              <div class="notif-title">{{ n.title }}</div>
-              <div class="notif-body" v-html="n.body"></div>
-            </div>
-            <div v-if="notifications.length === 0" class="notif-empty">Sem notificações</div>
-          </div>
-        </div>
+        <SidebarMenu v-model="showMenu" />
       </div>
     </nav>
 
     <main class="main-content">
       <h1 class="page-title">Rotas</h1>
 
-      <!-- Rotas Ativas -->
       <section class="rotas-ativas">
         <div class="rotas-grid">
           <div class="map-placeholder">
@@ -61,10 +36,9 @@
         </div>
       </section>
 
-      <!-- Proximas Rotas Otimizadas -->
       <section class="proximas-rotas">
-        <h2 class="section-subtitle">Proximas Rotas Otimizadas</h2>
-        <p class="espera-label">Nº Ocorrências em espera</p>
+        <h2 class="section-subtitle">Próximas Rotas Agendadas</h2>
+        <p class="espera-label">Selecione uma rota para a visualizar no mapa</p>
         <div class="category-cards">
           <div
             v-for="route in routes"
@@ -79,69 +53,41 @@
             <span class="info-icon" title="Mais informações">ⓘ</span>
           </div>
         </div>
-        <button class="btn-gerar-rotas" @click="gerarRotas">Gerar Rotas</button>
       </section>
     </main>
-
-    <Footer :columns="adminFooterColumns" :logo-src="adminFooterLogo" />
   </div>
 </template>
 
 <script setup>
-import { computed, nextTick, ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import Footer from '@/components/footer.vue'
-import AdminSidebarMenu from '@/components/AdminSidebarMenu.vue'
-import notifOn from '@/assets/notificationson.png'
-import notifOff from '@/assets/notificationsoff.png'
-import adminFooterLogo from '@/assets/logo_footer.png'
 import { listRoutesWithGeometry } from '@/services/routeService'
+import SidebarMenu from '@/components/SidebarMenu.vue'
 
-const adminFooterColumns = [
-  [
-    { label: 'Home', to: '/admin' },
-    { label: 'Ocorrências', to: '/admin' },
-    { label: 'Rotas', to: '/admin/rotas' },
-    { label: 'Equipas', to: '/admin/equipas' },
-    { label: 'Funcionarios', to: '/admin/trabalhadores' },
-  ],
-  [{ label: 'Sobre', to: '/sobre' }],
-]
+const currentRoute = useRoute()
+const selectedRouteId = computed(() => Number(currentRoute.query.routeId || 0))
 
-const showNotif = ref(false)
-const showMenu = ref(false)
-const notifPanel = ref(null)
-const notifIcon = ref(null)
 const mapElement = ref(null)
 const mapInstance = ref(null)
 const routeLayer = ref(null)
 const routes = ref([])
-const currentRoute = useRoute()
-const selectedRouteId = computed(() =>
-  Number(currentRoute.query.routeId || currentRoute.query.selectedRoute || 0),
-)
+const showMenu = ref(false)
 
-const notifications = ref([])
-
-const toggleNotif = (e) => {
-  e.stopPropagation()
-  showNotif.value = !showNotif.value
-  showMenu.value = false
-}
-const toggleMenu = (e) => {
-  e.stopPropagation()
+const toggleMenu = () => {
   showMenu.value = !showMenu.value
-  showNotif.value = false
 }
-const removeNotif = (i) => notifications.value.splice(i, 1)
 
 function formatRoutePoints(route) {
   return (route.geometry?.length ? route.geometry : route.waypoints || []).map((point) => [
     point.latitude,
     point.longitude,
   ])
+}
+
+function isSelectedRoute(route) {
+  return selectedRouteId.value > 0 && Number(route.id) === selectedRouteId.value
 }
 
 function drawRoutes() {
@@ -197,10 +143,6 @@ function drawRoutes() {
   }
 }
 
-function isSelectedRoute(route) {
-  return selectedRouteId.value > 0 && Number(route.id) === selectedRouteId.value
-}
-
 async function initMap() {
   if (!mapElement.value || mapInstance.value) return
 
@@ -221,37 +163,21 @@ async function loadRoutes() {
   drawRoutes()
 }
 
-function handleDocClick(e) {
-  if (
-    showNotif.value &&
-    notifPanel.value &&
-    !notifPanel.value.contains(e.target) &&
-    notifIcon.value &&
-    !notifIcon.value.contains(e.target)
-  ) {
-    showNotif.value = false
-  }
-}
-
 onMounted(async () => {
-  document.addEventListener('click', handleDocClick)
   await loadRoutes()
   await initMap()
 })
+
 watch([routes, selectedRouteId], () => {
   drawRoutes()
 })
+
 onBeforeUnmount(() => {
-  document.removeEventListener('click', handleDocClick)
   if (mapInstance.value) {
     mapInstance.value.remove()
     mapInstance.value = null
   }
 })
-
-const gerarRotas = () => {
-  loadRoutes()
-}
 </script>
 
 <style scoped>
@@ -260,8 +186,6 @@ const gerarRotas = () => {
   color: #1a1a1a;
   background: #fff;
 }
-
-/* NAVBAR */
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -273,76 +197,19 @@ const gerarRotas = () => {
 .logo-img {
   height: 40px;
 }
-.nav-right {
-  display: flex;
-  gap: 15px;
-  align-items: center;
-  position: relative;
-}
-.admin-label {
+.worker-label {
   font-weight: 700;
   font-size: 16px;
   color: #1a1a1a;
 }
 .icon {
   cursor: pointer;
-  font-size: 1.2rem;
-}
-.icon.notification {
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
-  cursor: pointer;
+  user-select: none;
 }
 .menu-trigger {
   font-size: 1.4rem;
+  line-height: 1;
 }
-
-/* MENU & NOTIFICATIONS */
-.notifications {
-  position: absolute;
-  top: 44px;
-  right: 0;
-  background: #fff;
-  border-radius: 12px;
-  padding: 12px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-  z-index: 70;
-}
-.notifications {
-  width: 320px;
-}
-.notifications h4 {
-  margin: 0 0 10px 0;
-  font-size: 18px;
-}
-.notif-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.notif-item {
-  background: #dff3ec;
-  padding: 12px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-.notif-title {
-  font-weight: 700;
-  margin-bottom: 4px;
-}
-.notif-body {
-  color: rgba(0, 0, 0, 0.7);
-  font-size: 14px;
-}
-.notif-empty {
-  color: #666;
-  font-size: 14px;
-  text-align: center;
-  padding: 12px;
-}
-
-/* MAIN CONTENT */
 .main-content {
   padding: 40px 80px;
   min-height: 70vh;
@@ -352,8 +219,6 @@ const gerarRotas = () => {
   font-weight: 800;
   margin: 0 0 40px 0;
 }
-
-/* ROTAS ATIVAS */
 .rotas-ativas {
   margin-bottom: 60px;
 }
@@ -407,8 +272,6 @@ const gerarRotas = () => {
   font-size: 14px;
   color: #64748b;
 }
-
-/* PROXIMAS ROTAS */
 .proximas-rotas {
   margin-top: 40px;
 }
@@ -465,57 +328,10 @@ const gerarRotas = () => {
   color: #94a3b8;
   cursor: pointer;
 }
-.btn-gerar-rotas {
-  background: #22c55e;
-  color: #fff;
-  border: none;
-  padding: 10px 24px;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
-  transition: opacity 0.15s;
-}
-.btn-gerar-rotas:hover {
-  opacity: 0.9;
-}
-
-/* FOOTER */
-.main-footer {
-  padding: 60px 80px;
-  background-color: #f5f1e9;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-top: 80px;
-}
-.footer-links {
-  display: flex;
-  gap: 60px;
-}
-.col {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.col a {
-  text-decoration: none;
-  color: #2d5a27;
-  font-weight: 600;
-}
-.logo-img-small {
-  height: 80px;
-}
-.copyright {
-  font-size: 0.8rem;
-  color: #888;
-  margin-top: 10px;
-}
 
 @media (max-width: 1024px) {
   .navbar,
-  .main-content,
-  .main-footer {
+  .main-content {
     padding: 20px;
   }
   .rotas-grid {

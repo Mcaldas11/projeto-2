@@ -45,7 +45,7 @@
           <div class="avatar-container">
             <img v-if="worker.avatar" :src="worker.avatar" alt="Avatar" class="profile-avatar" />
             <div v-else class="profile-avatar-placeholder">
-              {{ worker.nome[0] }}{{ worker.apelido[0] }}
+              {{ worker.nome?.[0] || '' }}{{ worker.apelido?.[0] || '' }}
             </div>
           </div>
           <div class="user-text">
@@ -85,12 +85,14 @@
 
           <div class="detail-field full-width">
             <label>Credenciais de Acesso</label>
-            <div 
-              :class="['spoiler-credential', { revealed: isCredRevealed }]" 
+            <div
+              :class="['spoiler-credential', { revealed: isCredRevealed }]"
               @click="isCredRevealed = !isCredRevealed"
             >
               <span class="cred-text">{{ worker.credenciais }}</span>
-              <span v-if="!isCredRevealed" class="spoiler-label">Clique para revelar credencial</span>
+              <span v-if="!isCredRevealed" class="spoiler-label"
+                >Clique para revelar credencial</span
+              >
             </div>
           </div>
         </div>
@@ -98,7 +100,6 @@
 
       <!-- SECÇÃO INFERIOR: APENAS OCORRÊNCIAS DA FREGUESIA E ROTAS AGENDADAS -->
       <section class="worker-dashboard-bottom">
-        
         <!-- Listagem de Ocorrências com base na Tabela do Novo Design -->
         <div class="dashboard-block user-occurrences">
           <h3>Ocorrências em {{ worker.freguesia }}</h3>
@@ -141,7 +142,6 @@
             <div v-if="rotas.length === 0" class="notif-empty">Nenhuma rota planeada.</div>
           </div>
         </div>
-
       </section>
 
       <button class="btn-logout" @click="showLogoutModal = true">Terminar Sessão</button>
@@ -154,10 +154,10 @@
         <div class="modal-form-body">
           <label>Nome:</label>
           <input v-model="editFirstName" class="display-box" />
-          
+
           <label>Apelido:</label>
           <input v-model="editLastName" class="display-box" />
-          
+
           <label>Email:</label>
           <input v-model="editEmail" class="display-box" />
         </div>
@@ -198,13 +198,7 @@ const router = useRouter()
 // Sistema de Notificações e Menu
 const showNotif = ref(false)
 const showMenu = ref(false)
-const notifications = ref([
-  {
-    id: 1,
-    title: 'Nova Rota Atribuída',
-    body: 'Foi adicionada uma nova rota de piquete em <strong>Vila do Conde</strong>.',
-  },
-])
+const notifications = ref([])
 
 const toggleNotif = () => {
   showNotif.value = !showNotif.value
@@ -220,15 +214,15 @@ const removeNotif = (i) => notifications.value.splice(i, 1)
 const isCredRevealed = ref(false)
 const storedProfile = JSON.parse(localStorage.getItem('userProfile') || 'null')
 const worker = ref({
-  nome: storedProfile?.firstName || 'Carlos',
-  apelido: storedProfile?.lastName || 'Sousa',
-  email: storedProfile?.email || 'csousa@vccomunica.pt',
-  genero: 'Masculino',
-  equipa: 'Estradas e Passeios',
-  freguesia: 'Vila do Conde',
-  credenciais: 'VCC_Worker#2026',
+  nome: storedProfile?.firstName || '',
+  apelido: storedProfile?.lastName || '',
+  email: storedProfile?.email || '',
+  genero: '',
+  equipa: '',
+  freguesia: '',
+  credenciais: '',
   avatar: storedProfile?.fotoPerfil || avatarImg,
-  ratingMedia: '4.7'
+  ratingMedia: '',
 })
 
 // Modais de Edição de Dados
@@ -256,16 +250,10 @@ function handleSaveEdit() {
 }
 
 // Ocorrências vinculadas à freguesia do funcionário
-const ocorrencias = ref([
-  { id: 101, tipo: 'Estradas e passeios', status: 'Em resolução', statusClass: 'em-resolucao', local: 'Rua da Praia, Nº 45' },
-  { id: 102, tipo: 'Iluminação Pública', status: 'Espera', statusClass: 'espera', local: 'Avenida Baltazar, Poste C2' }
-])
+const ocorrencias = ref([])
 
 // Rotas exclusivas do Trabalhador
-const rotas = ref([
-  { id: 1, nome: 'Rota Semanal Norte', descricao: 'Reparação de calçada danificada.', data: '29 Mai 2026', hora: '08:30' },
-  { id: 2, nome: 'Intervenção urgente', descricao: 'Substituição de lâmpadas fundidas.', data: '29 Mai 2026', hora: '14:00' }
-])
+const rotas = ref([])
 
 // Logout do Operador
 const showLogoutModal = ref(false)
@@ -394,7 +382,8 @@ function handleLogout() {
   align-items: center;
   gap: 20px;
 }
-.profile-avatar, .profile-avatar-placeholder {
+.profile-avatar,
+.profile-avatar-placeholder {
   width: 80px;
   height: 80px;
   border-radius: 50%;
@@ -460,7 +449,9 @@ function handleLogout() {
 }
 .select-box {
   appearance: none;
-  background: #f8fafc url("data:image/svg+xml;utf8,<svg fill='%2394a3b8' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>") no-repeat right 12px center;
+  background: #f8fafc
+    url("data:image/svg+xml;utf8,<svg fill='%2394a3b8' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>")
+    no-repeat right 12px center;
   cursor: pointer;
 }
 .disabled-box {
@@ -556,9 +547,17 @@ function handleLogout() {
   font-weight: 800;
   display: inline-block;
 }
-.em-resolucao { background: #fef9c3; color: #ca8a04; }
-.espera { background: #ffedd5; color: #ea580c; }
-.details-cell { color: #64748b; }
+.em-resolucao {
+  background: #fef9c3;
+  color: #ca8a04;
+}
+.espera {
+  background: #ffedd5;
+  color: #ea580c;
+}
+.details-cell {
+  color: #64748b;
+}
 
 /* ROTAS VERTICAIS ALINHADAS */
 .routes-list-wrapper {
@@ -606,7 +605,7 @@ function handleLogout() {
   width: 100%;
   padding: 16px;
   margin-top: 50px;
-  background: #FF383C;
+  background: #ff383c;
   color: #fff;
   border: none;
   border-radius: 12px;
@@ -614,7 +613,10 @@ function handleLogout() {
   font-weight: 600;
   font-size: 16px;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
 }
 .btn-logout:hover {
   transform: translateY(-2px);
@@ -706,7 +708,7 @@ function handleLogout() {
   color: #475569;
 }
 .confirmation-card .modal-btn.confirm {
-  background: #FF383C;
+  background: #ff383c;
   color: #fff;
 }
 
@@ -717,7 +719,8 @@ function handleLogout() {
   .full-width {
     grid-column: span 1;
   }
-  .navbar, .content-wrapper {
+  .navbar,
+  .content-wrapper {
     padding: 20px;
   }
 }
