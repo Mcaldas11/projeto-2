@@ -86,7 +86,37 @@ const router = useRouter()
 const resolveLoginRoute = (userType) => {
   if (userType === 'trabalhador_admin') return { name: 'admin-home' }
   if (userType === 'trabalhador') return { name: 'trabalhador-profile' }
-  return { name: 'home' }
+  return { name: 'conta' }
+}
+
+const splitName = (fullName = '') => {
+  const parts = String(fullName).trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) {
+    return { firstName: '', lastName: '' }
+  }
+
+  return {
+    firstName: parts[0],
+    lastName: parts.slice(1).join(' '),
+  }
+}
+
+const loadProfile = async (userType) => {
+  const endpoint = userType === 'trabalhador' || userType === 'trabalhador_admin'
+    ? '/trabalhadores/me'
+    : '/cidadaos/me'
+
+  const profileResponse = await fetch(`${API_BASE_URL}${endpoint}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+    },
+  })
+
+  if (!profileResponse.ok) {
+    return null
+  }
+
+  return profileResponse.json()
 }
 
 const handleLogin = async () => {
@@ -131,6 +161,22 @@ const handleLogin = async () => {
     localStorage.setItem('rememberMe', 'true')
   } else {
     localStorage.removeItem('rememberMe')
+  }
+
+  const profile = await loadProfile(payload.userType || resolvedRole)
+  if (profile) {
+    const profileName = profile.nome || profile.nomeTrabalhador || ''
+    const profileEmail = profile.email || profile.emailTrabalhador || ''
+    const { firstName, lastName } = splitName(profileName)
+
+    localStorage.setItem(
+      'userProfile',
+      JSON.stringify({
+        firstName,
+        lastName,
+        email: profileEmail,
+      }),
+    )
   }
 
   router.push(resolveLoginRoute(payload.userType || resolvedRole))
