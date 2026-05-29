@@ -46,7 +46,8 @@
           <div class="filter-select">
             <label>Freguesia</label>
             <select v-model="selectedFreguesia">
-              <option v-for="f in FREGUESIAS" :key="f" :value="f">{{ f }}</option>
+              <option value="Todas">Todas</option>
+              <option v-for="f in freguesias" :key="f" :value="f">{{ f }}</option>
             </select>
           </div>
         </div>
@@ -143,13 +144,13 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { listRoutesWithGeometry } from '@/services/routeService'
+import { listOccurrences } from '@/services/occurrenceService'
+import { listFreguesias } from '@/services/municipalityService'
 import Footer from '@/components/footer.vue'
 import AdminSidebarMenu from '@/components/AdminSidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
-import avatarImg from '@/assets/avatar.png'
 import adminFooterLogo from '@/assets/logo_footer.png'
-import { FREGUESIAS } from '@/utils/freguesias'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
@@ -182,6 +183,9 @@ const notifIcon = ref(null)
 const notifications = ref([
   { id: 1, title: 'Nova ocorrência', body: 'Uma nova ocorrência foi reportada em <strong>Vila do Conde</strong>' },
 ])
+
+const freguesias = ref(['Todas'])
+const freguesiaLabelById = ref(new Map())
 
 const toggleNotif = (e) => {
   e.stopPropagation()
@@ -244,19 +248,8 @@ onBeforeUnmount(() => {
   }
 })
 
-// Ocorrências Data
-const allOcorrencias = ref([
-  { id: 1, nome: 'Mariana Silva', freguesia: 'Vila do Conde', situacao: 'Resolvido', statusClass: 'resolvido', tipo: 'Sinalização', detalhes: 'Necessária a poda de árvores que estão a obstruir a visibilidade da sinalização na rotunda.', userImg: avatarImg },
-  { id: 2, nome: 'Ricardo Pereira', freguesia: 'Azurara', situacao: 'Em Resolução', statusClass: 'em-resolucao', tipo: 'Buracos na Via', detalhes: 'Reparação urgente de buraco na Rua das Flores, que está a causar acidentes.', userImg: avatarImg },
-  { id: 3, nome: 'Beatriz Costa', freguesia: 'Argivai', situacao: 'À espera de equipa', statusClass: 'espera', tipo: 'Iluminação Pública', detalhes: 'Substituição de lâmpada fundida no Parque Central, essencial para a segurança noturna.', userImg: avatarImg },
-  { id: 4, nome: 'Afonso Mendes', freguesia: 'Mindelo', situacao: 'Não resolvido', statusClass: 'nao-resolvido', tipo: 'Áreas Verdes', detalhes: 'Urgente remoção de lixo e entulho depositados junto ao jardim infantil.', userImg: avatarImg },
-  { id: 5, nome: 'Joana Santos', freguesia: 'Vila do Conde', situacao: 'Em Resolução', statusClass: 'em-resolucao', tipo: 'Canalizador', detalhes: 'Entupimento de esgoto na Rua Nova, causando mau cheiro e risco de inundação.', userImg: avatarImg },
-  { id: 6, nome: 'Rafael Cunha', freguesia: 'Azurara', situacao: 'Resolvido', statusClass: 'resolvido', tipo: 'Eletricista', detalhes: 'Curto-circuito na iluminação da Avenida da Liberdade, colocando em risco os moradores.', userImg: avatarImg },
-  { id: 7, nome: 'Daniel Sousa', freguesia: 'Argivai', situacao: 'Em Resolução', statusClass: 'em-resolucao', tipo: 'Jardineiro', detalhes: 'Necessário cortar a relva alta no jardim da Praça da República.', userImg: avatarImg },
-  { id: 8, nome: 'Margarida Castro', freguesia: 'Mindelo', situacao: 'À espera de equipa', statusClass: 'espera', tipo: 'Pedreiro', detalhes: 'Calçada solta na Rua Velha, causando tropeções e quedas.', userImg: avatarImg },
-  { id: 9, nome: 'Tiago Alves', freguesia: 'Vila do Conde', situacao: 'Não resolvido', statusClass: 'nao-resolvido', tipo: 'Pintor', detalhes: 'Pintura urgente das passadeiras na Rua do Comércio, para aumentar a segurança dos peões.', userImg: avatarImg },
-  { id: 10, nome: 'Sofia Ribeiro', freguesia: 'Azurara', situacao: 'Resolvido', statusClass: 'resolvido', tipo: 'Serralheiro', detalhes: 'Portão do jardim da Albuneca está danificado, permitindo a entrada de animais.', userImg: avatarImg },
-])
+// Ocorrências reais vindas do backend
+const allOcorrencias = ref([])
 
 // Pagination
 const currentPage = ref(1)
@@ -278,6 +271,39 @@ const paginatedOcorrencias = computed(() => {
 const toggleSort = () => {
   allOcorrencias.value.reverse()
 }
+
+const normalizeBackendOccurrence = (occurrence) => ({
+  id: occurrence.id,
+  nome: occurrence.nome,
+  freguesia: freguesiaLabelById.value.get(String(occurrence.idFreguesia)) || 'Sem freguesia',
+  situacao: occurrence.situacao,
+  statusClass: occurrence.statusClass,
+  tipo: occurrence.tipo,
+  detalhes: occurrence.detalhes,
+  userImg: occurrence.userImg,
+})
+
+onMounted(async () => {
+  try {
+    const backendFreguesias = await listFreguesias()
+    freguesias.value = [
+      'Todas',
+      ...backendFreguesias
+        .map((freguesia) => freguesia?.nome)
+        .filter(Boolean),
+    ]
+    freguesiaLabelById.value = new Map(
+      backendFreguesias
+        .filter((freguesia) => freguesia?.idFreguesia != null && freguesia?.nome)
+        .map((freguesia) => [String(freguesia.idFreguesia), freguesia.nome]),
+    )
+
+    const occurrences = await listOccurrences()
+    allOcorrencias.value = occurrences.map(normalizeBackendOccurrence)
+  } catch {
+    allOcorrencias.value = []
+  }
+})
 </script>
 
 <style scoped>

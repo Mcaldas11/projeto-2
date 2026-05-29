@@ -127,7 +127,7 @@ const handleLogin = async () => {
     return
   }
 
-  const endpoint = role.value === 'trabalhador' ? '/trabalhadores/login' : '/cidadaos/login'
+  const endpoint = role.value === 'cidadao' ? '/cidadaos/login' : '/trabalhadores/login'
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     method: 'POST',
     headers: {
@@ -168,6 +168,7 @@ const handleLogin = async () => {
     const profileName = profile.nome || profile.nomeTrabalhador || ''
     const profileEmail = profile.email || profile.emailTrabalhador || ''
     const { firstName, lastName } = splitName(profileName)
+    const fotoPerfil = profile.fotoPerfil || ''
 
     localStorage.setItem(
       'userProfile',
@@ -175,6 +176,7 @@ const handleLogin = async () => {
         firstName,
         lastName,
         email: profileEmail,
+        fotoPerfil,
       }),
     )
   }

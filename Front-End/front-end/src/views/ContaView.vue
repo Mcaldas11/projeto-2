@@ -39,7 +39,7 @@
 
       <section class="profile-header">
         <div class="user-info">
-          <img src="@/assets/avatar.png" alt="Avatar" class="profile-avatar" />
+          <img :src="profilePhoto" alt="Avatar" class="profile-avatar" />
           <div class="user-text">
             <h2>{{ userFirstName }} {{ userLastName }}</h2>
             <p>{{ userEmail }}</p>
@@ -166,6 +166,7 @@ import Footer from '@/components/footer.vue'
 import SidebarMenu from '@/components/SidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
+import avatarImg from '@/assets/avatar.png'
 import { listOccurrences } from '@/services/occurrenceService'
 import { getNewOccurrenceRoute } from '@/utils/auth'
 
@@ -205,6 +206,7 @@ const storedProfile = JSON.parse(localStorage.getItem('userProfile') || 'null')
 const userFirstName = ref(storedProfile?.firstName || 'Alexandra')
 const userLastName = ref(storedProfile?.lastName || 'Reis')
 const userEmail = ref(storedProfile?.email || 'alexandra.reis@gmail.com')
+const profilePhoto = ref(storedProfile?.fotoPerfil || avatarImg)
 
 const showEditModal = ref(false)
 const editFirstName = ref('')
@@ -256,7 +258,15 @@ function handleSaveEdit() {
   userFirstName.value = editFirstName.value.trim()
   userLastName.value = editLastName.value.trim()
   userEmail.value = editEmail.value.trim()
-  localStorage.setItem('userProfile', JSON.stringify({ firstName: userFirstName.value, lastName: userLastName.value, email: userEmail.value }))
+  localStorage.setItem(
+    'userProfile',
+    JSON.stringify({
+      firstName: userFirstName.value,
+      lastName: userLastName.value,
+      email: userEmail.value,
+      fotoPerfil: profilePhoto.value,
+    }),
+  )
   showEditModal.value = false
 }
 

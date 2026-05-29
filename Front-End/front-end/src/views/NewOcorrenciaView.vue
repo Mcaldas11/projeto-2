@@ -71,9 +71,9 @@
               @blur="validateField('tipo_ocorrencia')"
             >
               <option value="" disabled>Seleciona o tipo de ocorrência</option>
-              <option value="Iluminação">Iluminação</option>
               <option value="Estradas e passeios">Estradas e passeios</option>
               <option value="Sinalização de trânsito">Sinalização de trânsito</option>
+              <option value="Iluminação">Iluminação</option>
               <option value="Higiene e limpeza">Higiene e limpeza</option>
               <option value="Parques e jardins">Parques e jardins</option>
             </select>
@@ -201,8 +201,6 @@ const handleSubmit = async () => {
   if (!validateForm()) return
 
   const profile = JSON.parse(localStorage.getItem('userProfile') || 'null')
-  const userName = `${profile?.firstName || 'Utilizador'} ${profile?.lastName || ''}`.trim()
-
   await createOccurrence({
     descricao: form.value.description.trim(),
     localizacao: form.value.location.trim(),

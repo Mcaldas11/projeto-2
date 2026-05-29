@@ -77,11 +77,11 @@
           <p>Equipa dedicada à reparação e manutenção da via pública.</p>
         </article>
         <article class="team-card">
-          <h3>Sinalizacao de transito</h3>
+          <h3>Sinalização de trânsito</h3>
           <p>Equipa dedicada à sinalização horizontal e vertical.</p>
         </article>
         <article class="team-card">
-          <h3>Iluminacao urbana</h3>
+          <h3>Iluminação</h3>
           <p>Equipa dedicada à iluminação e resposta técnica urbana.</p>
         </article>
       </div>
@@ -92,7 +92,7 @@
       <div class="steps-grid">
         <div class="step">
           <h3>1. Escolhe o tipo de ocorrência</h3>
-          <p>Escolha a categoria da ocorrência que pretende reportar. Estas podem ser de 5 tipos diferentes, sendo estes: Estradas e passeios, Sinalização e trânsito, Iluminação, Higiene Pública e Parques e Jardins.</p>
+          <p>Escolha a categoria da ocorrência que pretende reportar. Estas podem ser de 5 tipos diferentes, sendo estes: Estradas e passeios, Sinalização de trânsito, Iluminação, Higiene e limpeza e Parques e jardins.</p>
         </div>
         <div class="step">
           <h3>2. Descrição da ocorrência e detalhes pessoais</h3>

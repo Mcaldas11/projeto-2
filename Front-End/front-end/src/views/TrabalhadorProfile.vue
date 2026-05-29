@@ -191,6 +191,7 @@ import Footer from '@/components/footer.vue'
 import SidebarMenu from '@/components/SidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
+import avatarImg from '@/assets/avatar.png'
 
 const router = useRouter()
 
@@ -217,15 +218,16 @@ const removeNotif = (i) => notifications.value.splice(i, 1)
 
 // Estado reativo do Perfil Técnico do Trabalhador
 const isCredRevealed = ref(false)
+const storedProfile = JSON.parse(localStorage.getItem('userProfile') || 'null')
 const worker = ref({
-  nome: 'Carlos',
-  apelido: 'Sousa',
-  email: 'csousa@vccomunica.pt',
+  nome: storedProfile?.firstName || 'Carlos',
+  apelido: storedProfile?.lastName || 'Sousa',
+  email: storedProfile?.email || 'csousa@vccomunica.pt',
   genero: 'Masculino',
   equipa: 'Estradas e Passeios',
   freguesia: 'Vila do Conde',
   credenciais: 'VCC_Worker#2026',
-  avatar: null,
+  avatar: storedProfile?.fotoPerfil || avatarImg,
   ratingMedia: '4.7'
 })
 
@@ -269,8 +271,17 @@ const rotas = ref([
 const showLogoutModal = ref(false)
 function handleLogout() {
   localStorage.removeItem('role')
+  localStorage.removeItem('authToken')
+  localStorage.removeItem('authUserType')
+  localStorage.removeItem('authUserId')
+  localStorage.removeItem('rememberMe')
+  localStorage.removeItem('userProfile')
+  sessionStorage.removeItem('authToken')
+  sessionStorage.removeItem('authUserType')
+  sessionStorage.removeItem('authUserId')
+  sessionStorage.removeItem('vc-comunica-register')
   showLogoutModal.value = false
-  router.replace({ name: 'home' })
+  router.replace({ name: 'login' })
 }
 </script>
 

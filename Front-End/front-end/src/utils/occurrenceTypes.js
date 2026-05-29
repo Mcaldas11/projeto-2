@@ -5,11 +5,11 @@ import higieneIcon from '@/assets/higiene.svg'
 import jardinsIcon from '@/assets/jardins.svg'
 
 const OCCURRENCE_TYPE_META = {
-  sinalizacao: { label: 'Sinalização', icon: sinalizacaoIcon, backgroundColor: '#D2E3ED' },
-  iluminacao: { label: 'Iluminação Pública', icon: iluminacaoIcon, backgroundColor: '#FFB703' },
+  sinalizacao: { label: 'Sinalização de trânsito', icon: sinalizacaoIcon, backgroundColor: '#D2E3ED' },
+  iluminacao: { label: 'Iluminação', icon: iluminacaoIcon, backgroundColor: '#FFB703' },
   estrada: { label: 'Estradas e passeios', icon: estradasIcon, backgroundColor: '#B80000' },
-  higiene: { label: 'Higiene Pública', icon: higieneIcon, backgroundColor: '#BDB6A2' },
-  jardins: { label: 'Áreas Verdes', icon: jardinsIcon, backgroundColor: '#10B210' },
+  higiene: { label: 'Higiene e limpeza', icon: higieneIcon, backgroundColor: '#BDB6A2' },
+  jardins: { label: 'Parques e jardins', icon: jardinsIcon, backgroundColor: '#10B210' },
 }
 
 const OCCURRENCE_STATUS_COLORS = {
