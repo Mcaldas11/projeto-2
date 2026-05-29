@@ -1,5 +1,5 @@
 function isAuthenticated() {
-  return Boolean(localStorage.getItem('role'))
+  return Boolean(getAuthToken() || localStorage.getItem('role'))
 }
 
 function getAccountRoute() {
@@ -10,4 +10,16 @@ function getNewOccurrenceRoute() {
   return isAuthenticated() ? '/new-ocorrencia' : '/login'
 }
 
-export { isAuthenticated, getAccountRoute, getNewOccurrenceRoute }
+function getAuthToken() {
+  return localStorage.getItem('authToken') || sessionStorage.getItem('authToken') || ''
+}
+
+function getAuthUserType() {
+  return localStorage.getItem('authUserType') || sessionStorage.getItem('authUserType') || localStorage.getItem('role') || ''
+}
+
+function getAuthUserId() {
+  return localStorage.getItem('authUserId') || sessionStorage.getItem('authUserId') || ''
+}
+
+export { isAuthenticated, getAccountRoute, getNewOccurrenceRoute, getAuthToken, getAuthUserType, getAuthUserId }

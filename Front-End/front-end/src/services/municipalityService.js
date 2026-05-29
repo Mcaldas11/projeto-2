@@ -33,13 +33,17 @@ async function listFreguesias() {
     return fallbackFreguesias
   }
 
-  const response = await fetch(`${API_BASE_URL}/municipios`)
-  if (!response.ok) {
-    throw new Error('Failed to load freguesias from backend')
-  }
+  try {
+    const response = await fetch(`${API_BASE_URL}/municipios`)
+    if (!response.ok) {
+      return fallbackFreguesias
+    }
 
-  const data = await response.json()
-  return Array.isArray(data) ? data : []
+    const data = await response.json()
+    return Array.isArray(data) ? data : fallbackFreguesias
+  } catch {
+    return fallbackFreguesias
+  }
 }
 
 export { API_BASE_URL, listFreguesias, fallbackFreguesias }

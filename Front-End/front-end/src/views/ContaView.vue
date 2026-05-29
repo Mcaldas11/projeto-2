@@ -160,13 +160,13 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import Footer from '@/components/footer.vue'
 import SidebarMenu from '@/components/SidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
-import { readStoredOccurrences } from '@/utils/occurrenceStorage'
+import { listOccurrences } from '@/services/occurrenceService'
 import { getNewOccurrenceRoute } from '@/utils/auth'
 
 const showNotif = ref(false)
@@ -265,11 +265,28 @@ const showLogoutModal = ref(false)
 
 function handleLogout() {
   localStorage.removeItem('role')
+  localStorage.removeItem('authToken')
+  localStorage.removeItem('authUserType')
+  localStorage.removeItem('authUserId')
+  localStorage.removeItem('rememberMe')
+  localStorage.removeItem('userProfile')
+  sessionStorage.removeItem('authToken')
+  sessionStorage.removeItem('authUserType')
+  sessionStorage.removeItem('authUserId')
+  sessionStorage.removeItem('vc-comunica-register')
   showLogoutModal.value = false
-  router.replace({ name: 'home' })
+  router.replace({ name: 'login' })
 }
 
-const userOccurrences = ref(readStoredOccurrences())
+const userOccurrences = ref([])
+
+onMounted(async () => {
+  try {
+    userOccurrences.value = await listOccurrences()
+  } catch {
+    userOccurrences.value = []
+  }
+})
 </script>
 
 <style scoped>

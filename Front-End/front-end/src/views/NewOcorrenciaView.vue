@@ -63,19 +63,38 @@
         </div>
 
         <div class="form-row">
-          <label class="field-label">Tipo:</label>
+          <label class="field-label">Tipo de Ocorrência:</label>
           <div class="field-stack select-container">
             <select
-              v-model="form.type"
-              :class="['custom-select', { 'field-invalid': validationErrors.type }]"
-              @blur="validateField('type')"
+              v-model="form.tipo_ocorrencia"
+              :class="['custom-select', { 'field-invalid': validationErrors.tipo_ocorrencia }]"
+              @blur="validateField('tipo_ocorrencia')"
             >
-              <option value="" disabled>Selecciona o tipo de ocorrência</option>
-              <option value="iluminacao">Iluminação</option>
-              <option value="estrada">Estradas e passeios</option>
-              <option value="higiene">Higiene Pública</option>
+              <option value="" disabled>Seleciona o tipo de ocorrência</option>
+              <option value="Iluminação">Iluminação</option>
+              <option value="Estradas e passeios">Estradas e passeios</option>
+              <option value="Sinalização de trânsito">Sinalização de trânsito</option>
+              <option value="Higiene e limpeza">Higiene e limpeza</option>
+              <option value="Parques e jardins">Parques e jardins</option>
             </select>
-            <span v-if="validationErrors.type" class="field-error">Escolhe o tipo de ocorrência.</span>
+            <span v-if="validationErrors.tipo_ocorrencia" class="field-error">Escolhe o tipo de ocorrência.</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label class="field-label">Severidade:</label>
+          <div class="field-stack select-container">
+            <select
+              v-model="form.severidade"
+              :class="['custom-select', { 'field-invalid': validationErrors.severidade }]"
+              @blur="validateField('severidade')"
+            >
+              <option value="" disabled>Seleciona a severidade</option>
+              <option value="Baixa">Baixa</option>
+              <option value="Média">Média</option>
+              <option value="Alta">Alta</option>
+            </select>
+            <span v-if="validationErrors.severidade" class="field-error">Escolhe a severidade.</span>
           </div>
         </div>
 
@@ -119,7 +138,6 @@ import Footer from '@/components/footer.vue'
 import SidebarMenu from '@/components/SidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
-import { defaultOccurrenceAvatar } from '@/utils/occurrenceStorage'
 import { createOccurrence } from '@/services/occurrenceService'
 
 // Estados do Header
@@ -149,17 +167,17 @@ const router = useRouter()
 const currentDate = '19 março 2026' // Podes tornar dinâmico com new Date()
 const fileInput = ref(null)
 const form = ref({
-  useGeo: false,
-  manualLoc: false,
   location: '',
-  type: '',
+  tipo_ocorrencia: '',
+  severidade: '',
   description: '',
   files: [],
 })
 
 const validationErrors = ref({
   location: false,
-  type: false,
+  tipo_ocorrencia: false,
+  severidade: false,
   description: false,
 })
 
@@ -169,9 +187,10 @@ function validateField(field) {
 
 function validateForm() {
   validateField('location')
-  validateField('type')
+  validateField('tipo_ocorrencia')
+  validateField('severidade')
   validateField('description')
-  return !validationErrors.value.location && !validationErrors.value.type && !validationErrors.value.description
+  return !validationErrors.value.location && !validationErrors.value.tipo_ocorrencia && !validationErrors.value.severidade && !validationErrors.value.description
 }
 
 const triggerFile = () => fileInput.value.click()
@@ -184,28 +203,20 @@ const handleSubmit = async () => {
   const profile = JSON.parse(localStorage.getItem('userProfile') || 'null')
   const userName = `${profile?.firstName || 'Utilizador'} ${profile?.lastName || ''}`.trim()
 
-  const typeLabels = {
-    iluminacao: 'Iluminação',
-    estrada: 'Estradas e passeios',
-    higiene: 'Higiene Pública',
-  }
-
   await createOccurrence({
-    id: Date.now(),
-    nome: userName,
-    situacao: 'Em Resolução',
-    statusClass: 'em-resolucao',
-    tipo: typeLabels[form.value.type] || form.value.type,
-    detalhes: form.value.description.trim(),
-    userImg: defaultOccurrenceAvatar,
-    location: form.value.location.trim(),
+    descricao: form.value.description.trim(),
+    localizacao: form.value.location.trim(),
+    dataOcorrencia: new Date().toISOString(),
+    severidade: form.value.severidade,
+    tipo_ocorrencia: form.value.tipo_ocorrencia,
   })
 
   form.value.location = ''
-  form.value.type = ''
+  form.value.tipo_ocorrencia = ''
+  form.value.severidade = ''
   form.value.description = ''
   form.value.files = []
-  validationErrors.value = { location: false, type: false, description: false }
+  validationErrors.value = { location: false, tipo_ocorrencia: false, severidade: false, description: false }
 
   router.push({ path: '/ocorrencias' })
 }

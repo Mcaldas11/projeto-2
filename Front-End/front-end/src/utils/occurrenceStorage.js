@@ -14,6 +14,17 @@ const TYPE_COORDS = {
   higiene: { latitude: 41.3624, longitude: -8.7422 },
 }
 
+const STATUS_CLASS_BY_STATE = {
+  resolvido: 'resolvido',
+  'em resolucao': 'em-resolucao',
+  'em resolução': 'em-resolucao',
+  espera: 'espera',
+  'a espera da equipa': 'espera',
+  'à espera da equipa': 'espera',
+  'nao resolvido': 'nao-resolvido',
+  'não resolvido': 'nao-resolvido',
+}
+
 function toSlug(value) {
   return String(value || '')
     .normalize('NFD')
@@ -34,6 +45,68 @@ function hashToOffset(value) {
   return {
     latitudeOffset: ((hash % 700) - 350) / 100000,
     longitudeOffset: (((hash >> 8) % 700) - 350) / 100000,
+  }
+}
+
+function extractPhotoUrls(photoValue) {
+  if (!photoValue) return []
+
+  const entries = Array.isArray(photoValue)
+    ? photoValue
+    : typeof photoValue === 'string'
+      ? (() => {
+          try {
+            const parsed = JSON.parse(photoValue)
+            return Array.isArray(parsed) ? parsed : [photoValue]
+          } catch {
+            return [photoValue]
+          }
+        })()
+      : []
+
+  return entries
+    .map((entry) => {
+      if (!entry) return null
+      if (typeof entry === 'string') return entry
+      if (typeof entry === 'object') return entry.url || entry.secure_url || null
+      return null
+    })
+    .filter(Boolean)
+}
+
+function getStatusClassFromState(stateValue, fallback = 'em-resolucao') {
+  const normalizedState = normalizeTypeKey(stateValue)
+  return STATUS_CLASS_BY_STATE[normalizedState] || fallback
+}
+
+function backendOccurrenceToUi(occurrence = {}) {
+  const fotos = extractPhotoUrls(occurrence.foto || occurrence.fotos)
+  const typeLabel = occurrence.tipo_ocorrencia || occurrence.tipo || ''
+  const statusClass = occurrence.statusClass || getStatusClassFromState(occurrence.estado || occurrence.situacao)
+
+  return {
+    id: occurrence.idOcorrencia ?? occurrence.id ?? Date.now(),
+    nome: occurrence.nomeAutor || occurrence.nome || 'Ocorrência',
+    situacao: occurrence.estado || occurrence.situacao || 'Desconhecido',
+    statusClass,
+    tipo: typeLabel,
+    detalhes: occurrence.descricao || occurrence.detalhes || '',
+    location: occurrence.localizacao || occurrence.location || '',
+    image: occurrence.image || fotos[0] || null,
+    photos: fotos,
+    typeKey: occurrence.typeKey || normalizeTypeKey(typeLabel),
+    latitude: occurrence.latitude != null ? Number(occurrence.latitude) : null,
+    longitude: occurrence.longitude != null ? Number(occurrence.longitude) : null,
+    dataOcorrencia: occurrence.dataOcorrencia || null,
+    dataAgendada: occurrence.dataAgendada || null,
+    dataResolucao: occurrence.dataResolucao || null,
+    feedback: occurrence.feedback || '',
+    idCidadao: occurrence.idCidadao ?? null,
+    idEquipa: occurrence.idEquipa ?? null,
+    idFreguesia: occurrence.idFreguesia ?? null,
+    severidade: occurrence.severidade || '',
+    foto: occurrence.foto || fotos,
+    userImg: occurrence.userImg || avatarImg,
   }
 }
 
@@ -59,19 +132,18 @@ function resolveOccurrenceCoordinates(occurrence = {}) {
 }
 
 function normalizeOccurrence(occurrence, index = 0) {
-  const coordinates = resolveOccurrenceCoordinates(occurrence)
-  const typeKey = occurrence.typeKey || normalizeTypeKey(occurrence.tipo)
+  const normalizedOccurrence = backendOccurrenceToUi(occurrence)
+  const coordinates = resolveOccurrenceCoordinates(normalizedOccurrence)
+  const typeKey = normalizedOccurrence.typeKey || normalizeTypeKey(normalizedOccurrence.tipo)
 
   return {
-    statusClass: 'em-resolucao',
-    location: '',
+    ...normalizedOccurrence,
+    statusClass: normalizedOccurrence.statusClass || 'em-resolucao',
+    location: normalizedOccurrence.location || '',
     typeKey,
     latitude: coordinates.latitude,
     longitude: coordinates.longitude,
-    image: null,
-    ...occurrence,
-    id: occurrence.id ?? Date.now() + index,
-    userImg: occurrence.userImg || avatarImg,
+    id: normalizedOccurrence.id ?? Date.now() + index,
     ...coordinates,
   }
 }
@@ -167,6 +239,9 @@ export {
   getOccurrenceMarkers,
   normalizeOccurrence,
   resolveOccurrenceCoordinates,
+  backendOccurrenceToUi,
+  extractPhotoUrls,
+  getStatusClassFromState,
   avatarImg as defaultOccurrenceAvatar,
   DEFAULT_MAP_COORDS,
 }
