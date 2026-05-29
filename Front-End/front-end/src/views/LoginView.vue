@@ -104,9 +104,12 @@ const splitName = (fullName = '') => {
 
 const loadProfile = async (userType) => {
   const endpoint =
-    userType === 'trabalhador' || userType === 'trabalhador_admin'
+    userType === 'trabalhador' ||
+    userType === 'trabalhador_admin' ||
+    userType === 'trabalhador_responsavel'
       ? '/trabalhadores/me'
       : '/cidadaos/me'
+  ;('/responsavel/me')
 
   const profileResponse = await fetch(`${API_BASE_URL}${endpoint}`, {
     headers: {
@@ -129,7 +132,12 @@ const handleLogin = async () => {
     return
   }
 
-  const endpoint = role.value === 'cidadao' ? '/cidadaos/login' : '/trabalhadores/login'
+  const endpoint =
+    role.value === 'cidadao'
+      ? '/cidadaos/login'
+      : role.value === 'trabalhador'
+        ? '/trabalhadores/login'
+        : '/responsavel/login'
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     method: 'POST',
     headers: {

@@ -175,15 +175,46 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import Footer from '@/components/footer.vue'
 import SidebarMenu from '@/components/SidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import avatarImg from '@/assets/avatar.png'
+import { getAuthToken } from '@/utils/auth'
 
 const router = useRouter()
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
+
+const splitName = (fullName = '') => {
+  const parts = String(fullName).trim().split(/\s+/).filter(Boolean)
+
+  if (parts.length === 0) {
+    return { firstName: '', lastName: '' }
+  }
+
+  return {
+    firstName: parts[0],
+    lastName: parts.slice(1).join(' '),
+  }
+}
+
+const createFallbackWorker = (profile = null) => {
+  const { firstName, lastName } = splitName(profile?.nomeTrabalhador || profile?.name || '')
+
+  return {
+    nome: firstName || profile?.firstName || 'Carlos',
+    apelido: lastName || profile?.lastName || 'Sousa',
+    email: profile?.emailTrabalhador || profile?.email || 'csousa@vccomunica.pt',
+    genero: 'Masculino',
+    equipa: 'Sem equipa definida',
+    freguesia: 'Sem freguesia definida',
+    credenciais: 'Não disponível nesta vista',
+    avatar: profile?.fotoPerfil || avatarImg,
+    ratingMedia: '4.7',
+  }
+}
 
 // Sistema de Notificações e Menu
 const showNotif = ref(false)
@@ -209,17 +240,73 @@ const removeNotif = (i) => notifications.value.splice(i, 1)
 // Estado reativo do Perfil Técnico do Responsável
 const isCredRevealed = ref(false)
 const storedProfile = JSON.parse(localStorage.getItem('userProfile') || 'null')
-const worker = ref({
-  nome: storedProfile?.firstName || 'Carlos',
-  apelido: storedProfile?.lastName || 'Sousa',
-  email: storedProfile?.email || 'csousa@vccomunica.pt',
-  genero: 'Masculino',
-  equipa: 'Estradas e Passeios',
-  freguesia: 'Vila do Conde',
-  credenciais: 'VCC_Worker#2026',
-  avatar: storedProfile?.fotoPerfil || avatarImg,
-  ratingMedia: '4.7',
-})
+const worker = ref(createFallbackWorker(storedProfile))
+
+async function loadResponsibleProfile() {
+  if (!API_BASE_URL) {
+    return
+  }
+
+  const token = getAuthToken()
+  if (!token) {
+    return
+  }
+
+  try {
+    const profileResponse = await fetch(`${API_BASE_URL}/trabalhadores/me`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    if (!profileResponse.ok) {
+      return
+    }
+
+    const profile = await profileResponse.json()
+    const { firstName, lastName } = splitName(profile.nomeTrabalhador || '')
+
+    const [equipaResponse, municipioResponse] = await Promise.all([
+      profile.idEquipa
+        ? fetch(`${API_BASE_URL}/equipas/${profile.idEquipa}`)
+        : Promise.resolve(null),
+      profile.idFreguesia
+        ? fetch(`${API_BASE_URL}/municipios/${profile.idFreguesia}`)
+        : Promise.resolve(null),
+    ])
+
+    const equipa = equipaResponse?.ok ? await equipaResponse.json() : null
+    const municipio = municipioResponse?.ok ? await municipioResponse.json() : null
+
+    worker.value = {
+      nome: firstName || storedProfile?.firstName || 'Carlos',
+      apelido: lastName || storedProfile?.lastName || 'Sousa',
+      email: profile.emailTrabalhador || storedProfile?.email || 'csousa@vccomunica.pt',
+      genero: 'Masculino',
+      equipa:
+        equipa?.especializacao ||
+        (profile.idEquipa ? `Equipa #${profile.idEquipa}` : 'Sem equipa definida'),
+      freguesia:
+        municipio?.nome ||
+        (profile.idFreguesia ? `Freguesia #${profile.idFreguesia}` : 'Sem freguesia definida'),
+      credenciais: 'Não disponível nesta vista',
+      avatar: profile.fotoPerfil || storedProfile?.fotoPerfil || avatarImg,
+      ratingMedia: '4.7',
+    }
+
+    localStorage.setItem(
+      'userProfile',
+      JSON.stringify({
+        firstName: worker.value.nome,
+        lastName: worker.value.apelido,
+        email: worker.value.email,
+        fotoPerfil: worker.value.avatar,
+      }),
+    )
+  } catch {
+    worker.value = createFallbackWorker(storedProfile)
+  }
+}
 
 // Modais de Edição de Dados
 const showEditModal = ref(false)
@@ -297,6 +384,10 @@ function handleLogout() {
   showLogoutModal.value = false
   router.replace({ name: 'login' })
 }
+
+onMounted(() => {
+  loadResponsibleProfile()
+})
 </script>
 
 <style scoped>
