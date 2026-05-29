@@ -37,7 +37,7 @@
 
     <!-- CONTEÚDO PRINCIPAL NO NOVO DESIGN -->
     <main class="content-wrapper">
-      <h1 class="page-title">Perfil do Trabalhador</h1>
+      <h1 class="page-title">Perfil do Responsável</h1>
 
       <!-- Cabeçalho do Perfil (Estilo Identidade Visual Nova) -->
       <section class="profile-header">
@@ -56,7 +56,7 @@
         <button @click="openEditModal" class="btn-edit">Editar</button>
       </section>
 
-      <!-- Detalhes e Informações Técnicas do Trabalhador -->
+      <!-- Detalhes e Informações Técnicas do Responsável -->
       <section class="profile-details">
         <div class="details-grid">
           <div class="detail-field">
@@ -69,18 +69,8 @@
           </div>
 
           <div class="detail-field">
-            <label>Equipa Designada</label>
-            <div class="display-box disabled-box">{{ worker.equipa }}</div>
-          </div>
-
-          <div class="detail-field">
             <label>Freguesia de Atuação 🔒</label>
             <div class="display-box disabled-box">{{ worker.freguesia }}</div>
-          </div>
-
-          <div class="detail-field">
-            <label>Média de Avaliações</label>
-            <div class="display-box rating-box">⭐ {{ worker.ratingMedia }} / 5.0</div>
           </div>
 
           <div class="detail-field full-width">
@@ -216,7 +206,7 @@ const toggleMenu = () => {
 }
 const removeNotif = (i) => notifications.value.splice(i, 1)
 
-// Estado reativo do Perfil Técnico do Trabalhador
+// Estado reativo do Perfil Técnico do Responsável
 const isCredRevealed = ref(false)
 const storedProfile = JSON.parse(localStorage.getItem('userProfile') || 'null')
 const worker = ref({

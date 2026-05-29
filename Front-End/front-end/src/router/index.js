@@ -11,6 +11,7 @@ import ContaView from '../views/ContaView.vue'
 import TrabalhadorHomeView from '../views/TrabalhadorHomeView.vue'
 import TrabalhadorProfile from '../views/TrabalhadorProfile.vue'
 import EquipasPage from '../views/EquipasPage.vue'
+
 import ResponsavelPerfilView from '../views/ResponsavelPerfilView.vue'
 
 // Admin Views
@@ -100,7 +101,7 @@ router.beforeEach((to, from, next) => {
   }
   if (to.meta && to.meta.requiresWorker) {
     const role = localStorage.getItem('role')
-    if (role === 'trabalhador') return next()
+    if (role === 'trabalhador' || role === 'responsavel') return next()
     return next({ name: 'login' })
   }
   if (to.meta && to.meta.requiresAdmin) {

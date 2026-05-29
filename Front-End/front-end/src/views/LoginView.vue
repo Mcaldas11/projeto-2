@@ -1,15 +1,14 @@
 <template>
   <div class="login-page">
     <div class="background-overlay">
-      <img src="@/assets/login_fundo.png" alt="Fundo Cidade" class="bg-image">
+      <img src="@/assets/login_fundo.png" alt="Fundo Cidade" class="bg-image" />
       <div class="dark-layer"></div>
     </div>
 
     <div class="top-logo">
-    <router-link to="/" class="logo-link">
-      <img src="@/assets/logo.png" alt="VC Comunica" class="logo-img">
-    </router-link>
-      
+      <router-link to="/" class="logo-link">
+        <img src="@/assets/logo.png" alt="VC Comunica" class="logo-img" />
+      </router-link>
     </div>
 
     <main class="login-container">
@@ -20,39 +19,39 @@
         <form @submit.prevent="handleLogin">
           <div class="role-select">
             <label>
-              <input type="radio" value="cidadao" v-model="role"> Entrar como Cidadão
+              <input type="radio" value="cidadao" v-model="role" /> Entrar como Cidadão
             </label>
             <label>
-              <input type="radio" value="trabalhador" v-model="role"> Entrar como Trabalhador
+              <input type="radio" value="trabalhador" v-model="role" /> Entrar como Trabalhador
             </label>
           </div>
           <div class="input-group">
             <label for="email">Email</label>
-            <input 
-              type="email" 
-              id="email" 
-              v-model="email" 
+            <input
+              type="email"
+              id="email"
+              v-model="email"
               placeholder="Introduz o teu email"
               required
-            >
+            />
           </div>
 
           <div class="input-group">
             <label for="password">Password</label>
-            <input 
-              type="password" 
-              id="password" 
-              v-model="password" 
+            <input
+              type="password"
+              id="password"
+              v-model="password"
               placeholder="........"
               required
-            >
+            />
           </div>
 
           <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
 
           <div class="form-options">
             <label class="checkbox-container">
-              <input type="checkbox" v-model="rememberMe">
+              <input type="checkbox" v-model="rememberMe" />
               <span class="checkmark"></span>
               Lembrar log in
             </label>
@@ -63,7 +62,8 @@
         </form>
 
         <p class="footer-text">
-          Não tens uma conta? <router-link to="/register/email" class="create-account">Criar conta</router-link>
+          Não tens uma conta?
+          <router-link to="/register/email" class="create-account">Criar conta</router-link>
         </p>
       </div>
     </main>
@@ -85,6 +85,7 @@ const router = useRouter()
 
 const resolveLoginRoute = (userType) => {
   if (userType === 'trabalhador_admin') return { name: 'admin-home' }
+  if (userType === 'trabalhador_responsavel') return { name: 'responsavel-profile' }
   if (userType === 'trabalhador') return { name: 'trabalhador-profile' }
   return { name: 'conta' }
 }
@@ -102,9 +103,10 @@ const splitName = (fullName = '') => {
 }
 
 const loadProfile = async (userType) => {
-  const endpoint = userType === 'trabalhador' || userType === 'trabalhador_admin'
-    ? '/trabalhadores/me'
-    : '/cidadaos/me'
+  const endpoint =
+    userType === 'trabalhador' || userType === 'trabalhador_admin'
+      ? '/trabalhadores/me'
+      : '/cidadaos/me'
 
   const profileResponse = await fetch(`${API_BASE_URL}${endpoint}`, {
     headers: {
@@ -146,11 +148,14 @@ const handleLogin = async () => {
     return
   }
 
-  const resolvedRole = payload.userType === 'trabalhador_admin'
-    ? 'admin'
-    : payload.userType === 'trabalhador'
-      ? 'trabalhador'
-      : 'cidadao'
+  const resolvedRole =
+    payload.userType === 'trabalhador_admin'
+      ? 'admin'
+      : payload.userType === 'trabalhador_responsavel'
+        ? 'responsavel'
+        : payload.userType === 'trabalhador'
+          ? 'trabalhador'
+          : 'cidadao'
 
   localStorage.setItem('role', resolvedRole)
   localStorage.setItem('authToken', payload.token)
@@ -231,8 +236,14 @@ const handleLogin = async () => {
   color: white;
 }
 
-.logo-img { height: 45px; }
-.logo-text { font-size: 1.5rem; font-weight: bold; letter-spacing: 1px; }
+.logo-img {
+  height: 45px;
+}
+.logo-text {
+  font-size: 1.5rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
 
 .login-card {
   background: white;
@@ -240,12 +251,20 @@ const handleLogin = async () => {
   border-radius: 12px;
   width: 100%;
   max-width: 500px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   text-align: center;
 }
 
-h1 { font-size: 2rem; margin-bottom: 10px; color: #1a1a1a; }
-.subtitle { color: #888; margin-bottom: 40px; font-size: 0.95rem; }
+h1 {
+  font-size: 2rem;
+  margin-bottom: 10px;
+  color: #1a1a1a;
+}
+.subtitle {
+  color: #888;
+  margin-bottom: 40px;
+  font-size: 0.95rem;
+}
 
 .input-group {
   text-align: left;

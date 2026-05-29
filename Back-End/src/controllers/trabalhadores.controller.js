@@ -65,6 +65,19 @@ const getAdminEmails = () =>
 
 const isAdminEmail = (email) => getAdminEmails().includes((email || "").trim());
 
+const getResponsavelEmails = () =>
+  (
+    process.env.RESPONSAVEL_EMAILS ||
+    process.env.RESPONSAVEL_EMAIL ||
+    "responsavel.1@vcc.pt"
+  )
+    .split(",")
+    .map((email) => email.trim())
+    .filter(Boolean);
+
+const isResponsavelEmail = (email) =>
+  getResponsavelEmails().includes((email || "").trim());
+
 const isRequesterAdmin = async (req) => {
   if (!req.userData || !req.userData.userType) {
     return false;
@@ -87,7 +100,10 @@ const canManageWorkerAccount = async (req, trabalhadorId) => {
     return false;
   }
 
-  if (Number(req.userData.userId) === Number(trabalhadorId) && req.userData.userType?.startsWith("trabalhador")) {
+  if (
+    Number(req.userData.userId) === Number(trabalhadorId) &&
+    req.userData.userType?.startsWith("trabalhador")
+  ) {
     return true;
   }
 
@@ -120,7 +136,11 @@ export const getTrabalhadorById = async (req, res, next) => {
 
 export const getTrabalhadorMe = async (req, res, next) => {
   try {
-    if (!req.userData || !req.userData.userType || !req.userData.userType.startsWith("trabalhador")) {
+    if (
+      !req.userData ||
+      !req.userData.userType ||
+      !req.userData.userType.startsWith("trabalhador")
+    ) {
       return res.status(403).json({ message: "Forbidden" });
     }
 
@@ -233,11 +253,9 @@ export const loginTrabalhador = async (req, res, next) => {
     });
 
     if (!trabalhador || !trabalhador.credenciaisTrabalhadores) {
-      return res
-        .status(401)
-        .json({
-          message: "Authentication failed. User not found or no password set.",
-        });
+      return res.status(401).json({
+        message: "Authentication failed. User not found or no password set.",
+      });
     }
 
     const isPasswordCorrect = await bcrypt.compare(
@@ -250,10 +268,14 @@ export const loginTrabalhador = async (req, res, next) => {
         .json({ message: "Authentication failed. Wrong password." });
     }
 
-    // determine if this trabalhador is an admin by email
     const isAdmin = isAdminEmail(trabalhador.emailTrabalhador);
+    const isResponsavel = isResponsavelEmail(trabalhador.emailTrabalhador);
 
-    const tokenUserType = isAdmin ? "trabalhador_admin" : "trabalhador";
+    const tokenUserType = isAdmin
+      ? "trabalhador_admin"
+      : isResponsavel
+        ? "trabalhador_responsavel"
+        : "trabalhador";
 
     const token = jwt.sign(
       {
@@ -292,7 +314,8 @@ export const updateTrabalhador = async (req, res, next) => {
 
       if (idEquipa === "" || idEquipa === null) {
         // clearing team requires admin
-        if (!isAdmin) return res.status(403).json({ message: "Only admin can clear team" });
+        if (!isAdmin)
+          return res.status(403).json({ message: "Only admin can clear team" });
         req.body.idEquipa = null;
       } else {
         const normalizedIdEquipa = Number(idEquipa);
@@ -307,7 +330,9 @@ export const updateTrabalhador = async (req, res, next) => {
 
         // only admin can change the active team
         if (!isAdmin) {
-          return res.status(403).json({ message: "Only admin can change team" });
+          return res
+            .status(403)
+            .json({ message: "Only admin can change team" });
         }
 
         req.body.idEquipa = normalizedIdEquipa;
