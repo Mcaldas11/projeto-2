@@ -20,12 +20,13 @@
         <form @submit.prevent="handleSubmit">
           <div class="input-field">
             <label>Password</label>
-            <input type="password" placeholder="Cria a tua password" required />
+            <input type="password" v-model="password" placeholder="Cria a tua password" required />
           </div>
           <div class="input-field">
             <label>Confirma a tua password</label>
-            <input type="password" placeholder="Reescreve a tua password" required />
+            <input type="password" v-model="confirmPassword" placeholder="Reescreve a tua password" required />
           </div>
+          <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
           <button type="submit" class="btn-primary">Continuar</button>
         </form>
 
@@ -38,12 +39,43 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
+const STORAGE_KEY = 'vc-comunica-register'
+
 const router = useRouter()
+const password = ref('')
+const confirmPassword = ref('')
+const errorMessage = ref('')
+
+onMounted(() => {
+  if (!sessionStorage.getItem(STORAGE_KEY)) {
+    router.replace('/register/email')
+  }
+})
 
 const handleSubmit = () => {
-  // normalmente validar e guardar a password
+  if (!password.value || !confirmPassword.value) {
+    errorMessage.value = 'Preenche a password e a confirmação.'
+    return
+  }
+
+  if (password.value !== confirmPassword.value) {
+    errorMessage.value = 'As passwords não coincidem.'
+    return
+  }
+
+  const stored = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '{}')
+  sessionStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({
+      ...stored,
+      password: password.value,
+    }),
+  )
+
+  errorMessage.value = ''
   router.push('/register/municipio')
 }
 </script>

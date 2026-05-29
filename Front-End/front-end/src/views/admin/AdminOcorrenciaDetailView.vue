@@ -133,7 +133,7 @@
             <div class="cidadao-grid">
               <div>
                 <p><strong>Nº Telemóvel:</strong> (+351) 912 345 678</p>
-                <p><strong>Municipio:</strong> Vila do Conde</p>
+                <p><strong>Freguesia:</strong> Vila do Conde</p>
               </div>
               <div>
                 <p><strong>Email:</strong> miguel.silva@example.com</p>

@@ -48,6 +48,8 @@
             >
           </div>
 
+          <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+
           <div class="form-options">
             <label class="checkbox-container">
               <input type="checkbox" v-model="rememberMe">
@@ -71,27 +73,67 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { API_BASE_URL } from '@/services/municipalityService'
 
 const email = ref('')
 const password = ref('')
 const rememberMe = ref(false)
 const role = ref('cidadao')
+const errorMessage = ref('')
 
 const router = useRouter()
 
-const handleLogin = () => {
-  if (email.value === 'admin@vcc.pt' && password.value === 'admin') {
-    localStorage.setItem('role', 'admin')
-    router.push({ name: 'admin-home' })
+const resolveLoginRoute = (userType) => {
+  if (userType === 'trabalhador_admin') return { name: 'admin-home' }
+  if (userType === 'trabalhador') return { name: 'trabalhador-profile' }
+  return { name: 'home' }
+}
+
+const handleLogin = async () => {
+  errorMessage.value = ''
+
+  if (!API_BASE_URL) {
+    errorMessage.value = 'Define VITE_API_BASE_URL para usar o login real do backend.'
     return
   }
 
-  localStorage.setItem('role', role.value)
-  if (role.value === 'trabalhador') {
-    router.push({ name: 'trabalhador-profile' })
-  } else {
-    router.push({ name: 'home' })
+  const endpoint = role.value === 'trabalhador' ? '/trabalhadores/login' : '/cidadaos/login'
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      email: email.value.trim(),
+      password: password.value,
+    }),
+  })
+
+  const payload = await response.json().catch(() => ({}))
+
+  if (!response.ok) {
+    errorMessage.value = payload?.message || 'Credenciais inválidas.'
+    return
   }
+
+  const resolvedRole = payload.userType === 'trabalhador_admin'
+    ? 'admin'
+    : payload.userType === 'trabalhador'
+      ? 'trabalhador'
+      : 'cidadao'
+
+  localStorage.setItem('role', resolvedRole)
+  localStorage.setItem('authToken', payload.token)
+  localStorage.setItem('authUserType', payload.userType || resolvedRole)
+  localStorage.setItem('authUserId', String(payload.userId || ''))
+
+  if (rememberMe.value) {
+    localStorage.setItem('rememberMe', 'true')
+  } else {
+    localStorage.removeItem('rememberMe')
+  }
+
+  router.push(resolveLoginRoute(payload.userType || resolvedRole))
 }
 </script>
 

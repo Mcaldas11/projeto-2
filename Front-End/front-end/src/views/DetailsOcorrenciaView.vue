@@ -122,7 +122,7 @@
 
             <div class="tech-info">
               <p><strong>Especialização:</strong> {{ specializationLabel }}</p>
-              <p><strong>Município:</strong> {{ occurrenceMunicipality }}</p>
+              <p><strong>Freguesia:</strong> {{ occurrenceMunicipality }}</p>
             </div>
           </div>
         </section>

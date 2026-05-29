@@ -34,6 +34,11 @@
             <input type="email" v-model="email" placeholder="Introduz o teu email" required />
           </div>
 
+          <div class="input-field">
+            <label>Telemóvel</label>
+            <input type="tel" v-model="phone" placeholder="Ex: 912345678" required />
+          </div>
+
           <button type="submit" class="btn-primary">Continuar</button>
         </form>
 
@@ -49,14 +54,23 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+const STORAGE_KEY = 'vc-comunica-register'
+
 const router = useRouter()
 const firstName = ref('')
 const lastName = ref('')
 const email = ref('')
+const phone = ref('')
 
 const handleNext = () => {
-  // Aqui guardarias os dados (ex: no Pinia ou State) antes de ir para a password
-  console.log('Dados:', firstName.value, lastName.value, email.value)
+  const payload = {
+    firstName: firstName.value.trim(),
+    lastName: lastName.value.trim(),
+    email: email.value.trim(),
+    phone: phone.value.trim(),
+  }
+
+  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
   router.push('/register-password')
 }
 </script>

@@ -61,7 +61,7 @@
             </div>
           </div>
           <div class="detail-field">
-            <label>Município</label>
+            <label>Freguesia</label>
             <div >
               <select name="freguesia" class="display-box select-box">
                 <option v-for="freguesia in freguesias" :key="freguesia.id" :value="freguesia.nome">{{ freguesia.nome }}</option>

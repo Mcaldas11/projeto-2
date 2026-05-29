@@ -19,18 +19,20 @@
 
         <form @submit.prevent="handleFinish">
           <div class="input-field">
-            <label for="municipio">Município</label>
+            <label for="municipio">Freguesia</label>
             <div class="select-wrapper">
-              <select id="municipio" v-model="selectedMunicipality" required>
-                <option value="" disabled selected>Seleciona o teu município</option>
-                <option value="lisboa">Lisboa</option>
-                <option value="porto">Porto</option>
-                <option value="braga">Braga</option>
+              <select id="municipio" v-model="selectedFreguesia" required :disabled="loadingFreguesias">
+                <option value="" disabled>Seleciona a tua freguesia</option>
+                <option v-if="loadingFreguesias" value="">A carregar freguesias...</option>
+                <option v-for="freguesia in freguesias" :key="freguesia.idFreguesia" :value="String(freguesia.idFreguesia)">
+                  {{ freguesia.nome }}
+                </option>
               </select>
               <span class="select-arrow"></span>
             </div>
           </div>
 
+          <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
           <button type="submit" class="btn-primary">Começar</button>
         </form>
 
@@ -43,13 +45,94 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { API_BASE_URL, listFreguesias } from '@/services/municipalityService'
 
-const selectedMunicipality = ref('')
+const STORAGE_KEY = 'vc-comunica-register'
 
-const handleFinish = () => {
-  console.log('Município selecionado:', selectedMunicipality.value)
-  // Lógica para finalizar o registo e redirecionar para a Dashboard
+const selectedFreguesia = ref('')
+const freguesias = ref([])
+const loadingFreguesias = ref(false)
+const errorMessage = ref('')
+const router = useRouter()
+
+onMounted(async () => {
+  const stored = sessionStorage.getItem(STORAGE_KEY)
+  if (!stored) {
+    router.replace('/register/email')
+    return
+  }
+
+  loadingFreguesias.value = true
+  try {
+    freguesias.value = await listFreguesias()
+  } catch {
+    freguesias.value = []
+    errorMessage.value = API_BASE_URL ? 'Não foi possível carregar as freguesias.' : ''
+  } finally {
+    loadingFreguesias.value = false
+  }
+})
+
+const handleFinish = async () => {
+  errorMessage.value = ''
+
+  if (!selectedFreguesia.value) {
+    errorMessage.value = 'Seleciona uma freguesia para continuar.'
+    return
+  }
+
+  const stored = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || 'null')
+  if (!stored) {
+    router.replace('/register/email')
+    return
+  }
+
+  const [firstName = '', lastName = ''] = [stored.firstName || '', stored.lastName || '']
+  const payload = {
+    nome: `${firstName} ${lastName}`.trim(),
+    email: stored.email,
+    password: stored.password,
+    nrTelemovel: stored.phone,
+    fregCidadao: Number(selectedFreguesia.value),
+  }
+
+  if (!API_BASE_URL) {
+    errorMessage.value = 'Define VITE_API_BASE_URL para concluir o registo no backend.'
+    return
+  }
+
+  const response = await fetch(`${API_BASE_URL}/cidadaos`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}))
+    errorMessage.value = body?.message || 'Não foi possível concluir o registo.'
+    return
+  }
+
+  const result = await response.json()
+  localStorage.setItem('role', 'cidadao')
+  localStorage.setItem('authToken', result.token)
+  localStorage.setItem('authUserType', result.userType || 'cidadao')
+  localStorage.setItem('authUserId', String(result.userId || ''))
+  localStorage.setItem(
+    'userProfile',
+    JSON.stringify({
+      firstName,
+      lastName,
+      email: stored.email,
+    }),
+  )
+
+  sessionStorage.removeItem(STORAGE_KEY)
+  router.push({ name: 'home' })
 }
 </script>
 
