@@ -1,8 +1,3 @@
-/*Purpose: This script is responsible for importing admin data from a JSON file into the database.
-It reads the admin record from the generated JSON file, processes it, and then uses Sequelize's
-bulkCreate method to insert the row into the Trabalhador table. If any errors occur during the
-import, they are caught and logged, and the process exits with an error code.*/
-
 import fs from "fs/promises";
 import "dotenv/config";
 import { sequelize, Trabalhador } from "../config/db.config.js";

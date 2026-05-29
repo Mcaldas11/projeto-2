@@ -2,10 +2,10 @@ import "dotenv/config";
 import bcrypt from "bcrypt";
 import { sequelize, Trabalhador } from "../config/db.config.js";
 
-const EMAIL = process.env.ADMIN_EMAIL || "admin@vcc.pt";
-const PASSWORD = process.env.ADMIN_PASSWORD || "adminVCC";
+const EMAIL = process.env.RESPONSAVEL_EMAIL || "responsavel.1@vcc.pt";
+const PASSWORD = process.env.RESPONSAVEL_PASSWORD || "responsavelVCC";
 
-async function setAdminPassword() {
+async function setResponsavelPassword() {
   try {
     const hashed = await bcrypt.hash(PASSWORD, 10);
 
@@ -22,7 +22,7 @@ async function setAdminPassword() {
       throw err;
     }
   } catch (err) {
-    console.error("Failed to set admin password:", err);
+    console.error("Failed to set responsavel password:", err);
     process.exit(1);
   } finally {
     try {
@@ -31,4 +31,4 @@ async function setAdminPassword() {
   }
 }
 
-setAdminPassword();
+setResponsavelPassword();

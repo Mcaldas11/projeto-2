@@ -11,6 +11,7 @@ import ContaView from '../views/ContaView.vue'
 import TrabalhadorHomeView from '../views/TrabalhadorHomeView.vue'
 import TrabalhadorProfile from '../views/TrabalhadorProfile.vue'
 import EquipasPage from '../views/EquipasPage.vue'
+import ResponsavelPerfilView from '../views/ResponsavelPerfilView.vue'
 
 // Admin Views
 import AdminHomeView from '../views/admin/AdminHomeView.vue'
@@ -49,6 +50,12 @@ const router = createRouter({
       path: '/trabalhador/perfil',
       name: 'trabalhador-profile',
       component: TrabalhadorProfile,
+      meta: { requiresWorker: true },
+    },
+    {
+      path: '/responsavel/perfil',
+      name: 'responsavel-profile',
+      component: ResponsavelPerfilView,
       meta: { requiresWorker: true },
     },
 

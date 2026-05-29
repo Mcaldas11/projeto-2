@@ -1,11 +1,7 @@
-/*Purpose: This script is responsible for importing user data from a JSON file into the database. It reads the data from the specified JSON file, processes it, and then uses Sequelize's bulkCreate method to insert the data into the User table in chunks. 
-The script also handles transactions to ensure data integrity and logs the results of the import process. If any errors occur during the import, they are caught and logged, and the process exits with an error code.*/
-
 import fs from "fs/promises";
 import "dotenv/config";
 import { sequelize, Cidadao, Municipio } from "../config/db.config.js";
 
-// Path to generated citizens JSON (from project root Data-Generator)
 const dataPath = new URL(
   "../../../Data-Generator/data/cidadao.json",
   import.meta.url,
@@ -23,7 +19,6 @@ async function importCidadaos() {
         .toLowerCase()
         .trim();
 
-    // Log DB connection info to help debug which database we're writing to
     try {
       console.log(
         "DB:",
@@ -37,7 +32,6 @@ async function importCidadaos() {
       console.log("Could not read sequelize config:", e.message);
     }
 
-    // Try to map freguesias -> fregCidadao using existing municipios in DB
     const municipios = await Municipio.findAll();
     const municipioMap = new Map(
       municipios.map((m) => [normalizeText(m.nome), m.idFreguesia]),
@@ -76,7 +70,6 @@ async function importCidadaos() {
       }
       await transaction.commit();
       console.log(`Imported ${payload.length} cidadaos successfully.`);
-      // Count rows to confirm
       try {
         const count = await Cidadao.count();
         console.log(`Cidadao table row count: ${count}`);
