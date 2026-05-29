@@ -110,6 +110,15 @@ const canManageWorkerAccount = async (req, trabalhadorId) => {
   return isRequesterAdmin(req);
 };
 
+const normalizeFullName = (value) => {
+  const parts = String(value || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  return parts.join(" ");
+};
+
 export const getAllTrabalhadores = async (req, res, next) => {
   try {
     const trabalhadores = await Trabalhador.findAll();
@@ -163,6 +172,71 @@ export const getTrabalhadorMe = async (req, res, next) => {
     res.json(trabalhador);
   } catch (error) {
     next(genericError("Error fetching trabalhador profile"));
+  }
+};
+
+export const updateTrabalhadorMe = async (req, res, next) => {
+  try {
+    if (
+      !req.userData ||
+      !req.userData.userType ||
+      !req.userData.userType.startsWith("trabalhador")
+    ) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const trabalhador = await Trabalhador.findByPk(req.userData.userId);
+
+    if (!trabalhador) {
+      return next(notFoundError("trabalhador", req.userData.userId));
+    }
+
+    const updates = {};
+
+    if (Object.prototype.hasOwnProperty.call(req.body, "nomeTrabalhador")) {
+      updates.nomeTrabalhador = normalizeFullName(req.body.nomeTrabalhador);
+    } else {
+      const { firstName, lastName, apelido } = req.body;
+      const fullName = [firstName, lastName || apelido]
+        .filter(Boolean)
+        .join(" ");
+      updates.nomeTrabalhador = normalizeFullName(fullName);
+    }
+
+    if (!updates.nomeTrabalhador) {
+      return res.status(400).json({ message: "Nome é obrigatório" });
+    }
+
+    await trabalhador.update(updates);
+
+    const updatedTrabalhador = await Trabalhador.findByPk(req.userData.userId, {
+      attributes: [
+        "idTrabalhador",
+        "nomeTrabalhador",
+        "emailTrabalhador",
+        "telemovelTrabalhador",
+        "idEquipa",
+        "idFreguesia",
+        "fotoPerfil",
+      ],
+    });
+
+    res.json(updatedTrabalhador);
+  } catch (error) {
+    if (error?.name === "SequelizeUniqueConstraintError") {
+      return next(
+        conflictError(
+          { emailTrabalhador: ["Email already in use"] },
+          "Conflict: Email already in use.",
+        ),
+      );
+    }
+
+    if (handleSequelizeValidation(error, next)) {
+      return;
+    }
+
+    next(genericError("Error updating trabalhador profile"));
   }
 };
 

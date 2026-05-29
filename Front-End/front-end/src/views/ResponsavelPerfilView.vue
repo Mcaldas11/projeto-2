@@ -69,21 +69,8 @@
           </div>
 
           <div class="detail-field">
-            <label>Freguesia de Atuação 🔒</label>
+            <label>Freguesia de Atuação</label>
             <div class="display-box disabled-box">{{ worker.freguesia }}</div>
-          </div>
-
-          <div class="detail-field full-width">
-            <label>Credenciais de Acesso</label>
-            <div
-              :class="['spoiler-credential', { revealed: isCredRevealed }]"
-              @click="isCredRevealed = !isCredRevealed"
-            >
-              <span class="cred-text">{{ worker.credenciais }}</span>
-              <span v-if="!isCredRevealed" class="spoiler-label"
-                >Clique para revelar credencial</span
-              >
-            </div>
           </div>
         </div>
       </section>
@@ -147,9 +134,6 @@
 
           <label>Apelido:</label>
           <input v-model="editLastName" class="display-box" />
-
-          <label>Email:</label>
-          <input v-model="editEmail" class="display-box" />
         </div>
         <div class="modal-actions">
           <button class="modal-btn cancel" @click="showEditModal = false">VOLTAR</button>
@@ -237,8 +221,6 @@ const toggleMenu = () => {
 }
 const removeNotif = (i) => notifications.value.splice(i, 1)
 
-// Estado reativo do Perfil Técnico do Responsável
-const isCredRevealed = ref(false)
 const storedProfile = JSON.parse(localStorage.getItem('userProfile') || 'null')
 const worker = ref(createFallbackWorker(storedProfile))
 
@@ -312,24 +294,73 @@ async function loadResponsibleProfile() {
 const showEditModal = ref(false)
 const editFirstName = ref('')
 const editLastName = ref('')
-const editEmail = ref('')
+const isSavingProfile = ref(false)
 
 const openEditModal = () => {
   editFirstName.value = worker.value.nome
   editLastName.value = worker.value.apelido
-  editEmail.value = worker.value.email
   showEditModal.value = true
 }
 
-function handleSaveEdit() {
+async function handleSaveEdit() {
+  if (isSavingProfile.value) {
+    return
+  }
+
   if (!editFirstName.value.trim() || !editLastName.value.trim()) {
     alert('Nome e apelido não podem ficar vazios.')
     return
   }
-  worker.value.nome = editFirstName.value.trim()
-  worker.value.apelido = editLastName.value.trim()
-  worker.value.email = editEmail.value.trim()
-  showEditModal.value = false
+
+  isSavingProfile.value = true
+
+  const token = getAuthToken()
+  if (!API_BASE_URL || !token) {
+    alert('Não foi possível guardar o perfil.')
+    isSavingProfile.value = false
+    return
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/trabalhadores/me`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        firstName: editFirstName.value.trim(),
+        lastName: editLastName.value.trim(),
+      }),
+    })
+
+    const payload = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      throw new Error(payload?.message || 'Não foi possível guardar o perfil.')
+    }
+
+    const { firstName, lastName } = splitName(payload?.nomeTrabalhador || '')
+
+    worker.value.nome = firstName || editFirstName.value.trim()
+    worker.value.apelido = lastName || editLastName.value.trim()
+
+    localStorage.setItem(
+      'userProfile',
+      JSON.stringify({
+        firstName: worker.value.nome,
+        lastName: worker.value.apelido,
+        email: worker.value.email,
+        fotoPerfil: worker.value.avatar,
+      }),
+    )
+
+    showEditModal.value = false
+  } catch (error) {
+    alert(error.message || 'Não foi possível guardar o perfil.')
+  } finally {
+    isSavingProfile.value = false
+  }
 }
 
 // Ocorrências vinculadas à freguesia do funcionário
@@ -394,7 +425,7 @@ onMounted(() => {
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap');
 
 .page-container {
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   color: #1a1a1a;
   line-height: 1.5;
   background-color: #fff;

@@ -36,13 +36,23 @@ router.post(
 
 router.post("/login", trabalhadoresControllers.loginTrabalhador);
 router.get("/me", authMiddleware, trabalhadoresControllers.getTrabalhadorMe);
+router.put(
+  "/me",
+  authMiddleware,
+  requireJsonObject,
+  trabalhadoresControllers.updateTrabalhadorMe,
+);
 router.get(
   "/me/ocorrencias",
   authMiddleware,
   ocorrenciasControllers.getOcorrenciasResolvidasForTrabalhador,
 );
 
-router.get("/:id", validateIntegerParam("id"), trabalhadoresControllers.getTrabalhadorById);
+router.get(
+  "/:id",
+  validateIntegerParam("id"),
+  trabalhadoresControllers.getTrabalhadorById,
+);
 router.put(
   "/:id",
   authMiddleware,
@@ -57,6 +67,11 @@ router.patch(
   uploadFoto.single("file"),
   trabalhadoresControllers.updateTrabalhadorFoto,
 );
-router.delete("/:id", authMiddleware, validateIntegerParam("id"), trabalhadoresControllers.deleteTrabalhador);
+router.delete(
+  "/:id",
+  authMiddleware,
+  validateIntegerParam("id"),
+  trabalhadoresControllers.deleteTrabalhador,
+);
 
 export default router;
