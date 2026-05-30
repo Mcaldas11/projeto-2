@@ -112,33 +112,12 @@
               <div ref="mapElement" class="map-leaflet"></div>
             </div>
           </div>
-          <div class="rotas-legend">
-            <div class="legend-item">
-              <div class="legend-bar" style="background: #730000"></div>
+          <div class="rotas-legend legend-grid">
+            <div v-for="t in typesSummary.slice(0,6)" :key="t.key" class="legend-item" :class="{ selected: selectedTypeFilter === t.key }" @click="selectedTypeFilter = selectedTypeFilter === t.key ? null : t.key">
+              <div class="legend-bar" :style="{ background: t.color }"></div>
               <div class="legend-text">
-                <strong>Engenharia e vias</strong>
-                <span>4 ocorrências</span>
-              </div>
-            </div>
-            <div class="legend-item">
-              <div class="legend-bar" style="background: #8b5cf6"></div>
-              <div class="legend-text">
-                <strong>Higiene Urbana</strong>
-                <span>7 ocorrências</span>
-              </div>
-            </div>
-            <div class="legend-item">
-              <div class="legend-bar" style="background: #f59e0b"></div>
-              <div class="legend-text">
-                <strong>Iluminação pública</strong>
-                <span>5 ocorrências</span>
-              </div>
-            </div>
-            <div class="legend-item">
-              <div class="legend-bar" style="background: #22c55e"></div>
-              <div class="legend-text">
-                <strong>Espaços Verdes</strong>
-                <span>9 ocorrências</span>
+                <strong>{{ t.label }}</strong>
+                <span>{{ t.count }} ocorrências</span>
               </div>
             </div>
             <router-link to="/admin/rotas" class="btn-ver-mais">Ver mais</router-link>
@@ -154,7 +133,8 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { listRoutesWithGeometry } from '@/services/routeService'
-import { listOccurrences } from '@/services/occurrenceService'
+import { listOccurrences, listOccurrenceMarkers } from '@/services/occurrenceService'
+import { normalizeTypeKey, getOccurrenceTypeMeta } from '@/utils/occurrenceTypes'
 import { listFreguesias } from '@/services/municipalityService'
 import Footer from '@/components/footer.vue'
 import AdminSidebarMenu from '@/components/AdminSidebarMenu.vue'
@@ -167,6 +147,7 @@ import 'leaflet/dist/leaflet.css'
 const mapCenter = [41.36405, -8.73894]
 let mapInstance = null
 let routeLayer = null
+let occurrenceLayer = null
 const mapElement = ref(null)
 
 const adminFooterColumns = [
@@ -189,6 +170,10 @@ const notifications = ref([])
 
 const freguesias = ref([])
 const freguesiaLabelById = ref(new Map())
+const occurrenceMarkers = ref([])
+const typesSummary = ref([])
+const selectedTypeFilter = ref(null)
+const typeColorByKey = ref(new Map())
 
 const toggleNotif = (e) => {
   e.stopPropagation()
@@ -226,6 +211,7 @@ onMounted(() => {
     }).addTo(mapInstance)
 
     routeLayer = L.layerGroup().addTo(mapInstance)
+    occurrenceLayer = L.layerGroup().addTo(mapInstance)
     ;(async () => {
       try {
         const routes = await listRoutesWithGeometry()
@@ -251,6 +237,82 @@ onMounted(() => {
     })()
   }
 })
+
+// load occurrence markers and render on map
+async function loadOccurrenceMarkers() {
+  try {
+    const markers = await listOccurrenceMarkers()
+    occurrenceMarkers.value = Array.isArray(markers) ? markers : []
+    buildTypesSummary()
+    drawOccurrenceMarkers()
+  } catch (err) {
+    occurrenceMarkers.value = []
+  }
+}
+
+function colorForType(key) {
+  // deterministic color palette for a given type key
+  const palette = ['#730000', '#8b5cf6', '#f59e0b', '#22c55e', '#06b6d4', '#fb7185', '#a3e635']
+  let h = 0
+  for (let i = 0; i < key.length; i++) h = (h << 5) - h + key.charCodeAt(i)
+  const idx = Math.abs(h) % palette.length
+  return palette[idx]
+}
+
+function buildTypesSummary() {
+  // Use exactly the types provided by the backend (m.tipo or m.typeKey) without local normalization/heuristics
+  const map = new Map()
+  occurrenceMarkers.value.forEach((m) => {
+    const rawKey = m.typeKey != null ? String(m.typeKey) : null
+    const rawLabel = m.tipo != null ? String(m.tipo) : rawKey || 'outro'
+    const key = String(rawKey || rawLabel).trim()
+    const label = rawLabel.trim()
+    if (!map.has(key)) map.set(key, { key, label, count: 0, color: colorForType(key) })
+    map.get(key).count += 1
+  })
+  // Sort types by count descending for more important first
+  const arr = Array.from(map.values()).sort((a, b) => b.count - a.count)
+
+  // New palette (6 distinct friendly colors) and assign by index for a consistent look
+  const palette = ['#06b6d4', '#7c3aed', '#ef4444', '#f59e0b', '#10b981', '#ef76b2']
+  arr.forEach((t, i) => {
+    t.color = palette[i % palette.length]
+  })
+
+  // build fast lookup map for marker colors
+  const colorMap = new Map()
+  arr.forEach((t) => colorMap.set(String(t.key), t.color))
+  typeColorByKey.value = colorMap
+
+  typesSummary.value = arr
+}
+
+function drawOccurrenceMarkers() {
+  if (!mapInstance || !occurrenceLayer) return
+  occurrenceLayer.clearLayers()
+  const bounds = []
+  occurrenceMarkers.value.forEach((m) => {
+  const rawKey = m.typeKey != null ? String(m.typeKey) : null
+  const rawLabel = m.tipo != null ? String(m.tipo) : rawKey || 'outro'
+  const key = String(rawKey || rawLabel).trim()
+  if (selectedTypeFilter.value && selectedTypeFilter.value !== key) return
+  if (m.latitude == null || m.longitude == null) return
+  const color = typeColorByKey.value.get(key) || colorForType(key)
+    const marker = L.circleMarker([Number(m.latitude), Number(m.longitude)], {
+      radius: 6,
+      color,
+      fillColor: color,
+      fillOpacity: 0.9,
+      weight: 2,
+    })
+    marker.bindPopup(`<strong>${m.tipo || ''}</strong><br/>${m.detalhes || ''}`)
+    marker.addTo(occurrenceLayer)
+    bounds.push([Number(m.latitude), Number(m.longitude)])
+  })
+  if (bounds.length) {
+    mapInstance.fitBounds(bounds, { padding: [30, 30] })
+  }
+}
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleDocClick)
@@ -308,9 +370,18 @@ onMounted(async () => {
 
     const occurrences = await listOccurrences()
     allOcorrencias.value = occurrences.map(normalizeBackendOccurrence)
+    // also load markers for the map and types
+    await loadOccurrenceMarkers()
   } catch {
     allOcorrencias.value = []
   }
+})
+
+// watch filter and selected type
+import { watch } from 'vue'
+watch([selectedFreguesia, selectedTypeFilter], () => {
+  // filter markers by freguesia if needed
+  drawOccurrenceMarkers()
 })
 </script>
 
@@ -603,14 +674,42 @@ onMounted(async () => {
   overflow: hidden;
   aspect-ratio: 4/3;
 }
+.map-leaflet {
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+}
 .route-map-svg {
   width: 100%;
   height: 100%;
 }
 .rotas-legend {
-  display: flex;
-  flex-direction: column;
+  display: block;
   gap: 20px;
+}
+.rotas-legend.legend-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 28px;
+  align-items: start;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 6px 4px;
+  border-radius: 8px;
+  transition: background 0.12s, transform 0.08s;
+}
+.legend-item.selected {
+  background: rgba(0,0,0,0.03);
+  transform: translateX(2px);
+}
+.legend-bar {
+  width: 6px;
+  height: 42px;
+  border-radius: 4px;
 }
 .legend-item {
   display: flex;
