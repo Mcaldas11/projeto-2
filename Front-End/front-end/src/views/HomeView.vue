@@ -81,27 +81,6 @@
       </div>
     </section>
 
-    <section class="teams-freguesias-section">
-      <div class="section-heading-row">
-        <h2 class="section-title-small">Equipas</h2>
-        <router-link to="/equipas" class="section-link">Ver todas</router-link>
-      </div>
-      <div class="teams-grid">
-        <article class="team-card">
-          <h3>Estradas e passeios</h3>
-          <p>Equipa dedicada à reparação e manutenção da via pública.</p>
-        </article>
-        <article class="team-card">
-          <h3>Sinalização de trânsito</h3>
-          <p>Equipa dedicada à sinalização horizontal e vertical.</p>
-        </article>
-        <article class="team-card">
-          <h3>Iluminação</h3>
-          <p>Equipa dedicada à iluminação e resposta técnica urbana.</p>
-        </article>
-      </div>
-    </section>
-
     <section class="how-to-section">
       <h2 class="section-title-large">Como reportar uma ocorrência</h2>
       <div class="steps-grid">

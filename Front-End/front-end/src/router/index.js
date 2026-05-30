@@ -10,7 +10,6 @@ import DetailsOcorrenciaView from '../views/DetailsOcorrenciaView.vue'
 import ContaView from '../views/ContaView.vue'
 import TrabalhadorHomeView from '../views/TrabalhadorHomeView.vue'
 import TrabalhadorProfile from '../views/TrabalhadorProfile.vue'
-import EquipasPage from '../views/EquipasPage.vue'
 
 import ResponsavelPerfilView from '../views/ResponsavelPerfilView.vue'
 import ResponsavelRotasView from '../views/ResponsavelRotasView.vue'
@@ -40,7 +39,7 @@ const router = createRouter({
       alias: '/nova-ocorrencia',
     },
     { path: '/ocorrencias', name: 'ocorrencias', component: OcorrenciasView },
-    { path: '/equipas', name: 'equipas', component: EquipasPage },
+    // '/equipas' removed (EquipasPage was deleted)
     { path: '/conta', name: 'conta', component: ContaView },
     {
       path: '/trabalhador',
