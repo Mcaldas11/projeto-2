@@ -59,12 +59,15 @@
             </div>
 
             <h3 class="legend-title legend-title-secondary">Ocorrências Ativas</h3>
-            <div class="occurrence-types-grid">
-              <div v-for="type in activeOccurrenceTypes" :key="type.key" class="occurrence-type-card">
-                <div class="occurrence-type-icon" :style="{ background: type.color }">
-                  <img :src="type.icon" :alt="type.label" />
-                </div>
-                <div class="occurrence-type-text">
+            <div class="occ-legend-grid">
+              <div
+                v-for="type in activeOccurrenceTypes"
+                :key="type.key"
+                :class="['occ-legend-item', { 'occ-legend-item--active': selectedOccurrenceType === type.key }]"
+                @click="toggleOccurrenceFilter(type.key)"
+              >
+                <div class="occ-legend-bar" :style="{ background: type.color }"></div>
+                <div class="legend-text">
                   <strong>{{ type.label }}</strong>
                   <span>{{ type.count }} ocorrências</span>
                 </div>
@@ -141,6 +144,7 @@ const selectedRouteId = computed(() =>
 )
 
 const ACTIVE_OCCURRENCE_STATES = new Set(['em-resolucao', 'espera'])
+const OCC_PALETTE = ['#06b6d4', '#7c3aed', '#ef4444', '#f59e0b', '#10b981', '#ef76b2']
 
 const activeOccurrenceTypes = computed(() => {
   const summary = new Map()
@@ -158,7 +162,7 @@ const activeOccurrenceTypes = computed(() => {
         key,
         label: meta.label,
         icon: meta.icon,
-        color: meta.backgroundColor,
+        color: '',
         count: 0,
       })
     }
@@ -166,12 +170,25 @@ const activeOccurrenceTypes = computed(() => {
     summary.get(key).count += 1
   })
 
-  return Array.from(summary.values())
+  const sorted = Array.from(summary.values())
     .sort((left, right) => right.count - left.count)
     .slice(0, 6)
+
+  // Assign colors by index — mesma paleta do AdminHomeView
+  sorted.forEach((type, i) => {
+    type.color = OCC_PALETTE[i % OCC_PALETTE.length]
+  })
+
+  return sorted
 })
 
 const notifications = ref([])
+const selectedOccurrenceType = ref(null)
+
+function toggleOccurrenceFilter(key) {
+  selectedOccurrenceType.value = selectedOccurrenceType.value === key ? null : key
+  drawOccurrences()
+}
 
 const toggleNotif = (e) => {
   e.stopPropagation()
@@ -279,49 +296,56 @@ async function initMap() {
   occurrenceLayer.value = L.layerGroup().addTo(mapInstance.value)
   await nextTick()
   drawRoutes()
-    console.debug('initMap: added tileLayer')
+  console.debug('initMap: added tileLayer')
 }
 
-  async function loadOccurrences() {
-    try {
-      const markers = await listOccurrenceMarkers()
-      occurrenceMarkers.value = Array.isArray(markers) ? markers : []
-      drawOccurrences()
-    } catch {
-      occurrenceMarkers.value = []
-    }
+async function loadOccurrences() {
+  try {
+    const markers = await listOccurrenceMarkers()
+    occurrenceMarkers.value = Array.isArray(markers) ? markers : []
+    drawOccurrences()
+  } catch {
+    occurrenceMarkers.value = []
   }
+}
 
-  function drawOccurrences() {
-    if (!mapInstance.value || !occurrenceLayer.value) return
-    occurrenceLayer.value.clearLayers()
+function drawOccurrences() {
+  if (!mapInstance.value || !occurrenceLayer.value) return
+  occurrenceLayer.value.clearLayers()
 
-    occurrenceMarkers.value.forEach((markerData) => {
-      if (!ACTIVE_OCCURRENCE_STATES.has(String(markerData.statusClass || ''))) {
-        return
-      }
+  // Build a color map from the same computed palette so markers match the legend
+  const colorByKey = new Map(activeOccurrenceTypes.value.map((t) => [t.key, t.color]))
 
-      const lat = Number(markerData.latitude)
-      const lng = Number(markerData.longitude)
-      if (Number.isNaN(lat) || Number.isNaN(lng)) return
+  occurrenceMarkers.value.forEach((markerData) => {
+    if (!ACTIVE_OCCURRENCE_STATES.has(String(markerData.statusClass || ''))) {
+      return
+    }
 
-      const meta = getOccurrenceTypeMeta(markerData.tipo)
-      const markerColor = meta.backgroundColor
+    const key = String(markerData.typeKey || normalizeTypeKey(markerData.tipo || '')).trim()
 
-      const marker = L.circleMarker([lat, lng], {
-        radius: 6,
-        color: markerColor,
-        fillColor: markerColor,
-        fillOpacity: 1,
-        weight: 2,
-      })
+    // If a filter is active, only draw markers of that type
+    if (selectedOccurrenceType.value && selectedOccurrenceType.value !== key) return
 
-      marker.bindPopup(`<strong>${markerData.tipo || ''}</strong><br/>${markerData.detalhes || ''}`)
-      marker.addTo(occurrenceLayer.value)
+    const lat = Number(markerData.latitude)
+    const lng = Number(markerData.longitude)
+    if (Number.isNaN(lat) || Number.isNaN(lng)) return
+
+    const markerColor = colorByKey.get(key) || '#64748b'
+
+    const marker = L.circleMarker([lat, lng], {
+      radius: 6,
+      color: markerColor,
+      fillColor: markerColor,
+      fillOpacity: 1,
+      weight: 2,
     })
 
-    fitMapToContent(routes.value.find((route) => isSelectedRoute(route)) || null)
-  }
+    marker.bindPopup(`<strong>${markerData.tipo || ''}</strong><br/>${markerData.detalhes || ''}`)
+    marker.addTo(occurrenceLayer.value)
+  })
+
+  fitMapToContent(routes.value.find((route) => isSelectedRoute(route)) || null)
+}
 
 async function loadRoutes() {
   routes.value = await listRoutesWithGeometry()
@@ -342,18 +366,16 @@ function handleDocClick(e) {
 
 onMounted(async () => {
   document.addEventListener('click', handleDocClick)
-  // Initialize map first so backend fetches (which may fail or be slow)
-  // do not block rendering the map container.
   try {
     await initMap()
   } catch {
     // ignore init errors here
   }
 
-  // Load routes and occurrences in background; they will draw when ready.
   loadRoutes().catch(() => {})
   loadOccurrences().catch(() => {})
 })
+
 watch([routes, selectedRouteId], () => {
   drawRoutes()
 })
@@ -361,6 +383,7 @@ watch([routes, selectedRouteId], () => {
 watch(occurrenceMarkers, () => {
   drawOccurrences()
 })
+
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleDocClick)
   if (mapInstance.value) {
@@ -428,8 +451,6 @@ const gerarRotas = () => {
   padding: 12px;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
   z-index: 70;
-}
-.notifications {
   width: 320px;
 }
 .notifications h4 {
@@ -500,11 +521,16 @@ const gerarRotas = () => {
   min-height: 420px;
   border-radius: 14px;
 }
+
+/* LEGEND */
 .legend-title {
   font-size: 18px;
   font-weight: 800;
   color: #22c55e;
   margin: 0 0 25px 0;
+}
+.legend-title-secondary {
+  margin-top: 36px;
 }
 .legend-items {
   display: flex;
@@ -520,6 +546,7 @@ const gerarRotas = () => {
   width: 5px;
   height: 45px;
   border-radius: 3px;
+  flex-shrink: 0;
 }
 .legend-text {
   display: flex;
@@ -534,56 +561,35 @@ const gerarRotas = () => {
   color: #64748b;
 }
 
-.legend-title-secondary {
-  margin-top: 28px;
-}
-
-.occurrence-types-grid {
+/* OCORRÊNCIAS ATIVAS — novo design (barra + texto, grelha 2 colunas) */
+.occ-legend-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 28px;
 }
-
-.occurrence-type-card {
+.occ-legend-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px;
+  cursor: pointer;
+  padding: 6px 4px;
+  border-radius: 8px;
+  transition: background 0.12s;
+}
+.occ-legend-item:hover {
   background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
 }
-
-.occurrence-type-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.occ-legend-item--active {
+  background: #f1f5f9;
+}
+.occ-legend-item--active .legend-text strong {
+  color: #0f172a;
+}
+.occ-legend-bar {
+  width: 5px;
+  height: 45px;
+  border-radius: 3px;
   flex-shrink: 0;
-}
-
-.occurrence-type-icon img {
-  width: 22px;
-  height: 22px;
-  object-fit: contain;
-  filter: brightness(0) invert(1);
-}
-
-.occurrence-type-text {
-  display: flex;
-  flex-direction: column;
-}
-
-.occurrence-type-text strong {
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.occurrence-type-text span {
-  font-size: 12px;
-  color: #64748b;
 }
 
 /* PROXIMAS ROTAS */
@@ -702,13 +708,13 @@ const gerarRotas = () => {
   .category-cards {
     grid-template-columns: 1fr 1fr;
   }
-  .occurrence-types-grid {
+  .occ-legend-grid {
     grid-template-columns: 1fr 1fr;
   }
 }
 
 @media (max-width: 640px) {
-  .occurrence-types-grid {
+  .occ-legend-grid {
     grid-template-columns: 1fr;
   }
 }
