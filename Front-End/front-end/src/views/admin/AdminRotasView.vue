@@ -299,6 +299,35 @@ async function loadOccurrences() {
   }
 }
 
+function createPinIcon(color, iconUrl) {
+  const img = iconUrl
+    ? `<img src="${iconUrl}" style="width:16px;height:16px;object-fit:contain;filter:brightness(0) invert(1);margin-bottom:2px;" />`
+    : ''
+  return L.divIcon({
+    className: '',
+    iconSize: [32, 40],
+    iconAnchor: [16, 40],
+    popupAnchor: [0, -42],
+    html: `
+      <div style="
+        width:32px;
+        height:32px;
+        border-radius:50% 50% 50% 0;
+        transform:rotate(-45deg);
+        background:${color};
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        box-shadow:0 2px 6px rgba(0,0,0,0.3);
+      ">
+        <div style="transform:rotate(45deg);display:flex;align-items:center;justify-content:center;">
+          ${img}
+        </div>
+      </div>
+    `,
+  })
+}
+
 function drawOccurrences() {
   if (!mapInstance.value || !occurrenceLayer.value) return
   occurrenceLayer.value.clearLayers()
@@ -321,16 +350,16 @@ function drawOccurrences() {
     if (Number.isNaN(lat) || Number.isNaN(lng)) return
 
     const markerColor = colorByKey.get(key) || '#64748b'
+    const meta = getOccurrenceTypeMeta(markerData.tipo || key)
+    const pinIcon = createPinIcon(markerColor, meta.icon)
 
-    const marker = L.circleMarker([lat, lng], {
-      radius: 6,
-      color: markerColor,
-      fillColor: markerColor,
-      fillOpacity: 1,
-      weight: 2,
-    })
-
-    marker.bindPopup(`<strong>${markerData.tipo || ''}</strong><br/>${markerData.detalhes || ''}`)
+    const marker = L.marker([lat, lng], { icon: pinIcon })
+    marker.bindPopup(`
+      <div style="min-width:140px;">
+        <strong style="font-size:13px;">${markerData.tipo || ''}</strong><br/>
+        <span style="font-size:12px;">${markerData.detalhes || ''}</span>
+      </div>
+    `)
     marker.addTo(occurrenceLayer.value)
   })
 

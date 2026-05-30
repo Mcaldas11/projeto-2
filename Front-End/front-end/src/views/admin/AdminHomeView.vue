@@ -113,7 +113,13 @@
             </div>
           </div>
           <div class="rotas-legend legend-grid">
-            <div v-for="t in typesSummary.slice(0,6)" :key="t.key" class="legend-item" :class="{ selected: selectedTypeFilter === t.key }" @click="selectedTypeFilter = selectedTypeFilter === t.key ? null : t.key">
+            <div
+              v-for="t in typesSummary.slice(0, 6)"
+              :key="t.key"
+              class="legend-item"
+              :class="{ selected: selectedTypeFilter === t.key }"
+              @click="selectedTypeFilter = selectedTypeFilter === t.key ? null : t.key"
+            >
               <div class="legend-bar" :style="{ background: t.color }"></div>
               <div class="legend-text">
                 <strong>{{ t.label }}</strong>
@@ -131,7 +137,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { listRoutesWithGeometry } from '@/services/routeService'
 import { listOccurrences, listOccurrenceMarkers } from '@/services/occurrenceService'
 import { normalizeTypeKey, getOccurrenceTypeMeta } from '@/utils/occurrenceTypes'
@@ -199,10 +205,39 @@ function handleDocClick(e) {
   }
 }
 
+// ─── Pin icon (igual ao AdminRotasView) ───────────────────────────────────────
+function createPinIcon(color, iconUrl) {
+  const img = iconUrl
+    ? `<img src="${iconUrl}" style="width:16px;height:16px;object-fit:contain;filter:brightness(0) invert(1);margin-bottom:2px;" />`
+    : ''
+  return L.divIcon({
+    className: '',
+    iconSize: [32, 40],
+    iconAnchor: [16, 40],
+    popupAnchor: [0, -42],
+    html: `
+      <div style="
+        width:32px;
+        height:32px;
+        border-radius:50% 50% 50% 0;
+        transform:rotate(-45deg);
+        background:${color};
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        box-shadow:0 2px 6px rgba(0,0,0,0.3);
+      ">
+        <div style="transform:rotate(45deg);display:flex;align-items:center;justify-content:center;">
+          ${img}
+        </div>
+      </div>
+    `,
+  })
+}
+
 onMounted(() => {
   document.addEventListener('click', handleDocClick)
 
-  // initialize leaflet map in the admin home rotas placeholder
   const el = mapElement.value || document.querySelector('.map-leaflet')
   if (el) {
     mapInstance = L.map(el).setView(mapCenter, 13)
@@ -238,29 +273,26 @@ onMounted(() => {
   }
 })
 
-// load occurrence markers and render on map
+// ─── Occurrence markers ───────────────────────────────────────────────────────
 async function loadOccurrenceMarkers() {
   try {
     const markers = await listOccurrenceMarkers()
     occurrenceMarkers.value = Array.isArray(markers) ? markers : []
     buildTypesSummary()
     drawOccurrenceMarkers()
-  } catch (err) {
+  } catch {
     occurrenceMarkers.value = []
   }
 }
 
 function colorForType(key) {
-  // deterministic color palette for a given type key
   const palette = ['#730000', '#8b5cf6', '#f59e0b', '#22c55e', '#06b6d4', '#fb7185', '#a3e635']
   let h = 0
   for (let i = 0; i < key.length; i++) h = (h << 5) - h + key.charCodeAt(i)
-  const idx = Math.abs(h) % palette.length
-  return palette[idx]
+  return palette[Math.abs(h) % palette.length]
 }
 
 function buildTypesSummary() {
-  // Use exactly the types provided by the backend (m.tipo or m.typeKey) without local normalization/heuristics
   const map = new Map()
   occurrenceMarkers.value.forEach((m) => {
     const rawKey = m.typeKey != null ? String(m.typeKey) : null
@@ -270,20 +302,17 @@ function buildTypesSummary() {
     if (!map.has(key)) map.set(key, { key, label, count: 0, color: colorForType(key) })
     map.get(key).count += 1
   })
-  // Sort types by count descending for more important first
+
   const arr = Array.from(map.values()).sort((a, b) => b.count - a.count)
 
-  // New palette (6 distinct friendly colors) and assign by index for a consistent look
   const palette = ['#06b6d4', '#7c3aed', '#ef4444', '#f59e0b', '#10b981', '#ef76b2']
   arr.forEach((t, i) => {
     t.color = palette[i % palette.length]
   })
 
-  // build fast lookup map for marker colors
   const colorMap = new Map()
   arr.forEach((t) => colorMap.set(String(t.key), t.color))
   typeColorByKey.value = colorMap
-
   typesSummary.value = arr
 }
 
@@ -291,24 +320,29 @@ function drawOccurrenceMarkers() {
   if (!mapInstance || !occurrenceLayer) return
   occurrenceLayer.clearLayers()
   const bounds = []
+
   occurrenceMarkers.value.forEach((m) => {
-  const rawKey = m.typeKey != null ? String(m.typeKey) : null
-  const rawLabel = m.tipo != null ? String(m.tipo) : rawKey || 'outro'
-  const key = String(rawKey || rawLabel).trim()
-  if (selectedTypeFilter.value && selectedTypeFilter.value !== key) return
-  if (m.latitude == null || m.longitude == null) return
-  const color = typeColorByKey.value.get(key) || colorForType(key)
-    const marker = L.circleMarker([Number(m.latitude), Number(m.longitude)], {
-      radius: 6,
-      color,
-      fillColor: color,
-      fillOpacity: 0.9,
-      weight: 2,
-    })
-    marker.bindPopup(`<strong>${m.tipo || ''}</strong><br/>${m.detalhes || ''}`)
+    const rawKey = m.typeKey != null ? String(m.typeKey) : null
+    const rawLabel = m.tipo != null ? String(m.tipo) : rawKey || 'outro'
+    const key = String(rawKey || rawLabel).trim()
+    if (selectedTypeFilter.value && selectedTypeFilter.value !== key) return
+    if (m.latitude == null || m.longitude == null) return
+
+    const color = typeColorByKey.value.get(key) || colorForType(key)
+    const meta = getOccurrenceTypeMeta(m.tipo || key)
+    const pinIcon = createPinIcon(color, meta.icon)
+
+    const marker = L.marker([Number(m.latitude), Number(m.longitude)], { icon: pinIcon })
+    marker.bindPopup(`
+      <div style="min-width:140px;">
+        <strong style="font-size:13px;">${m.tipo || ''}</strong><br/>
+        <span style="font-size:12px;">${m.detalhes || ''}</span>
+      </div>
+    `)
     marker.addTo(occurrenceLayer)
     bounds.push([Number(m.latitude), Number(m.longitude)])
   })
+
   if (bounds.length) {
     mapInstance.fitBounds(bounds, { padding: [30, 30] })
   }
@@ -322,13 +356,10 @@ onBeforeUnmount(() => {
   }
 })
 
-// Ocorrências reais vindas do backend
+// ─── Tabela de ocorrências ────────────────────────────────────────────────────
 const allOcorrencias = ref([])
-
-// Pagination
 const currentPage = ref(1)
 const perPage = 10
-
 const selectedFreguesia = ref('Todas')
 
 const filteredOcorrencias = computed(() => {
@@ -370,17 +401,13 @@ onMounted(async () => {
 
     const occurrences = await listOccurrences()
     allOcorrencias.value = occurrences.map(normalizeBackendOccurrence)
-    // also load markers for the map and types
     await loadOccurrenceMarkers()
   } catch {
     allOcorrencias.value = []
   }
 })
 
-// watch filter and selected type
-import { watch } from 'vue'
 watch([selectedFreguesia, selectedTypeFilter], () => {
-  // filter markers by freguesia if needed
   drawOccurrenceMarkers()
 })
 </script>
@@ -439,8 +466,6 @@ watch([selectedFreguesia, selectedTypeFilter], () => {
   padding: 12px;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
   z-index: 70;
-}
-.notifications {
   width: 320px;
 }
 .notifications h4 {
@@ -465,6 +490,12 @@ watch([selectedFreguesia, selectedTypeFilter], () => {
 .notif-body {
   color: rgba(0, 0, 0, 0.7);
 }
+.notif-empty {
+  color: #666;
+  font-size: 14px;
+  text-align: center;
+  padding: 12px;
+}
 
 .title-filter {
   display: flex;
@@ -481,12 +512,6 @@ watch([selectedFreguesia, selectedTypeFilter], () => {
   padding: 8px 10px;
   border-radius: 8px;
   border: 1px solid #e2e8f0;
-}
-.notif-empty {
-  color: #666;
-  font-size: 14px;
-  text-align: center;
-  padding: 12px;
 }
 
 /* MAIN CONTENT */
@@ -679,10 +704,6 @@ watch([selectedFreguesia, selectedTypeFilter], () => {
   height: 100%;
   min-height: 420px;
 }
-.route-map-svg {
-  width: 100%;
-  height: 100%;
-}
 .rotas-legend {
   display: block;
   gap: 20px;
@@ -703,23 +724,14 @@ watch([selectedFreguesia, selectedTypeFilter], () => {
   transition: background 0.12s, transform 0.08s;
 }
 .legend-item.selected {
-  background: rgba(0,0,0,0.03);
+  background: rgba(0, 0, 0, 0.03);
   transform: translateX(2px);
-}
-.legend-bar {
-  width: 6px;
-  height: 42px;
-  border-radius: 4px;
-}
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 15px;
 }
 .legend-bar {
   width: 5px;
   height: 45px;
   border-radius: 3px;
+  flex-shrink: 0;
 }
 .legend-text {
   display: flex;
