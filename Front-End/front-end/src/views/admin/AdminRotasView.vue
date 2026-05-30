@@ -47,16 +47,6 @@
           </div>
 
           <div class="rotas-legend">
-            <h3 class="legend-title">Rotas Ativas</h3>
-            <div class="legend-items">
-              <div v-for="route in routes" :key="route.id" class="legend-item">
-                <div class="legend-bar" :style="{ background: route.color }"></div>
-                <div class="legend-text">
-                  <strong>{{ route.teamName }}</strong>
-                  <span>{{ route.waypoints.length }} pontos</span>
-                </div>
-              </div>
-            </div>
 
             <h3 class="legend-title legend-title-secondary">Ocorrências Ativas</h3>
             <div class="occ-legend-grid">
