@@ -43,7 +43,7 @@
       <section class="rotas-ativas">
         <div class="rotas-grid">
           <div class="map-placeholder">
-            <div ref="mapElement" class="route-map-canvas"></div>
+            <div ref="mapElement" class="route-map-canvas map-leaflet"></div>
           </div>
 
           <div class="rotas-legend">
@@ -54,6 +54,19 @@
                 <div class="legend-text">
                   <strong>{{ route.teamName }}</strong>
                   <span>{{ route.waypoints.length }} pontos</span>
+                </div>
+              </div>
+            </div>
+
+            <h3 class="legend-title legend-title-secondary">Ocorrências Ativas</h3>
+            <div class="occurrence-types-grid">
+              <div v-for="type in activeOccurrenceTypes" :key="type.key" class="occurrence-type-card">
+                <div class="occurrence-type-icon" :style="{ background: type.color }">
+                  <img :src="type.icon" :alt="type.label" />
+                </div>
+                <div class="occurrence-type-text">
+                  <strong>{{ type.label }}</strong>
+                  <span>{{ type.count }} ocorrências</span>
                 </div>
               </div>
             </div>
@@ -98,6 +111,8 @@ import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import adminFooterLogo from '@/assets/logo_footer.png'
 import { listRoutesWithGeometry } from '@/services/routeService'
+import { listOccurrenceMarkers } from '@/services/occurrenceService'
+import { getOccurrenceTypeMeta, normalizeTypeKey } from '@/utils/occurrenceTypes'
 
 const adminFooterColumns = [
   [
@@ -117,11 +132,44 @@ const notifIcon = ref(null)
 const mapElement = ref(null)
 const mapInstance = ref(null)
 const routeLayer = ref(null)
+const occurrenceLayer = ref(null)
+const occurrenceMarkers = ref([])
 const routes = ref([])
 const currentRoute = useRoute()
 const selectedRouteId = computed(() =>
   Number(currentRoute.query.routeId || currentRoute.query.selectedRoute || 0),
 )
+
+const ACTIVE_OCCURRENCE_STATES = new Set(['em-resolucao', 'espera'])
+
+const activeOccurrenceTypes = computed(() => {
+  const summary = new Map()
+
+  occurrenceMarkers.value.forEach((marker) => {
+    if (!ACTIVE_OCCURRENCE_STATES.has(String(marker.statusClass || ''))) {
+      return
+    }
+
+    const key = String(marker.typeKey || normalizeTypeKey(marker.tipo || '')).trim()
+    const meta = getOccurrenceTypeMeta(marker.tipo || key)
+
+    if (!summary.has(key)) {
+      summary.set(key, {
+        key,
+        label: meta.label,
+        icon: meta.icon,
+        color: meta.backgroundColor,
+        count: 0,
+      })
+    }
+
+    summary.get(key).count += 1
+  })
+
+  return Array.from(summary.values())
+    .sort((left, right) => right.count - left.count)
+    .slice(0, 6)
+})
 
 const notifications = ref([])
 
@@ -184,21 +232,32 @@ function drawRoutes() {
     }).addTo(routeLayer.value)
   })
 
-  if (bounds.length > 0) {
-    if (selectedRoute) {
-      const selectedPoints = formatRoutePoints(selectedRoute)
-      if (selectedPoints.length > 0) {
-        mapInstance.value.fitBounds(selectedPoints, { padding: [36, 36] })
-        return
-      }
-    }
-
-    mapInstance.value.fitBounds(bounds, { padding: [24, 24] })
-  }
+  fitMapToContent(selectedRoute)
 }
 
 function isSelectedRoute(route) {
   return selectedRouteId.value > 0 && Number(route.id) === selectedRouteId.value
+}
+
+function getActiveOccurrencePoints() {
+  return occurrenceMarkers.value
+    .filter((marker) => ACTIVE_OCCURRENCE_STATES.has(String(marker.statusClass || '')))
+    .map((marker) => [Number(marker.latitude), Number(marker.longitude)])
+    .filter(([latitude, longitude]) => !Number.isNaN(latitude) && !Number.isNaN(longitude))
+}
+
+function fitMapToContent(selectedRoute = null) {
+  if (!mapInstance.value) return
+
+  const routePoints = selectedRoute
+    ? formatRoutePoints(selectedRoute)
+    : routes.value.flatMap((route) => formatRoutePoints(route))
+  const occurrencePoints = getActiveOccurrencePoints()
+  const bounds = [...routePoints, ...occurrencePoints]
+
+  if (bounds.length > 0) {
+    mapInstance.value.fitBounds(bounds, { padding: [28, 28] })
+  }
 }
 
 async function initMap() {
@@ -206,15 +265,63 @@ async function initMap() {
 
   mapInstance.value = L.map(mapElement.value, { zoomControl: true }).setView([41.3649, -8.7389], 14)
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors',
+  const TILE_URL = import.meta.env.VITE_MAP_TILES_URL || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+  const TILE_ATTR = import.meta.env.VITE_MAP_TILES_ATTR || '&copy; OpenStreetMap contributors'
+
+  L.tileLayer(TILE_URL, {
+    attribution: TILE_ATTR,
     maxZoom: 19,
   }).addTo(mapInstance.value)
 
+  console.debug('initMap: mapElement=', mapElement.value, 'TILE_URL=', TILE_URL)
+
   routeLayer.value = L.layerGroup().addTo(mapInstance.value)
+  occurrenceLayer.value = L.layerGroup().addTo(mapInstance.value)
   await nextTick()
   drawRoutes()
+    console.debug('initMap: added tileLayer')
 }
+
+  async function loadOccurrences() {
+    try {
+      const markers = await listOccurrenceMarkers()
+      occurrenceMarkers.value = Array.isArray(markers) ? markers : []
+      drawOccurrences()
+    } catch {
+      occurrenceMarkers.value = []
+    }
+  }
+
+  function drawOccurrences() {
+    if (!mapInstance.value || !occurrenceLayer.value) return
+    occurrenceLayer.value.clearLayers()
+
+    occurrenceMarkers.value.forEach((markerData) => {
+      if (!ACTIVE_OCCURRENCE_STATES.has(String(markerData.statusClass || ''))) {
+        return
+      }
+
+      const lat = Number(markerData.latitude)
+      const lng = Number(markerData.longitude)
+      if (Number.isNaN(lat) || Number.isNaN(lng)) return
+
+      const meta = getOccurrenceTypeMeta(markerData.tipo)
+      const markerColor = meta.backgroundColor
+
+      const marker = L.circleMarker([lat, lng], {
+        radius: 6,
+        color: markerColor,
+        fillColor: markerColor,
+        fillOpacity: 1,
+        weight: 2,
+      })
+
+      marker.bindPopup(`<strong>${markerData.tipo || ''}</strong><br/>${markerData.detalhes || ''}`)
+      marker.addTo(occurrenceLayer.value)
+    })
+
+    fitMapToContent(routes.value.find((route) => isSelectedRoute(route)) || null)
+  }
 
 async function loadRoutes() {
   routes.value = await listRoutesWithGeometry()
@@ -235,11 +342,24 @@ function handleDocClick(e) {
 
 onMounted(async () => {
   document.addEventListener('click', handleDocClick)
-  await loadRoutes()
-  await initMap()
+  // Initialize map first so backend fetches (which may fail or be slow)
+  // do not block rendering the map container.
+  try {
+    await initMap()
+  } catch {
+    // ignore init errors here
+  }
+
+  // Load routes and occurrences in background; they will draw when ready.
+  loadRoutes().catch(() => {})
+  loadOccurrences().catch(() => {})
 })
 watch([routes, selectedRouteId], () => {
   drawRoutes()
+})
+
+watch(occurrenceMarkers, () => {
+  drawOccurrences()
 })
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleDocClick)
@@ -374,6 +494,12 @@ const gerarRotas = () => {
   height: 100%;
   min-height: 420px;
 }
+.map-leaflet {
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+  border-radius: 14px;
+}
 .legend-title {
   font-size: 18px;
   font-weight: 800;
@@ -405,6 +531,58 @@ const gerarRotas = () => {
 }
 .legend-text span {
   font-size: 14px;
+  color: #64748b;
+}
+
+.legend-title-secondary {
+  margin-top: 28px;
+}
+
+.occurrence-types-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.occurrence-type-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+}
+
+.occurrence-type-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.occurrence-type-icon img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.occurrence-type-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.occurrence-type-text strong {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.occurrence-type-text span {
+  font-size: 12px;
   color: #64748b;
 }
 
@@ -523,6 +701,15 @@ const gerarRotas = () => {
   }
   .category-cards {
     grid-template-columns: 1fr 1fr;
+  }
+  .occurrence-types-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .occurrence-types-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>
