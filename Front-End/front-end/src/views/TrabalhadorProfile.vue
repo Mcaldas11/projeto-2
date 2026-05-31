@@ -102,7 +102,7 @@
       <section class="worker-dashboard-bottom">
         <!-- Listagem de Ocorrências com base na Tabela do Novo Design -->
         <div class="dashboard-block user-occurrences">
-          <h3>Ocorrências em {{ worker.freguesia }}</h3>
+          <h3>Ocorrências aceites em {{ worker.freguesia }}</h3>
           <div class="table-container">
             <table class="occ-table">
               <thead>
@@ -110,6 +110,7 @@
                   <th>Situação</th>
                   <th>Tipo de Problema</th>
                   <th>Localização</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
@@ -119,6 +120,15 @@
                   </td>
                   <td>{{ occ.tipo }}</td>
                   <td class="details-cell">{{ occ.local }}</td>
+                  <td class="actions-cell">
+                    <router-link :to="`/ocorrencia/${occ.id}`" class="details-link">
+                      Ver detalhes
+                    </router-link>
+                    <button class="resolve-btn" @click="markAsResolved(occ)">Resolvida</button>
+                  </td>
+                </tr>
+                <tr v-if="ocorrencias.length === 0">
+                  <td colspan="4" class="empty-state">Sem ocorrências aceites no momento.</td>
                 </tr>
               </tbody>
             </table>
@@ -185,13 +195,17 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import Footer from '@/components/footer.vue'
 import SidebarMenu from '@/components/SidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import avatarImg from '@/assets/avatar.png'
+import {
+  listWorkerOccurrencesInResolution,
+  resolveOccurrence,
+} from '@/services/occurrenceService'
 
 const router = useRouter()
 
@@ -255,6 +269,40 @@ const ocorrencias = ref([])
 // Rotas exclusivas do Trabalhador
 const rotas = ref([])
 
+function normalizeOccurrenceRow(occurrence) {
+  return {
+    id: occurrence.id,
+    status: occurrence.situacao || 'Em resolução',
+    statusClass: occurrence.statusClass || 'em-resolucao',
+    tipo: occurrence.tipo || 'Ocorrência',
+    local: occurrence.location || occurrence.detalhes || '-',
+  }
+}
+
+async function loadOccurrencesInResolution() {
+  try {
+    const data = await listWorkerOccurrencesInResolution()
+    ocorrencias.value = data.map(normalizeOccurrenceRow)
+  } catch {
+    ocorrencias.value = []
+  }
+}
+
+async function markAsResolved(occurrence) {
+  const confirmed = window.confirm(`Marcar a ocorrência ${occurrence.id} como resolvida?`)
+  if (!confirmed) return
+
+  try {
+    await resolveOccurrence(occurrence.id, {
+      estado: 'Resolvido',
+      dataResolucao: new Date().toISOString(),
+    })
+    await loadOccurrencesInResolution()
+  } catch (error) {
+    alert(error?.message || 'Não foi possível marcar a ocorrência como resolvida.')
+  }
+}
+
 // Logout do Operador
 const showLogoutModal = ref(false)
 function handleLogout() {
@@ -271,6 +319,10 @@ function handleLogout() {
   showLogoutModal.value = false
   router.replace({ name: 'login' })
 }
+
+onMounted(() => {
+  loadOccurrencesInResolution()
+})
 </script>
 
 <style scoped>
@@ -537,6 +589,31 @@ function handleLogout() {
 .occ-table td {
   padding: 15px;
   border-bottom: 1px solid #f1f5f9;
+}
+.actions-cell {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.details-link {
+  color: #0f766e;
+  font-weight: 700;
+  text-decoration: none;
+}
+.resolve-btn {
+  background: #730000;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.empty-state {
+  text-align: center;
+  color: #64748b;
+  font-weight: 600;
 }
 
 /* BADGES DE ESTADO EXCLUSIVOS */

@@ -3,7 +3,21 @@ function isAuthenticated() {
 }
 
 function getAccountRoute() {
-  return isAuthenticated() ? '/conta' : '/login'
+  const role = getAuthUserType()
+
+  if (!isAuthenticated()) {
+    return '/login'
+  }
+
+  if (role === 'trabalhador' || role === 'trabalhador_admin') {
+    return '/trabalhador/perfil'
+  }
+
+  if (role === 'trabalhador_responsavel' || role === 'responsavel') {
+    return '/responsavel/perfil'
+  }
+
+  return '/conta'
 }
 
 function getNewOccurrenceRoute() {

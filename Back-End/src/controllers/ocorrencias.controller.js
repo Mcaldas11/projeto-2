@@ -88,6 +88,18 @@ const uploadToCloudinary = (file, folder) =>
 
 const DEFAULT_ESTADO = "À espera da equipa";
 
+const normalizeWorkerType = (userType) =>
+  typeof userType === "string" && userType.startsWith("trabalhador");
+
+const mapOcorrenciasWithFotos = (ocorrencias) =>
+  ocorrencias.map((ocorrencia) => {
+    const fotos = normalizeFotosField(ocorrencia.foto).map((foto) => foto.url);
+    return {
+      ...ocorrencia.toJSON(),
+      foto: buildFotosComIndice(fotos),
+    };
+  });
+
 export const getAllOcorrencias = async (req, res, next) => {
   try {
     const ocorrencias = await Ocorrencia.findAll();
@@ -193,7 +205,7 @@ export const getOcorrenciasForCidadao = async (req, res, next) => {
 
 export const getOcorrenciasResolvidasForTrabalhador = async (req, res, next) => {
   try {
-    if (!req.userData || !req.userData.userType || !req.userData.userType.startsWith("trabalhador")) {
+    if (!req.userData || !normalizeWorkerType(req.userData.userType)) {
       return res.status(403).json({ message: "Forbidden" });
     }
 
@@ -207,15 +219,8 @@ export const getOcorrenciasResolvidasForTrabalhador = async (req, res, next) => 
     }
 
     const ocorrencias = await Ocorrencia.findAll({ where: { idEquipa: trabalhador.idEquipa } });
-    const data = ocorrencias
+    const data = mapOcorrenciasWithFotos(ocorrencias)
       .filter((ocorrencia) => ocorrencia.dataResolucao)
-      .map((ocorrencia) => {
-        const fotos = normalizeFotosField(ocorrencia.foto).map((foto) => foto.url);
-        return {
-          ...ocorrencia.toJSON(),
-          foto: buildFotosComIndice(fotos),
-        };
-      })
       .sort((left, right) => {
         const leftDate = left.dataResolucao ? new Date(left.dataResolucao).getTime() : 0;
         const rightDate = right.dataResolucao ? new Date(right.dataResolucao).getTime() : 0;
@@ -225,6 +230,63 @@ export const getOcorrenciasResolvidasForTrabalhador = async (req, res, next) => 
     res.json(data);
   } catch (error) {
     next(genericError("Error fetching resolved ocorrencias for trabalhador"));
+  }
+};
+
+export const getOcorrenciasPendentesForTrabalhador = async (req, res, next) => {
+  try {
+    if (!req.userData || !normalizeWorkerType(req.userData.userType)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const trabalhador = await Trabalhador.findByPk(req.userData.userId);
+    if (!trabalhador) {
+      return next(notFoundError("trabalhador", req.userData.userId));
+    }
+
+    const ocorrencias = await Ocorrencia.findAll({ where: { estado: DEFAULT_ESTADO } });
+    const data = mapOcorrenciasWithFotos(ocorrencias).sort((left, right) => {
+      const leftDate = left.dataOcorrencia ? new Date(left.dataOcorrencia).getTime() : 0;
+      const rightDate = right.dataOcorrencia ? new Date(right.dataOcorrencia).getTime() : 0;
+      return rightDate - leftDate;
+    });
+
+    res.json(data);
+  } catch (error) {
+    next(genericError("Error fetching pending ocorrencias for trabalhador"));
+  }
+};
+
+export const getOcorrenciasEmResolucaoForTrabalhador = async (req, res, next) => {
+  try {
+    if (!req.userData || !normalizeWorkerType(req.userData.userType)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const trabalhador = await Trabalhador.findByPk(req.userData.userId);
+    if (!trabalhador) {
+      return next(notFoundError("trabalhador", req.userData.userId));
+    }
+
+    if (!trabalhador.idEquipa) {
+      return res.json([]);
+    }
+
+    const ocorrencias = await Ocorrencia.findAll({ where: { idEquipa: trabalhador.idEquipa } });
+    const data = mapOcorrenciasWithFotos(ocorrencias)
+      .filter((ocorrencia) => {
+        const estado = String(ocorrencia.estado || ocorrencia.situacao || "").toLowerCase();
+        return !ocorrencia.dataResolucao && estado !== DEFAULT_ESTADO.toLowerCase();
+      })
+      .sort((left, right) => {
+        const leftDate = left.dataAgendada ? new Date(left.dataAgendada).getTime() : 0;
+        const rightDate = right.dataAgendada ? new Date(right.dataAgendada).getTime() : 0;
+        return rightDate - leftDate;
+      });
+
+    res.json(data);
+  } catch (error) {
+    next(genericError("Error fetching ocorrencias em resolucao for trabalhador"));
   }
 };
 
@@ -322,7 +384,7 @@ export const resolveOcorrenciaByEquipa = async (req, res, next) => {
     const { id } = req.params;
 
     // Only trabalhadores (including admin) can resolve occurrences
-    if (!req.userData || !req.userData.userType || !req.userData.userType.startsWith("trabalhador")) {
+    if (!req.userData || !normalizeWorkerType(req.userData.userType)) {
       return res.status(403).json({
         message: "Forbidden: only trabalhadores can resolve ocorrencias",
       });
@@ -336,9 +398,22 @@ export const resolveOcorrenciaByEquipa = async (req, res, next) => {
         .json({ message: "Forbidden: trabalhador not found" });
     }
 
+    if (!trabalhador.idEquipa) {
+      return res.status(400).json({ message: "Forbidden: trabalhador sem equipa" });
+    }
+
     const ocorrencia = await Ocorrencia.findByPk(id);
     if (!ocorrencia) {
       return next(notFoundError("ocorrencia", id));
+    }
+
+    if (
+      ocorrencia.idEquipa &&
+      Number(ocorrencia.idEquipa) !== Number(trabalhador.idEquipa)
+    ) {
+      return res.status(403).json({
+        message: "Forbidden: ocorrencia atribuida a outra equipa",
+      });
     }
 
     // Determine allowed fields to update by equipa
@@ -348,7 +423,11 @@ export const resolveOcorrenciaByEquipa = async (req, res, next) => {
     if (dataAgendada !== undefined) updates.dataAgendada = dataAgendada;
     if (feedback !== undefined) updates.feedback = feedback;
     if (dataResolucao !== undefined) updates.dataResolucao = dataResolucao;
-    if (estado !== undefined) updates.estado = estado;
+    updates.estado = typeof estado === "string" && estado.trim() ? estado.trim() : "Em resolução";
+
+    if (updates.estado === "Resolvido" && updates.dataResolucao == null) {
+      updates.dataResolucao = new Date();
+    }
 
     // Assign equipa if not already set
     if (!ocorrencia.idEquipa && trabalhador.idEquipa) {

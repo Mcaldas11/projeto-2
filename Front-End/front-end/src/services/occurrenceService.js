@@ -33,7 +33,12 @@ async function listOccurrences() {
   }
 
   const userType = getAuthUserType()
-  const endpoint = userType === 'cidadao' ? '/cidadaos/me/ocorrencias' : '/ocorrencias'
+  const isWorker = userType.startsWith('trabalhador') || userType === 'responsavel'
+  const endpoint = userType === 'cidadao'
+    ? '/cidadaos/me/ocorrencias'
+    : isWorker
+      ? '/trabalhadores/me/ocorrencias'
+      : '/ocorrencias'
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     headers: buildAuthHeaders(),
@@ -63,6 +68,45 @@ async function getOccurrence(occurrenceId) {
 
   const data = await response.json()
   return backendOccurrenceToUi(data)
+}
+
+async function resolveOccurrence(occurrenceId, payload) {
+  if (!API_BASE_URL) {
+    throw new Error('Define VITE_API_URL para atualizar ocorrências na base de dados.')
+  }
+
+  const response = await fetch(`${API_BASE_URL}/ocorrencias/${occurrenceId}/resolve`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...buildAuthHeaders(),
+    },
+    body: JSON.stringify(payload || {}),
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to resolve occurrence in backend')
+  }
+
+  const data = await response.json()
+  return backendOccurrenceToUi(data)
+}
+
+async function listWorkerOccurrencesInResolution() {
+  if (!API_BASE_URL) {
+    throw new Error('Define VITE_API_URL para carregar as ocorrências em resolução.')
+  }
+
+  const response = await fetch(`${API_BASE_URL}/trabalhadores/me/ocorrencias/em-resolucao`, {
+    headers: buildAuthHeaders(),
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to load in-progress occurrences from backend')
+  }
+
+  const data = await response.json()
+  return Array.isArray(data) ? data.map((occurrence) => backendOccurrenceToUi(occurrence)) : []
 }
 
 async function createOccurrence(payload, files = null) {
@@ -142,4 +186,12 @@ async function listOccurrenceMarkers() {
   }))
 }
 
-export { listOccurrences, getOccurrence, createOccurrence, listOccurrenceMarkers, API_BASE_URL }
+export {
+  listOccurrences,
+  getOccurrence,
+  createOccurrence,
+  resolveOccurrence,
+  listWorkerOccurrencesInResolution,
+  listOccurrenceMarkers,
+  API_BASE_URL,
+}

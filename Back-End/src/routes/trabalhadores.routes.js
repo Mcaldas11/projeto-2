@@ -45,7 +45,17 @@ router.put(
 router.get(
   "/me/ocorrencias",
   authMiddleware,
+  ocorrenciasControllers.getOcorrenciasPendentesForTrabalhador,
+);
+router.get(
+  "/me/ocorrencias/resolvidas",
+  authMiddleware,
   ocorrenciasControllers.getOcorrenciasResolvidasForTrabalhador,
+);
+router.get(
+  "/me/ocorrencias/em-resolucao",
+  authMiddleware,
+  ocorrenciasControllers.getOcorrenciasEmResolucaoForTrabalhador,
 );
 
 router.get(

@@ -89,6 +89,16 @@
               <p><strong>Localização:</strong><br />{{ occurrenceLocation }}</p>
               <p><strong>Descrição:</strong><br />{{ occurrenceDescription }}</p>
 
+              <p v-if="selectedOccurrence.dataAgendada">
+                <strong>Data agendada:</strong><br />{{ formatDateTime(selectedOccurrence.dataAgendada) }}
+              </p>
+              <p v-if="selectedOccurrence.dataResolucao">
+                <strong>Data de resolução:</strong><br />{{ formatDateTime(selectedOccurrence.dataResolucao) }}
+              </p>
+              <p v-if="selectedOccurrence.feedback">
+                <strong>Feedback:</strong><br />{{ selectedOccurrence.feedback }}
+              </p>
+
               <div class="reporter-info">
                 <p><strong>Reportado por:</strong></p>
                 <div class="user-chip">
@@ -98,6 +108,45 @@
               </div>
               <div v-if="isWorker" class="worker-actions">
                 <button class="report-btn" @click="reportError">Reportar Erro</button>
+                <button class="report-btn report-btn-secondary" @click="toggleResolveForm">
+                  {{ resolveFormOpen ? 'Fechar resolução' : 'Resolver Ocorrência' }}
+                </button>
+              </div>
+
+              <div v-if="isWorker && resolveFormOpen" class="resolve-panel">
+                <div class="resolve-grid">
+                  <label>
+                    Estado
+                    <select v-model="resolveForm.estado" class="resolve-input">
+                      <option value="Em resolução">Em resolução</option>
+                      <option value="Resolvido">Resolvido</option>
+                    </select>
+                  </label>
+                  <label>
+                    Data agendada
+                    <input v-model="resolveForm.dataAgendada" type="datetime-local" class="resolve-input" />
+                  </label>
+                  <label>
+                    Data de resolução
+                    <input v-model="resolveForm.dataResolucao" type="datetime-local" class="resolve-input" />
+                  </label>
+                </div>
+
+                <label class="resolve-feedback-label">
+                  Feedback
+                  <textarea
+                    v-model="resolveForm.feedback"
+                    class="resolve-textarea"
+                    placeholder="Deixa uma nota para a equipa ou para o cidadão"
+                  ></textarea>
+                </label>
+
+                <div class="resolve-actions">
+                  <button class="report-btn" :disabled="isSavingResolution" @click="submitResolution">
+                    {{ isSavingResolution ? 'A guardar...' : 'Guardar resolução' }}
+                  </button>
+                  <p v-if="resolveNotice" class="resolve-notice">{{ resolveNotice }}</p>
+                </div>
               </div>
             </div>
           </section>
@@ -112,21 +161,21 @@
           <div class="team-content">
             <div class="workers-list">
               <p><strong>Trabalhadores alocados:</strong></p>
-              <div class="workers-grid">
-                <div class="worker-card">
-                  <img src="@/assets/trabalhador1.png" alt="José Almeida" />
-                  <span>José Almeida</span>
-                </div>
-                <div class="worker-card">
-                  <img src="@/assets/trabalhador2.png" alt="Nuno Martins" />
-                  <span>Nuno Martins</span>
+              <div v-if="selectedOccurrence.idEquipa && teamWorkers.length" class="workers-grid">
+                <div v-for="worker in teamWorkers" :key="worker.idTrabalhador" class="worker-card">
+                  <img :src="worker.fotoPerfil || defaultWorkerAvatar" :alt="worker.nomeTrabalhador" />
+                  <span>{{ worker.nomeTrabalhador }}</span>
                 </div>
               </div>
+              <p v-else class="team-placeholder">
+                A equipa aparece depois de um trabalhador aceitar a ocorrência.
+              </p>
             </div>
 
             <div class="tech-info">
               <p><strong>Especialização:</strong> {{ specializationLabel }}</p>
               <p><strong>Freguesia:</strong> {{ occurrenceMunicipality }}</p>
+              <p v-if="selectedOccurrence.idEquipa"><strong>Equipa:</strong> {{ assignedTeamLabel }}</p>
             </div>
           </div>
         </section>
@@ -150,9 +199,9 @@ import notifOff from '@/assets/notificationsoff.png'
 import Footer from '@/components/footer.vue'
 import SidebarMenu from '@/components/SidebarMenu.vue'
 import { defaultOccurrenceAvatar } from '@/utils/occurrenceStorage'
-import { getOccurrence } from '@/services/occurrenceService'
+import { API_BASE_URL, getOccurrence, resolveOccurrence } from '@/services/occurrenceService'
 import { getOccurrenceTypeMeta } from '@/utils/occurrenceTypes'
-import { getNewOccurrenceRoute } from '@/utils/auth'
+import { getAuthUserType, getNewOccurrenceRoute } from '@/utils/auth'
 
 const showNotif = ref(false)
 const showMenu = ref(false)
@@ -161,13 +210,42 @@ const notifIcon = ref(null)
 const menuPanel = ref(null)
 const menuIcon = ref(null)
 const route = useRoute()
-const isWorker = ref(localStorage.getItem('role') === 'trabalhador')
+const isWorker = computed(() => {
+  const userType = getAuthUserType()
+  return userType.startsWith('trabalhador') || userType === 'responsavel'
+})
 const newOccurrenceRoute = computed(() => getNewOccurrenceRoute())
 
 const selectedOccurrence = ref(null)
+const teamWorkers = ref([])
+const assignedTeamLabel = ref('')
+const resolveFormOpen = ref(false)
+const isSavingResolution = ref(false)
+const resolveNotice = ref('')
+const resolveForm = ref({
+  estado: 'Em resolução',
+  dataAgendada: '',
+  dataResolucao: '',
+  feedback: '',
+})
 
 async function loadOccurrence() {
   selectedOccurrence.value = await getOccurrence(route.params.id)
+  resolveNotice.value = ''
+
+  if (!selectedOccurrence.value?.idEquipa) {
+    teamWorkers.value = []
+    assignedTeamLabel.value = ''
+    return
+  }
+
+  await loadTeamDetails(selectedOccurrence.value.idEquipa)
+  resolveForm.value = {
+    estado: selectedOccurrence.value.situacao || 'Em resolução',
+    dataAgendada: toLocalDateTimeInput(selectedOccurrence.value.dataAgendada),
+    dataResolucao: toLocalDateTimeInput(selectedOccurrence.value.dataResolucao),
+    feedback: selectedOccurrence.value.feedback || '',
+  }
 }
 
 const occurrenceTitle = computed(() => {
@@ -187,12 +265,56 @@ const occurrenceMunicipality = computed(
   () => selectedOccurrence.value?.municipio || selectedOccurrence.value?.freguesia || '',
 )
 const specializationLabel = computed(() => {
-  const type = selectedOccurrence.value?.tipo || ''
-  if (type.toLowerCase().includes('ilum')) return 'Electricista'
-  if (type.toLowerCase().includes('estrada')) return 'Obras e manutenção'
-  if (type.toLowerCase().includes('higiene')) return 'Limpeza urbana'
-  return 'Manutenção geral'
+  if (assignedTeamLabel.value) return assignedTeamLabel.value
+  return 'A aguardar atribuição'
 })
+
+function toLocalDateTimeInput(value) {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+
+  const offset = date.getTimezoneOffset() * 60000
+  return new Date(date.getTime() - offset).toISOString().slice(0, 16)
+}
+
+function formatDateTime(value) {
+  if (!value) return '-'
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '-'
+
+  return date.toLocaleString('pt-PT', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  })
+}
+
+async function fetchJson(path) {
+  const response = await fetch(`${API_BASE_URL}${path}`)
+  if (!response.ok) {
+    throw new Error(`Falha ao carregar ${path}`)
+  }
+
+  return response.json()
+}
+
+async function loadTeamDetails(teamId) {
+  try {
+    const [team, workers] = await Promise.all([
+      fetchJson(`/equipas/${teamId}`),
+      fetchJson('/trabalhadores'),
+    ])
+
+    assignedTeamLabel.value = team?.especializacao || ''
+    teamWorkers.value = Array.isArray(workers)
+      ? workers.filter((worker) => Number(worker.idEquipa) === Number(teamId))
+      : []
+  } catch {
+    assignedTeamLabel.value = ''
+    teamWorkers.value = []
+  }
+}
 
 // ─── Galeria dinâmica — usa as fotos reais da ocorrência ─────────────────────
 const gallery = ref([])
@@ -223,6 +345,42 @@ watch(
 const reporterAvatar = computed(
   () => selectedOccurrence.value?.userImg || defaultOccurrenceAvatar,
 )
+
+function toggleResolveForm() {
+  resolveNotice.value = ''
+  resolveFormOpen.value = !resolveFormOpen.value
+}
+
+async function submitResolution() {
+  if (!selectedOccurrence.value) return
+
+  isSavingResolution.value = true
+  resolveNotice.value = ''
+
+  try {
+    const payload = {
+      estado: resolveForm.value.estado,
+      dataAgendada: resolveForm.value.dataAgendada || null,
+      dataResolucao: resolveForm.value.dataResolucao || null,
+      feedback: resolveForm.value.feedback || '',
+    }
+
+    const updatedOccurrence = await resolveOccurrence(selectedOccurrence.value.id, payload)
+    selectedOccurrence.value = updatedOccurrence
+
+    if (updatedOccurrence?.idEquipa) {
+      await loadTeamDetails(updatedOccurrence.idEquipa)
+    }
+
+    resolveForm.value.estado = updatedOccurrence?.situacao || resolveForm.value.estado
+    resolveNotice.value = 'Ocorrência atualizada com sucesso.'
+    resolveFormOpen.value = false
+  } catch (error) {
+    resolveNotice.value = error?.message || 'Não foi possível atualizar a ocorrência.'
+  } finally {
+    isSavingResolution.value = false
+  }
+}
 
 const notifications = ref([])
 
@@ -501,6 +659,12 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   align-items: center;
   gap: 12px;
 }
+.team-content {
+  display: grid;
+  grid-template-columns: 1fr 0.8fr;
+  gap: 28px;
+  margin-top: 18px;
+}
 .team-icon {
   background: #c2d9d3;
   padding: 8px;
@@ -508,10 +672,18 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   width: 44px;
   height: 44px;
 }
+.workers-list,
+.tech-info {
+  background: #ffffff;
+  border: 1px solid #f1f5f9;
+  border-radius: 16px;
+  padding: 18px;
+}
 .workers-grid {
   display: flex;
   gap: 30px;
   margin-top: 15px;
+  flex-wrap: wrap;
 }
 .worker-card {
   display: flex;
@@ -523,8 +695,19 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   width: 60px;
   height: 60px;
   border-radius: 50%;
+  object-fit: cover;
 }
-.worker-actions { margin-top: 16px; }
+.team-placeholder {
+  color: #64748b;
+  font-size: 14px;
+  margin-top: 10px;
+}
+.worker-actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
 .report-btn {
   background: #730000;
   color: #fff;
@@ -534,11 +717,71 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   font-weight: 700;
   cursor: pointer;
 }
+.report-btn-secondary {
+  background: #ffffff;
+  color: #730000;
+  border: 1px solid #730000;
+}
+.resolve-panel {
+  margin-top: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px;
+  background: #f8fafc;
+}
+.resolve-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.resolve-grid label,
+.resolve-feedback-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+}
+.resolve-input,
+.resolve-textarea {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: inherit;
+}
+.resolve-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+.resolve-feedback-label {
+  margin-top: 12px;
+}
+.resolve-actions {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.resolve-notice {
+  color: #475569;
+  font-size: 14px;
+  margin: 0;
+}
 
 .not-found-state {
   text-align: center;
   padding: 80px 20px;
   color: #64748b;
+}
+
+@media (max-width: 900px) {
+  .main-details-grid,
+  .team-content,
+  .resolve-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .main-footer {

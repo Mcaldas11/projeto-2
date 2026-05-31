@@ -66,6 +66,9 @@
                     </router-link>
                   </td>
                 </tr>
+                <tr v-if="tasks.length === 0">
+                  <td colspan="3" class="empty-state">Sem ocorrências pendentes.</td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -106,27 +109,13 @@ import SidebarMenu from '@/components/SidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import workerFooterLogo from '@/assets/logoP.png'
+import { listOccurrences } from '@/services/occurrenceService'
 
 const showNotif = ref(false)
 const showMenu = ref(false)
 const notifications = ref([])
 
-const tasks = ref([
-  {
-    id: 104,
-    status: 'Não Resolvido',
-    statusClass: 'nao-resolvida',
-    type: 'Parques e Jardins',
-    typeClass: 'type-green',
-  },
-  {
-    id: 105,
-    status: 'Em Resolução',
-    statusClass: 'em-resolucao',
-    type: 'Parques e Jardins',
-    typeClass: 'type-green',
-  },
-])
+const tasks = ref([])
 
 // Refs para fechar ao clicar fora
 const notifPanel = ref(null)
@@ -178,6 +167,13 @@ function handleDocClick(e) {
 }
 
 onMounted(() => document.addEventListener('click', handleDocClick))
+onMounted(async () => {
+  try {
+    tasks.value = await listOccurrences()
+  } catch {
+    tasks.value = []
+  }
+})
 onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
 </script>
 
@@ -351,6 +347,12 @@ h2 {
   width: 28px;
   height: 28px;
   cursor: pointer;
+}
+
+.empty-state {
+  text-align: center;
+  color: #6b7280;
+  font-weight: 600;
 }
 
 /* MAP REPRESENTATION */
