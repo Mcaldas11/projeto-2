@@ -1,6 +1,7 @@
 import "./config/env.js";
 
 import express from "express";
+import cors from 'cors';
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -18,17 +19,17 @@ const app = express();
 
 app.use(express.json());
 
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+// CORS: use the cors package for clearer, configurable handling
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production'
+    ? 'https://yourapp.com'
+    : process.env.CORS_ORIGIN || 'http://localhost:5173',
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+}
 
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(204)
-  }
-
-  next()
-})
+app.use(cors(corsOptions))
 
 // Serve uploaded files
 app.use("/uploads", express.static(path.join(__dirname, '..', 'uploads')));
