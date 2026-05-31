@@ -65,7 +65,7 @@ async function getOccurrence(occurrenceId) {
   return backendOccurrenceToUi(data)
 }
 
-async function createOccurrence(payload) {
+async function createOccurrence(payload, files = null) {
   if (!API_BASE_URL) {
     throw new Error('Define VITE_API_URL para criar ocorrências na base de dados.')
   }
@@ -95,6 +95,38 @@ async function createOccurrence(payload) {
   }
 
   const data = await response.json()
+
+  // If files were provided, upload them to the ocorrencia fotos endpoint
+  try {
+    const occurrenceId = data.idOcorrencia ?? data.id
+    if (files && files.length && occurrenceId) {
+      const form = new FormData()
+      // files can be a FileList or Array
+      for (const f of Array.from(files)) {
+        form.append('files', f)
+      }
+
+      const uploadResponse = await fetch(`${API_BASE_URL}/ocorrencias/${occurrenceId}/fotos`, {
+        method: 'POST',
+        headers: buildAuthHeaders(),
+        body: form,
+      })
+
+      if (!uploadResponse.ok) {
+        // do not fail the whole flow, but log
+        console.warn('Failed to upload occurrence fotos')
+      } else {
+        // merge fotos into returned occurrence object if needed
+        const uploadPayload = await uploadResponse.json().catch(() => null)
+        if (uploadPayload && uploadPayload.foto) {
+          data.foto = uploadPayload.foto
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('Error uploading fotos after creating ocorrencia', e)
+  }
+
   return backendOccurrenceToUi(data)
 }
 
