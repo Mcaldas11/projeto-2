@@ -205,7 +205,7 @@
       </div>
     </div>
 
-    <Footer />
+    <Footer :columns="workerFooterColumns" />
   </div>
 </template>
 
@@ -223,6 +223,15 @@ import {
   listWorkerOccurrencesInResolution,
   resolveOccurrence,
 } from '@/services/occurrenceService'
+
+const workerFooterColumns = [
+  [
+    { label: 'Home', to: '/trabalhador' },
+    { label: 'Ocorrências', to: '/ocorrencias' },
+    { label: 'Perfil', to: '/trabalhador/perfil' },
+  ],
+  [{ label: 'Sobre', to: '/sobre' }],
+]
 
 const router = useRouter()
 

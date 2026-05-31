@@ -21,18 +21,7 @@
 <script setup>
 import { computed } from 'vue'
 import defaultLogo from '@/assets/logo.svg'
-
-const defaultColumns = [
-    [
-        { label: 'Home', to: '/' },
-        { label: 'Ocorrências', to: '/ocorrencias' },
-        { label: 'Mapa Ocorrências', to: '/ocorrencias' },
-    ],
-    [
-        { label: 'Sobre', to: '/sobre' },
-        { label: 'Conta', to: '/conta' },
-    ],
-]
+import { getAccountRoute } from '@/utils/auth'
 
 const props = defineProps({
     columns: {
@@ -45,8 +34,34 @@ const props = defineProps({
     },
 })
 
+const roleAwareDefaultColumns = computed(() => {
+    const role = localStorage.getItem('role') || ''
+
+    const homeRouteByRole = {
+        admin: '/admin',
+        trabalhador: '/trabalhador',
+        responsavel: '/responsavel/perfil',
+    }
+
+    const homeRoute = homeRouteByRole[role] || '/'
+    const accountLabel = role === 'cidadao' || !role ? 'Conta' : 'Perfil'
+    const accountRoute = role === 'cidadao' || !role ? '/conta' : getAccountRoute()
+
+    return [
+        [
+            { label: 'Home', to: homeRoute },
+            { label: 'Ocorrências', to: '/ocorrencias' },
+            { label: 'Mapa Ocorrências', to: '/ocorrencias' },
+        ],
+        [
+            { label: 'Sobre', to: '/sobre' },
+            { label: accountLabel, to: accountRoute },
+        ],
+    ]
+})
+
 const resolvedColumns = computed(() =>
-    Array.isArray(props.columns) && props.columns.length ? props.columns : defaultColumns,
+    Array.isArray(props.columns) && props.columns.length ? props.columns : roleAwareDefaultColumns.value,
 )
 const resolvedLogoSrc = computed(() => props.logoSrc || defaultLogo)
 </script>

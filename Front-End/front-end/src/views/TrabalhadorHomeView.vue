@@ -97,7 +97,7 @@
       </div>
     </main>
 
-    <Footer :logo-src="workerFooterLogo" />
+    <Footer :columns="workerFooterColumns" :logo-src="workerFooterLogo" />
   </div>
 </template>
 
@@ -110,6 +110,15 @@ import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import workerFooterLogo from '@/assets/logoP.png'
 import { listOccurrences } from '@/services/occurrenceService'
+
+const workerFooterColumns = [
+  [
+    { label: 'Home', to: '/trabalhador' },
+    { label: 'Ocorrências', to: '/ocorrencias' },
+    { label: 'Perfil', to: '/trabalhador/perfil' },
+  ],
+  [{ label: 'Sobre', to: '/sobre' }],
+]
 
 const showNotif = ref(false)
 const showMenu = ref(false)

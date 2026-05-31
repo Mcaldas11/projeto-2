@@ -159,7 +159,7 @@
       </div>
     </div>
 
-    <Footer />
+    <Footer :columns="responsavelFooterColumns" />
   </div>
 </template>
 
@@ -172,6 +172,18 @@ import notifOff from '@/assets/notificationsoff.png'
 import avatarImg from '@/assets/avatar.png'
 import { getAuthToken } from '@/utils/auth'
 import SidebarMenu from '@/components/SidebarMenu.vue'
+
+const responsavelFooterColumns = [
+  [
+    { label: 'Home', to: '/responsavel/perfil' },
+    { label: 'Ocorrências', to: '/ocorrencias' },
+    { label: 'Rotas', to: '/responsavel/rotas' },
+  ],
+  [
+    { label: 'Perfil', to: '/responsavel/perfil' },
+    { label: 'Sobre', to: '/sobre' },
+  ],
+]
 
 const router = useRouter()
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
