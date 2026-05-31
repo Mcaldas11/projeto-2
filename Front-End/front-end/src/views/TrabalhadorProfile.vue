@@ -230,7 +230,6 @@ const workerFooterColumns = [
     { label: 'Ocorrências', to: '/ocorrencias' },
     { label: 'Perfil', to: '/trabalhador/perfil' },
   ],
-  [{ label: 'Sobre', to: '/sobre' }],
 ]
 
 const router = useRouter()

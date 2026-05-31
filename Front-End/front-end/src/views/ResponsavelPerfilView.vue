@@ -181,7 +181,6 @@ const responsavelFooterColumns = [
   ],
   [
     { label: 'Perfil', to: '/responsavel/perfil' },
-    { label: 'Sobre', to: '/sobre' },
   ],
 ]
 

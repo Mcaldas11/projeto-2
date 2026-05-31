@@ -186,7 +186,6 @@ const adminFooterColumns = [
     { label: 'Equipas', to: '/admin/equipas' },
     { label: 'Funcionarios', to: '/admin/trabalhadores' },
   ],
-  [{ label: 'Sobre', to: '/sobre' }],
 ]
 
 const showNotif = ref(false)

@@ -54,7 +54,6 @@ const roleAwareDefaultColumns = computed(() => {
             { label: 'Mapa Ocorrências', to: '/ocorrencias' },
         ],
         [
-            { label: 'Sobre', to: '/sobre' },
             { label: accountLabel, to: accountRoute },
         ],
     ]
