@@ -154,7 +154,10 @@
         </div>
       </section>
 
-      <button class="btn-logout" @click="showLogoutModal = true">Terminar Sessão</button>
+      <div class="account-actions-row">
+        <button class="btn-logout half-button" @click="showLogoutModal = true">Terminar Sessão</button>
+        <button class="btn-delete-account half-button" @click="showDeleteModal = true">Apagar conta</button>
+      </div>
     </main>
 
     <!-- MODAL: EDITAR PERFIL (MATRICULADO NO SEU DESIGN NOVO) -->
@@ -190,6 +193,18 @@
       </div>
     </div>
 
+    <!-- MODAL: APAGAR CONTA -->
+    <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
+      <div class="modal-card confirmation-card">
+        <h3>Apagar conta</h3>
+        <p>Esta ação elimina a conta e a foto de perfil do Cloudinary. Queres continuar?</p>
+        <div class="modal-actions">
+          <button class="modal-btn cancel" @click="showDeleteModal = false">Cancelar</button>
+          <button class="modal-btn confirm" @click="handleDeleteAccount">Sim, apagar</button>
+        </div>
+      </div>
+    </div>
+
     <Footer />
   </div>
 </template>
@@ -202,7 +217,9 @@ import SidebarMenu from '@/components/SidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import avatarImg from '@/assets/avatar.png'
+import { getAuthUserId } from '@/utils/auth'
 import {
+  API_BASE_URL,
   listWorkerOccurrencesInResolution,
   resolveOccurrence,
 } from '@/services/occurrenceService'
@@ -269,6 +286,8 @@ const ocorrencias = ref([])
 // Rotas exclusivas do Trabalhador
 const rotas = ref([])
 
+const showDeleteModal = ref(false)
+
 function normalizeOccurrenceRow(occurrence) {
   return {
     id: occurrence.id,
@@ -300,6 +319,34 @@ async function markAsResolved(occurrence) {
     await loadOccurrencesInResolution()
   } catch (error) {
     alert(error?.message || 'Não foi possível marcar a ocorrência como resolvida.')
+  }
+}
+
+async function handleDeleteAccount() {
+  const trabalhadorId = getAuthUserId()
+  const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken')
+
+  if (!API_BASE_URL || !trabalhadorId || !token) {
+    alert('Não foi possível apagar a conta.')
+    return
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/trabalhadores/${trabalhadorId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    if (!response.ok && response.status !== 204) {
+      throw new Error('Falha ao apagar a conta.')
+    }
+
+    showDeleteModal.value = false
+    handleLogout()
+  } catch (error) {
+    alert(error?.message || 'Não foi possível apagar a conta.')
   }
 }
 
@@ -681,7 +728,6 @@ onMounted(() => {
 .btn-logout {
   width: 100%;
   padding: 16px;
-  margin-top: 50px;
   background: #ff383c;
   color: #fff;
   border: none;
@@ -694,6 +740,30 @@ onMounted(() => {
     transform 0.2s ease,
     box-shadow 0.2s ease,
     background 0.2s ease;
+}
+
+.btn-delete-account {
+  width: 100%;
+  padding: 16px;
+  background: #ffffff;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+  border-radius: 12px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.account-actions-row {
+  display: flex;
+  gap: 14px;
+  margin-top: 50px;
+}
+
+.half-button {
+  flex: 1;
+  min-width: 0;
 }
 .btn-logout:hover {
   transform: translateY(-2px);

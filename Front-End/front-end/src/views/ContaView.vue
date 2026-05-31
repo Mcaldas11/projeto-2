@@ -111,7 +111,10 @@
         </div>
       </section>
 
-      <button class="btn-logout" @click="showLogoutModal = true">Terminar Sessão</button>
+      <div class="account-actions-row">
+        <button class="btn-logout half-button" @click="showLogoutModal = true">Terminar Sessão</button>
+        <button class="btn-delete-account half-button" @click="showDeleteModal = true">Apagar conta</button>
+      </div>
     </main>
 
     <!-- Edit Profile Modal -->
@@ -141,6 +144,18 @@
         <div class="modal-actions">
           <button class="modal-btn cancel" @click="showLogoutModal = false">Cancelar</button>
           <button class="modal-btn confirm" @click="handleLogout">Sim, sair</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Account Confirmation Modal -->
+    <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
+      <div class="modal-card confirmation-card">
+        <h3>Apagar conta</h3>
+        <p>Esta ação elimina a conta, a foto de perfil e os dados associados. Queres continuar?</p>
+        <div class="modal-actions">
+          <button class="modal-btn cancel" @click="showDeleteModal = false">Cancelar</button>
+          <button class="modal-btn confirm" @click="handleDeleteAccount">Sim, apagar</button>
         </div>
       </div>
     </div>
@@ -176,7 +191,7 @@ import SidebarMenu from '@/components/SidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import { listOccurrences } from '@/services/occurrenceService'
-import { listFreguesias } from '@/services/municipalityService'
+import { API_BASE_URL, listFreguesias } from '@/services/municipalityService'
 import { getNewOccurrenceRoute } from '@/utils/auth'
 
 const showNotif = ref(false)
@@ -254,6 +269,35 @@ function handleSaveEdit() {
 
 // Dados das Ocorrências (Baseado na captura image_eb9c7e.png)
 const showLogoutModal = ref(false)
+const showDeleteModal = ref(false)
+
+async function handleDeleteAccount() {
+  const cidadaoId = localStorage.getItem('authUserId') || sessionStorage.getItem('authUserId')
+  const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken')
+
+  if (!API_BASE_URL || !cidadaoId || !token) {
+    alert('Não foi possível apagar a conta.')
+    return
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/cidadaos/${cidadaoId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    if (!response.ok && response.status !== 204) {
+      throw new Error('Falha ao apagar a conta.')
+    }
+
+    showDeleteModal.value = false
+    handleLogout()
+  } catch (error) {
+    alert(error?.message || 'Não foi possível apagar a conta.')
+  }
+}
 
 function handleLogout() {
   localStorage.removeItem('role')
@@ -641,10 +685,20 @@ onMounted(async () => {
 /* LOGOUT BUTTON */
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
 
+.account-actions-row {
+  display: flex;
+  gap: 14px;
+  margin-top: 50px;
+}
+
+.half-button {
+  flex: 1;
+  min-width: 0;
+}
+
 .btn-logout {
   width: 100%;
   padding: 16px;
-  margin-top: 50px;
   background: #ff383c;
   color: #fff;
   border: none;
@@ -657,6 +711,19 @@ onMounted(async () => {
     transform 0.2s ease,
     box-shadow 0.2s ease,
     background 0.2s ease;
+}
+
+.btn-delete-account {
+  width: 100%;
+  padding: 16px;
+  background: #ffffff;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+  border-radius: 12px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
 }
 
 .btn-logout:hover {
