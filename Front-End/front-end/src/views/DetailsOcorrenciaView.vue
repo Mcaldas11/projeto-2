@@ -49,8 +49,8 @@
         <div class="main-details-grid">
           <section class="image-gallery">
             <div class="main-image-container">
-              <img :src="activeImage" class="featured-image" :alt="occurrenceTypeLabel" />
-              <div class="gallery-nav">
+              <img :src="activeImage" class="featured-image" :alt="occurrenceTypeMeta.label" />
+              <div class="gallery-nav" v-if="gallery.length > 0">
                 <button @click="prevImg" :disabled="gallery.length < 2">‹</button>
                 <div class="thumbnails">
                   <img
@@ -63,6 +63,8 @@
                 </div>
                 <button @click="nextImg" :disabled="gallery.length < 2">›</button>
               </div>
+              <!-- Sem fotos -->
+              <p v-if="gallery.length === 0" class="no-photos">Sem fotografias disponíveis.</p>
             </div>
           </section>
 
@@ -71,7 +73,7 @@
               <img
                 :src="occurrenceTypeMeta.icon"
                 :alt="occurrenceTypeMeta.label"
-                class="icon-yellow icon-type"
+                class="icon-type"
                 :style="{ backgroundColor: occurrenceTypeMeta.backgroundColor }"
               />
               <h3>{{ occurrenceTypeMeta.label }}</h3>
@@ -79,7 +81,7 @@
 
             <div class="info-group">
               <p>
-                <strong>Status:</strong>
+                <strong>Estado:</strong>
                 <span :class="['status-badge', selectedOccurrence.statusClass]">{{
                   occurrenceStatus
                 }}</span>
@@ -132,7 +134,7 @@
 
       <div v-else class="not-found-state">
         <h2>Ocorrência não encontrada</h2>
-        <p>O registo selecionado já não está disponível.</p>
+        <p>O registo seleccionado já não está disponível.</p>
       </div>
     </main>
 
@@ -147,15 +149,11 @@ import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import Footer from '@/components/footer.vue'
 import SidebarMenu from '@/components/SidebarMenu.vue'
-import about1 from '@/assets/about1.png'
-import about2 from '@/assets/about2.png'
-import about3 from '@/assets/about3.png'
 import { defaultOccurrenceAvatar } from '@/utils/occurrenceStorage'
 import { getOccurrence } from '@/services/occurrenceService'
 import { getOccurrenceTypeMeta } from '@/utils/occurrenceTypes'
 import { getNewOccurrenceRoute } from '@/utils/auth'
 
-// Estados do Header
 const showNotif = ref(false)
 const showMenu = ref(false)
 const notifPanel = ref(null)
@@ -185,20 +183,46 @@ const occurrenceLocation = computed(
 const occurrenceDescription = computed(
   () => selectedOccurrence.value?.detalhes || 'Sem descrição disponível.',
 )
-const occurrenceMunicipality = computed(() => {
-  return selectedOccurrence.value?.municipio || selectedOccurrence.value?.freguesia || ''
-})
+const occurrenceMunicipality = computed(
+  () => selectedOccurrence.value?.municipio || selectedOccurrence.value?.freguesia || '',
+)
 const specializationLabel = computed(() => {
   const type = selectedOccurrence.value?.tipo || ''
-  if (type.toLowerCase().includes('ilum')) return 'Eletricista'
+  if (type.toLowerCase().includes('ilum')) return 'Electricista'
   if (type.toLowerCase().includes('estrada')) return 'Obras e manutenção'
   if (type.toLowerCase().includes('higiene')) return 'Limpeza urbana'
   return 'Manutenção geral'
 })
 
-const gallery = ref([about1, about2, about3])
-const activeImage = ref(about1)
-const reporterAvatar = computed(() => selectedOccurrence.value?.userImg || defaultOccurrenceAvatar)
+// ─── Galeria dinâmica — usa as fotos reais da ocorrência ─────────────────────
+const gallery = ref([])
+const activeImage = ref(null)
+
+watch(
+  selectedOccurrence,
+  (occurrence) => {
+    if (!occurrence) {
+      gallery.value = []
+      activeImage.value = null
+      return
+    }
+
+    // `photos` é o array completo; `image` é a primeira foto — ambos mapeados em backendOccurrenceToUi
+    const photos = Array.isArray(occurrence.photos) && occurrence.photos.length
+      ? occurrence.photos
+      : occurrence.image
+        ? [occurrence.image]
+        : []
+
+    gallery.value = photos
+    activeImage.value = photos[0] || null
+  },
+  { immediate: true },
+)
+
+const reporterAvatar = computed(
+  () => selectedOccurrence.value?.userImg || defaultOccurrenceAvatar,
+)
 
 const notifications = ref([])
 
@@ -207,32 +231,19 @@ const toggleNotif = (e) => {
   showNotif.value = !showNotif.value
   showMenu.value = false
 }
-
 const toggleMenu = (e) => {
   e.stopPropagation()
   showMenu.value = !showMenu.value
   showNotif.value = false
 }
-
 const removeNotif = (i) => notifications.value.splice(i, 1)
 
 watch(
-  selectedOccurrence,
-  (occurrence) => {
-    activeImage.value = occurrence?.image || gallery.value[0]
-  },
-  { immediate: true },
-)
-
-watch(
   () => route.params.id,
-  async () => {
-    await loadOccurrence()
-  },
+  async () => { await loadOccurrence() },
   { immediate: true },
 )
 
-// Fechar ao clicar fora
 function handleDocClick(e) {
   if (
     showNotif.value &&
@@ -261,9 +272,7 @@ const prevImg = () => {
   activeImage.value = gallery.value[(idx - 1 + gallery.value.length) % gallery.value.length]
 }
 const reportError = () => {
-  // placeholder action for reporting an error from worker
-  console.log('Reportar Erro clicked')
-  alert('Reportar Erro: ação simulada (só visível a trabalhadores)')
+  alert('Reportar Erro: acção simulada (só visível a trabalhadores)')
 }
 
 onMounted(() => document.addEventListener('click', handleDocClick))
@@ -278,7 +287,6 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   color: #1a1a1a;
 }
 
-/* NAVBAR (Styles da Home) */
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -314,7 +322,6 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   object-fit: contain;
 }
 
-/* MENU & NOTIFICAÇÕES (Styles da Home) */
 .hamburger-menu,
 .notifications {
   position: absolute;
@@ -346,13 +353,8 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   padding: 8px;
   width: 100%;
 }
-.menu-label {
-  font-size: 13px;
-}
-.menu-icon {
-  width: 14px;
-  height: 14px;
-}
+.menu-label { font-size: 13px; }
+.menu-icon { width: 14px; height: 14px; }
 .notif-item {
   background: #dff3ec;
   padding: 12px;
@@ -360,11 +362,8 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   cursor: pointer;
   margin-bottom: 8px;
 }
-.notif-title {
-  font-weight: 700;
-}
+.notif-title { font-weight: 700; }
 
-/* CONTEÚDO ESPECÍFICO */
 .content-wrapper {
   max-width: 1100px;
   margin: 40px auto;
@@ -406,7 +405,13 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   border-radius: 15px;
   height: 400px;
   object-fit: cover;
-  background: #000;
+  background: #e2e8f0;
+}
+.no-photos {
+  color: #94a3b8;
+  font-size: 14px;
+  text-align: center;
+  margin-top: 12px;
 }
 .gallery-nav {
   display: flex;
@@ -427,22 +432,12 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition:
-    background 0.15s ease,
-    transform 0.08s ease;
+  transition: background 0.15s ease, transform 0.08s ease;
   padding: 0;
 }
-.gallery-nav button:hover {
-  background: #f3f4f6;
-  transform: translateY(-1px);
-}
-.gallery-nav button:active {
-  transform: translateY(0);
-}
-.gallery-nav button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+.gallery-nav button:hover { background: #f3f4f6; transform: translateY(-1px); }
+.gallery-nav button:active { transform: translateY(0); }
+.gallery-nav button:disabled { opacity: 0.5; cursor: not-allowed; }
 .thumbnails img {
   width: 60px;
   height: 45px;
@@ -467,18 +462,12 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   gap: 10px;
   margin-bottom: 20px;
 }
-.icon-yellow {
-  background: #facc15;
-  padding: 8px;
-  border-radius: 8px;
-}
 .icon-type {
   width: 40px;
   height: 40px;
   object-fit: contain;
   padding: 6px;
   border-radius: 8px;
-  background: #facc15;
 }
 .status-badge {
   padding: 4px 12px;
@@ -486,10 +475,11 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   font-weight: bold;
   font-size: 13px;
 }
-.em-resolucao {
-  background: #fef9c3;
-  color: #ca8a04;
-}
+.resolvido    { background: #dff3ec; color: #059669; }
+.em-resolucao { background: #fef9c3; color: #ca8a04; }
+.espera       { background: #ffedd5; color: #ea580c; }
+.nao-resolvido{ background: #fee2e2; color: #dc2626; }
+
 .user-chip {
   display: flex;
   align-items: center;
@@ -506,13 +496,11 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   border-top: 1px solid #f1f5f9;
   padding-top: 30px;
 }
-
 .section-title {
   display: flex;
   align-items: center;
   gap: 12px;
 }
-
 .team-icon {
   background: #c2d9d3;
   padding: 8px;
@@ -536,10 +524,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   height: 60px;
   border-radius: 50%;
 }
-
-.worker-actions {
-  margin-top: 16px;
-}
+.worker-actions { margin-top: 16px; }
 .report-btn {
   background: #730000;
   color: #fff;
@@ -550,7 +535,12 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   cursor: pointer;
 }
 
-/* FOOTER (Styles da Home) */
+.not-found-state {
+  text-align: center;
+  padding: 80px 20px;
+  color: #64748b;
+}
+
 .main-footer {
   padding: 60px 80px;
   background-color: #f5f1e9;
@@ -559,26 +549,9 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   align-items: flex-end;
   margin-top: 60px;
 }
-.footer-links {
-  display: flex;
-  gap: 60px;
-}
-.col {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.col a {
-  text-decoration: none;
-  color: #2d5a27;
-  font-weight: 600;
-}
-.logo-img-small {
-  height: 80px;
-}
-.copyright {
-  font-size: 0.8rem;
-  color: #888;
-  margin-top: 10px;
-}
+.footer-links { display: flex; gap: 60px; }
+.col { display: flex; flex-direction: column; gap: 10px; }
+.col a { text-decoration: none; color: #2d5a27; font-weight: 600; }
+.logo-img-small { height: 80px; }
+.copyright { font-size: 0.8rem; color: #888; margin-top: 10px; }
 </style>
