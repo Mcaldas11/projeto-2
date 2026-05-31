@@ -495,6 +495,7 @@ onBeforeUnmount(() => {
 .dashboard-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  grid-template-areas: 'route tasks';
   gap: 28px;
   align-items: start;
 }
@@ -507,6 +508,14 @@ onBeforeUnmount(() => {
   padding: 18px;
   background: #fff;
   box-shadow: 0 8px 28px rgba(2, 8, 20, 0.03);
+}
+
+.tasks-section {
+  grid-area: tasks;
+}
+
+.route-section {
+  grid-area: route;
 }
 
 /* SECTIONS COMMON */
@@ -912,6 +921,9 @@ h2 {
 @media (max-width: 1024px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
+    grid-template-areas:
+      'tasks'
+      'route';
   }
 
   .team-info-grid,
@@ -931,6 +943,9 @@ h2 {
 @media (max-width: 1280px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
+    grid-template-areas:
+      'tasks'
+      'route';
   }
 }
 </style>
