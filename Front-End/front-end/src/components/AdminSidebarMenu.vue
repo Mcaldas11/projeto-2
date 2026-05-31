@@ -29,13 +29,35 @@
             <span class="sidebar-label">Freguesias</span>
             <img src="@/assets/workers_icon.svg" alt="Freguesias" class="sidebar-icon" />
           </router-link>
+
+        </div>
+
+        <div class="sidebar-bottom">
+          <button type="button" class="sidebar-item sidebar-logout" @click="showLogoutModal = true">
+            <span class="sidebar-label">Terminar Sessão</span>
+            <img src="@/assets/notificationsoff.png" alt="terminar sessao" class="sidebar-icon" />
+          </button>
         </div>
       </div>
     </Transition>
+
+    <div v-if="showLogoutModal" class="modal-overlay" @click.self="showLogoutModal = false">
+      <div class="modal-card">
+        <h3>Terminar Sessão</h3>
+        <p>Tens a certeza que queres terminar sessão?</p>
+        <div class="modal-actions">
+          <button class="modal-btn cancel" @click="showLogoutModal = false">Cancelar</button>
+          <button class="modal-btn confirm" @click="handleLogout">Sim, sair</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router'
+import { ref } from 'vue'
+
 defineProps({
   modelValue: {
     type: Boolean,
@@ -44,9 +66,29 @@ defineProps({
 })
 
 const emit = defineEmits(['update:modelValue'])
+const router = useRouter()
+const showLogoutModal = ref(false)
 
 function closeMenu() {
   emit('update:modelValue', false)
+}
+
+function handleLogout() {
+  localStorage.removeItem('role')
+  localStorage.removeItem('authToken')
+  localStorage.removeItem('authUserType')
+  localStorage.removeItem('authUserId')
+  localStorage.removeItem('rememberMe')
+  localStorage.removeItem('userProfile')
+
+  sessionStorage.removeItem('authToken')
+  sessionStorage.removeItem('authUserType')
+  sessionStorage.removeItem('authUserId')
+  sessionStorage.removeItem('vc-comunica-register')
+
+  showLogoutModal.value = false
+  closeMenu()
+  router.push('/login')
 }
 </script>
 
@@ -99,7 +141,16 @@ function closeMenu() {
   gap: 6px;
 }
 
+.sidebar-bottom {
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid #eef2f7;
+}
+
 .sidebar-item {
+  border: none;
+  background: transparent;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -115,6 +166,14 @@ function closeMenu() {
 
 .sidebar-item:hover {
   background: rgba(0, 0, 0, 0.04);
+}
+
+.sidebar-logout {
+  color: #9f1239;
+}
+
+.sidebar-logout .sidebar-icon {
+  opacity: 0.8;
 }
 
 .sidebar-icon {
@@ -135,5 +194,63 @@ function closeMenu() {
 .slide-enter-from,
 .slide-leave-to {
   transform: translateX(100%);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 140;
+}
+
+.modal-card {
+  background: #ffffff;
+  border-radius: 14px;
+  width: min(92vw, 420px);
+  padding: 26px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
+  font-family: Montserrat, sans-serif;
+}
+
+.modal-card h3 {
+  margin: 0 0 10px;
+  font-size: 22px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.modal-card p {
+  margin: 0;
+  color: #475569;
+  line-height: 1.45;
+}
+
+.modal-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.modal-btn {
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.modal-btn.cancel {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.modal-btn.confirm {
+  background: #730000;
+  color: #fff;
 }
 </style>
