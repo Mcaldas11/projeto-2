@@ -42,7 +42,7 @@
           <h1 class="hero-title">A sua cidade,<br />a sua voz!</h1>
           <p class="hero-subtitle">
             A VC Comunica é a sua plataforma para reportar problemas urbanos. Junte-se a nós e
-            construa uma cidade mais eficiente e conectada.
+            construa uma cidade mais eficiente e ligada.
           </p>
         </div>
 
@@ -67,10 +67,10 @@
       <div class="about-text">
         <h2 class="section-title">Sobre<br />Nós</h2>
         <p>
-          A VC Comunica é uma plataforma inovadora, criada para conectar cidadãos e autoridades.
+          A VC Comunica é uma plataforma inovadora, criada para ligar cidadãos e autoridades.
         </p>
         <p>
-          Nosso objetivo é facilitar a comunicação de ocorrências, promover a transparência e
+          O nosso objectivo é facilitar a comunicação de ocorrências, promover a transparência e
           construir uma cidade mais segura e eficiente para todos.
         </p>
       </div>
@@ -85,22 +85,22 @@
       <h2 class="section-title-large">Como reportar uma ocorrência</h2>
       <div class="steps-grid">
         <div class="step">
-          <h3>1. Escolhe o tipo de ocorrência</h3>
+          <h3>1. Escolha o tipo de ocorrência</h3>
           <p>
             Escolha a categoria da ocorrência que pretende reportar. Estas podem ser de 5 tipos
-            diferentes, sendo estes: Estradas e passeios, Sinalização de trânsito, Iluminação,
+            diferentes: Estradas e passeios, Sinalização de trânsito, Iluminação,
             Higiene e limpeza e Parques e jardins.
           </p>
         </div>
         <div class="step">
-          <h3>2. Descrição da ocorrência e detalhes pessoais</h3>
-          <p>Descreva a ocorrência com o máximo de detalhes possível.</p>
+          <h3>2. Descrição da ocorrência e dados pessoais</h3>
+          <p>Descreva a ocorrência com o máximo de pormenores possível.</p>
         </div>
         <div class="step">
-          <h3>3. Adicionar fotos</h3>
+          <h3>3. Adicionar fotografias</h3>
           <p>
-            Para adicionar fotos, basta selecionar as imagens relevantes do seu dispositivo.
-            Certifique-se de que as fotos são nítidas e ilustram claramente a ocorrência.
+            Para adicionar fotografias, basta seleccionar as imagens relevantes do seu dispositivo.
+            Certifique-se de que as fotografias são nítidas e ilustram claramente a ocorrência.
           </p>
         </div>
       </div>
@@ -113,7 +113,7 @@
 <style scoped>
 /* Reset básico e tipografia */
 .page-container {
-  font-family: Arial, sans-serif; /* Substitua por Inter se tiver importado */
+  font-family: Arial, sans-serif;
   color: #1a1a1a;
   line-height: 1.5;
 }
@@ -174,7 +174,7 @@
 }
 
 .nav-icons .icon.add {
-  background: #730000; /* red */
+  background: #730000;
   color: #fff;
   width: 28px;
   height: 28px;
@@ -207,7 +207,6 @@
   z-index: 60;
 }
 
-/* Hamburger menu styles */
 .hamburger-menu {
   position: absolute;
   top: 44px;
@@ -241,7 +240,6 @@
   background: rgba(0, 0, 0, 0.05);
 }
 
-/* Menu list + icon sizing */
 .menu-list {
   display: flex;
   flex-direction: column;
@@ -326,7 +324,7 @@
 }
 
 .stat-card {
-  background-color: #b9f397; /* Verde limão do design */
+  background-color: #b9f397;
   color: #1a330a;
   padding: 30px;
   border-radius: 20px;
@@ -459,7 +457,7 @@
 /* Footer */
 .main-footer {
   padding: 60px 80px;
-  background-color: #f5f1e9; /* Cor bege do fundo */
+  background-color: #f5f1e9;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
@@ -496,7 +494,6 @@
   margin-top: 10px;
 }
 
-/* Home actions */
 .home-actions {
   display: flex;
   justify-content: center;
@@ -516,7 +513,7 @@
   opacity: 0.95;
 }
 
-/* Responsividade Básica */
+/* Responsividade */
 @media (max-width: 1024px) {
   .hero-title {
     font-size: 3.5rem;
@@ -567,7 +564,6 @@ function removeNotif(index) {
   notifications.value.splice(index, 1)
 }
 
-// Fecha notificações e menu hambúrguer ao clicar fora
 function handleDocClick(e) {
   const nPanel = notifPanel.value
   const nIcon = notifIcon.value
