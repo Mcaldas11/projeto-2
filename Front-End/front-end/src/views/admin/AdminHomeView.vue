@@ -103,6 +103,28 @@
         </table>
       </div>
 
+      <div class="pagination" v-if="totalPages > 1">
+        <button class="page-btn nav-btn" :disabled="currentPage === 1" @click="goToPreviousPage">
+          ← Previous
+        </button>
+
+        <div class="page-numbers">
+          <button
+            v-for="page in visiblePages"
+            :key="page"
+            class="page-btn"
+            :class="{ active: page === currentPage }"
+            @click="goToPage(page)"
+          >
+            {{ page }}
+          </button>
+        </div>
+
+        <button class="page-btn nav-btn" :disabled="currentPage === totalPages" @click="goToNextPage">
+          Next →
+        </button>
+      </div>
+
       <!-- Rotas Section -->
       <section class="rotas-section">
         <h2 class="section-title">Rotas</h2>
@@ -359,7 +381,7 @@ onBeforeUnmount(() => {
 // ─── Tabela de ocorrências ────────────────────────────────────────────────────
 const allOcorrencias = ref([])
 const currentPage = ref(1)
-const perPage = 10
+const perPage = 5
 const selectedFreguesia = ref('Todas')
 
 const filteredOcorrencias = computed(() => {
@@ -371,6 +393,42 @@ const paginatedOcorrencias = computed(() => {
   const start = (currentPage.value - 1) * perPage
   return filteredOcorrencias.value.slice(start, start + perPage)
 })
+
+const totalPages = computed(() => Math.max(1, Math.ceil(filteredOcorrencias.value.length / perPage)))
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisiblePages = 5
+  let start = Math.max(1, currentPage.value - Math.floor(maxVisiblePages / 2))
+  let end = start + maxVisiblePages - 1
+
+  if (end > totalPages.value) {
+    end = totalPages.value
+    start = Math.max(1, end - maxVisiblePages + 1)
+  }
+
+  for (let page = start; page <= end; page += 1) {
+    pages.push(page)
+  }
+
+  return pages
+})
+
+function goToPage(page) {
+  currentPage.value = page
+}
+
+function goToPreviousPage() {
+  if (currentPage.value > 1) {
+    currentPage.value -= 1
+  }
+}
+
+function goToNextPage() {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value += 1
+  }
+}
 
 const toggleSort = () => {
   allOcorrencias.value.reverse()
@@ -409,6 +467,16 @@ onMounted(async () => {
 
 watch([selectedFreguesia, selectedTypeFilter], () => {
   drawOccurrenceMarkers()
+})
+
+watch(selectedFreguesia, () => {
+  currentPage.value = 1
+})
+
+watch(filteredOcorrencias, () => {
+  if (currentPage.value > totalPages.value) {
+    currentPage.value = totalPages.value
+  }
 })
 </script>
 
