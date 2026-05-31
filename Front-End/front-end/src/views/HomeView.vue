@@ -48,17 +48,21 @@
 
         <div class="stats-container">
           <div class="stat-card">
-            <h2 class="stat-number">146</h2>
+            <h2 class="stat-number">{{ totalOccurrences }}</h2>
             <p class="stat-label">Ocorrências reportadas</p>
           </div>
           <div class="stat-card">
-            <h2 class="stat-number">125</h2>
+            <h2 class="stat-number">{{ resolvedCount }}</h2>
             <p class="stat-label">Ocorrências resolvidas</p>
           </div>
           <div class="stat-card">
-            <h2 class="stat-number">31</h2>
+            <h2 class="stat-number">{{ inAnalysisCount }}</h2>
             <p class="stat-label">Ocorrências em análise</p>
           </div>
+        </div>
+        <div style="margin-top:12px; color:#fff;">
+          <span v-if="loadingStats">A carregar estatísticas...</span>
+          <span v-if="statsError" style="color:#ffb4b4">{{ statsError }}</span>
         </div>
       </div>
     </header>
@@ -539,6 +543,7 @@ import SidebarMenu from '@/components/SidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import { getNewOccurrenceRoute } from '@/utils/auth'
+import { listAllOccurrences } from '@/services/occurrenceService'
 
 const showNotif = ref(false)
 const notifPanel = ref(null)
@@ -549,6 +554,41 @@ const menuIcon = ref(null)
 const newOccurrenceRoute = computed(() => getNewOccurrenceRoute())
 
 const notifications = ref([])
+
+// Stats from backend
+const totalOccurrences = ref(0)
+const resolvedCount = ref(0)
+const inAnalysisCount = ref(0)
+const loadingStats = ref(false)
+const statsError = ref('')
+let statsIntervalId = null
+
+async function loadStats() {
+  loadingStats.value = true
+  statsError.value = ''
+  try {
+    // Use listAllOccurrences to fetch occurrences for all citizens (global stats)
+    const occs = await listAllOccurrences()
+    totalOccurrences.value = Array.isArray(occs) ? occs.length : 0
+    resolvedCount.value = Array.isArray(occs)
+      ? occs.filter((o) => String(o.statusClass).toLowerCase().includes('resolvido')).length
+      : 0
+    inAnalysisCount.value = Array.isArray(occs)
+      ? occs.filter((o) => {
+          const cls = String(o.statusClass || '').toLowerCase()
+          return cls === 'em-resolucao' || cls === 'espera'
+        }).length
+      : 0
+  } catch (e) {
+    console.error('Failed to load occurrence stats', e)
+    statsError.value = 'Erro ao ligar ao backend'
+    totalOccurrences.value = 0
+    resolvedCount.value = 0
+    inAnalysisCount.value = 0
+  } finally {
+    loadingStats.value = false
+  }
+}
 
 function toggleNotif(event) {
   showNotif.value = !showNotif.value
@@ -582,6 +622,16 @@ function handleDocClick(e) {
   }
 }
 
-onMounted(() => document.addEventListener('click', handleDocClick))
-onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
+onMounted(() => {
+  document.addEventListener('click', handleDocClick)
+  void loadStats()
+  // Poll every 30s
+  statsIntervalId = setInterval(() => {
+    void loadStats()
+  }, 30000)
+})
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleDocClick)
+  if (statsIntervalId) clearInterval(statsIntervalId)
+})
 </script>

@@ -28,10 +28,6 @@ function mapOccurrencePayload(payload = {}) {
 }
 
 async function listOccurrences() {
-  if (!API_BASE_URL) {
-    throw new Error('Define VITE_API_URL para carregar as ocorrências da base de dados.')
-  }
-
   const userType = getAuthUserType()
   const isCitizen = userType === 'cidadao'
   const isAdminUser = userType === 'trabalhador_admin' || userType === 'responsavel'
@@ -44,7 +40,10 @@ async function listOccurrences() {
         ? '/trabalhadores/me/ocorrencias'
         : '/ocorrencias'
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  // Allow using same-origin API when VITE_API_URL is not set (use relative paths)
+  const base = API_BASE_URL || ''
+
+  const response = await fetch(`${base}${endpoint}`, {
     headers: buildAuthHeaders(),
   })
   if (!response.ok) {
@@ -56,6 +55,20 @@ async function listOccurrences() {
     ? data.map((occurrence) => backendOccurrenceToUi(occurrence))
     : []
   return normalized
+}
+
+// Fetch all occurrences (ignores user-type routing) — useful for admin views or global stats
+async function listAllOccurrences() {
+  const base = API_BASE_URL || ''
+  const response = await fetch(`${base}/ocorrencias`, {
+    headers: buildAuthHeaders(),
+  })
+  if (!response.ok) {
+    throw new Error('Failed to load all occurrences from backend')
+  }
+
+  const data = await response.json()
+  return Array.isArray(data) ? data.map((occurrence) => backendOccurrenceToUi(occurrence)) : []
 }
 
 async function getOccurrence(occurrenceId) {
@@ -192,6 +205,7 @@ async function listOccurrenceMarkers() {
 
 export {
   listOccurrences,
+  listAllOccurrences,
   getOccurrence,
   createOccurrence,
   resolveOccurrence,
