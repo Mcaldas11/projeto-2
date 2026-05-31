@@ -71,6 +71,21 @@ async function listAllOccurrences() {
   return Array.isArray(data) ? data.map((occurrence) => backendOccurrenceToUi(occurrence)) : []
 }
 
+// Try loading occurrences by a specific estado query (e.g. 'À espera da equipa')
+async function listOccurrencesByState(estado) {
+  const base = API_BASE_URL || ''
+  const url = `${base}/ocorrencias?estado=${encodeURIComponent(String(estado || ''))}`
+  const response = await fetch(url, { headers: buildAuthHeaders() })
+  if (!response.ok) {
+    const text = await response.text().catch(() => '')
+    const err = new Error(`Failed to load occurrences by state: ${response.status} ${response.statusText} ${text}`)
+    err.status = response.status
+    throw err
+  }
+  const data = await response.json()
+  return Array.isArray(data) ? data.map((occurrence) => backendOccurrenceToUi(occurrence)) : []
+}
+
 async function getOccurrence(occurrenceId) {
   if (!API_BASE_URL) {
     throw new Error('Define VITE_API_URL para carregar a ocorrência da base de dados.')
@@ -206,6 +221,7 @@ async function listOccurrenceMarkers() {
 export {
   listOccurrences,
   listAllOccurrences,
+  listOccurrencesByState,
   getOccurrence,
   createOccurrence,
   resolveOccurrence,

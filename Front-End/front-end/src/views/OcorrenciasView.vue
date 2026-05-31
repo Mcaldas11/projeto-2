@@ -65,6 +65,21 @@
       </div>
 
       <section v-if="viewMode === 'lista'" class="list-view">
+        <div
+          v-if="ocorrenciasError"
+          class="error-banner"
+          style="color: #9b1c1c; margin-bottom: 12px"
+        >
+          {{ ocorrenciasError }}
+        </div>
+        <div
+          v-if="
+            fetchInfo.allCount !== null ||
+            fetchInfo.byStateCount !== null ||
+            fetchInfo.fallbackCount !== null
+          "
+          style="font-size: 0.9rem; color: #6b7280; margin-bottom: 8px"
+        ></div>
         <table class="occ-table">
           <thead>
             <tr>
@@ -157,7 +172,12 @@ import Footer from '@/components/footer.vue'
 import SidebarMenu from '@/components/SidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
-import { listOccurrences } from '@/services/occurrenceService'
+import {
+  listOccurrences,
+  listAllOccurrences,
+  listOccurrencesByState,
+} from '@/services/occurrenceService'
+import { getAuthUserType } from '@/utils/auth'
 import { getOccurrenceStatusColor, getOccurrenceTypeMeta } from '@/utils/occurrenceTypes'
 import { resolveOccurrenceCoordinates } from '@/utils/occurrenceStorage'
 import { getNewOccurrenceRoute } from '@/utils/auth'
@@ -195,6 +215,8 @@ const toggleMenu = (e) => {
 const removeNotif = (i) => notifications.value.splice(i, 1)
 
 const ocorrencias = ref([])
+const ocorrenciasError = ref('')
+const fetchInfo = ref({ allCount: null, byStateCount: null, fallbackCount: null, errors: [] })
 
 const selectedOccurrenceMeta = computed(() => getOccurrenceTypeMeta(selectedOccurrence.value?.tipo))
 
@@ -366,7 +388,51 @@ function destroyMap() {
 }
 
 async function loadOccurrences() {
-  const data = await listOccurrences()
+  // If user is a worker, show all occurrences that are waiting for a team
+  const role = getAuthUserType() || ''
+  let data = []
+  if (/^trabalhador/.test(String(role)) || role === 'trabalhador') {
+    try {
+      const all = await listAllOccurrences()
+      data = (all || []).filter((o) => {
+        const situRaw = String(o.situacao || o.estado || '')
+        const situ = situRaw.toLowerCase()
+        const status = String(o.statusClass || '').toLowerCase()
+        // Detect variants like: "À espera da equipa", "À espera de equipa", "a espera da equipa"
+        const waitingByText =
+          (situ.includes('espera') && situ.includes('equip')) ||
+          /a\s*espera\s*(da|de)?\s*equip/i.test(situRaw)
+        const waitingByStatus = status.includes('espera')
+        return waitingByText || waitingByStatus
+      })
+      fetchInfo.value.allCount = Array.isArray(all) ? all.length : 0
+    } catch (e) {
+      console.error('listAllOccurrences failed:', e)
+      // try querying by estado explicitly
+      try {
+        const byState = await listOccurrencesByState('À espera da equipa')
+        data = byState || []
+        fetchInfo.value.byStateCount = Array.isArray(byState) ? byState.length : 0
+      } catch (e2) {
+        console.error('listOccurrencesByState failed:', e2)
+        ocorrenciasError.value =
+          'Não foi possível carregar ocorrências globais (verificar permissões). A lista mostrará apenas as ocorrências disponíveis para o seu utilizador.'
+        // fallback to regular list
+        try {
+          const fallback = await listOccurrences()
+          data = fallback || []
+          fetchInfo.value.fallbackCount = Array.isArray(fallback) ? fallback.length : 0
+        } catch (e3) {
+          console.error('listOccurrences fallback failed:', e3)
+          ocorrenciasError.value = `Erro ao carregar ocorrências: ${e3.message || e3}`
+          fetchInfo.value.errors.push(String(e3))
+          data = []
+        }
+      }
+    }
+  } else {
+    data = await listOccurrences()
+  }
   const enrichedOccurrences = await Promise.all(
     data.map((occurrence) => enrichOccurrence(occurrence)),
   )
