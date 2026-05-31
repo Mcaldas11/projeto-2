@@ -294,7 +294,9 @@ const handleSubmit = async () => {
     validationErrors.value = { location: false, tipo_ocorrencia: false, severidade: false, description: false }
 
     // Revogar object URLs e limpar previews
-    filePreviews.value.forEach((p) => { try { URL.revokeObjectURL(p.url) } catch {} })
+    filePreviews.value.forEach((p) => { try { URL.revokeObjectURL(p.url) } catch {
+      
+    } })
     filePreviews.value = []
 
     router.push({ path: '/ocorrencias' })
