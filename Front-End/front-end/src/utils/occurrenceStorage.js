@@ -14,13 +14,12 @@ const TYPE_COORDS = {
 
 const STATUS_CLASS_BY_STATE = {
   resolvido: 'resolvido',
-  'em resolucao': 'em-resolucao',
-  'em resolução': 'em-resolucao',
+  resolvida: 'resolvido',
+  emresolucao: 'em-resolucao',
   espera: 'espera',
-  'a espera da equipa': 'espera',
-  'à espera da equipa': 'espera',
-  'nao resolvido': 'nao-resolvido',
-  'não resolvido': 'nao-resolvido',
+  aesperadaequipa: 'espera',
+  naoresolvido: 'nao-resolvido',
+  naoresolvida: 'nao-resolvido',
 }
 
 function toSlug(value) {

@@ -33,12 +33,16 @@ async function listOccurrences() {
   }
 
   const userType = getAuthUserType()
-  const isWorker = userType.startsWith('trabalhador') || userType === 'responsavel'
-  const endpoint = userType === 'cidadao'
+  const isCitizen = userType === 'cidadao'
+  const isAdminUser = userType === 'trabalhador_admin' || userType === 'responsavel'
+  const isWorker = userType.startsWith('trabalhador') && !isAdminUser
+  const endpoint = isCitizen
     ? '/cidadaos/me/ocorrencias'
-    : isWorker
-      ? '/trabalhadores/me/ocorrencias'
-      : '/ocorrencias'
+    : isAdminUser
+      ? '/ocorrencias'
+      : isWorker
+        ? '/trabalhadores/me/ocorrencias'
+        : '/ocorrencias'
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     headers: buildAuthHeaders(),
