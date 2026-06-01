@@ -63,7 +63,6 @@
                 </div>
                 <button @click="nextImg" :disabled="gallery.length < 2">›</button>
               </div>
-              <!-- Sem fotos -->
               <p v-if="gallery.length === 0" class="no-photos">Sem fotografias disponíveis.</p>
             </div>
           </section>
@@ -96,7 +95,7 @@
                 <strong>Data de resolução:</strong><br />{{ formatDateTime(selectedOccurrence.dataResolucao) }}
               </p>
               <p v-if="selectedOccurrence.feedback">
-                <strong>Feedback:</strong><br />{{ selectedOccurrence.feedback }}
+                <strong>Feedback do trabalhador:</strong><br />{{ selectedOccurrence.feedback }}
               </p>
 
               <div class="reporter-info">
@@ -106,6 +105,7 @@
                   <span>{{ selectedOccurrence.nome }}</span>
                 </div>
               </div>
+
               <div v-if="isWorker" class="worker-actions">
                 <button class="report-btn" @click="reportError">Reportar Erro</button>
                 <button class="report-btn report-btn-secondary" @click="toggleResolveForm">
@@ -120,6 +120,7 @@
                     <select v-model="resolveForm.estado" class="resolve-input">
                       <option value="Em resolução">Em resolução</option>
                       <option value="Resolvido">Resolvido</option>
+                      <option value="Não resolvido">Não resolvido</option>
                     </select>
                   </label>
                   <label>
@@ -151,6 +152,62 @@
             </div>
           </section>
         </div>
+
+        <section v-if="podeAvaliar" class="citizen-evaluation-section">
+          <div class="section-title">
+            <h3>Avaliação da Resolução</h3>
+          </div>
+
+          <div v-if="jaAvaliado" class="evaluation-result-box">
+            <div class="eval-header">
+              <span class="stars">
+                <span v-for="star in avaliacaoExistente.classificacao" :key="star">⭐</span>
+                <span class="rating-number">({{ avaliacaoExistente.classificacao }}/5)</span>
+              </span>
+              <span class="eval-date" v-if="avaliacaoExistente.dataMensagem">
+                Submetido em: {{ formatDateTime(avaliacaoExistente.dataMensagem) }}
+              </span>
+            </div>
+            <p class="eval-text"><strong>O seu comentário:</strong> {{ avaliacaoExistente.texto }}</p>
+            <p class="success-msg" style="margin-top: 10px; font-weight: bold;">✔ Avaliação guardada na base de dados com sucesso!</p>
+          </div>
+
+          <div v-else class="evaluation-form-box">
+            <p class="instruction-text">A ocorrência encontra-se concluída. Por favor, deixe o seu comentário e classificação:</p>
+            
+            <div class="form-row">
+              <div class="form-group rating-group">
+                <label>Classificação (0 a 5):</label>
+                <select v-model.number="citizenForm.classificacao" class="resolve-input select-rating">
+                  <option :value="0">0 - Muito Mau</option>
+                  <option :value="1">1 - Mau</option>
+                  <option :value="2">2 - Satisfatório</option>
+                  <option :value="3">3 - Bom</option>
+                  <option :value="4">4 - Muito Bom</option>
+                  <option :value="5">5 - Excelente</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>O seu comentário:</label>
+              <textarea
+                v-model="citizenForm.texto"
+                class="resolve-textarea wide-textarea"
+                placeholder="Escreva aqui a sua opinião sobre a intervenção..."
+              ></textarea>
+            </div>
+
+            <div class="resolve-actions">
+              <button class="report-btn submit-eval-btn" :disabled="isSavingEvaluation" @click="submitCitizenEvaluation">
+                {{ isSavingEvaluation ? 'A guardar no backend...' : 'Submeter Avaliação' }}
+              </button>
+              <p v-if="evaluationNotice" class="resolve-notice error-msg">
+                {{ evaluationNotice }}
+              </p>
+            </div>
+          </div>
+        </section>
 
         <section class="team-section">
           <div class="section-title">
@@ -203,6 +260,9 @@ import { API_BASE_URL, getOccurrence, resolveOccurrence } from '@/services/occur
 import { getOccurrenceTypeMeta } from '@/utils/occurrenceTypes'
 import { getAuthUserType, getNewOccurrenceRoute } from '@/utils/auth'
 
+// O teu serviço que comunica com a tabela Mensagem do backend
+import { createMensagem } from '@/services/messageService'
+
 const showNotif = ref(false)
 const showMenu = ref(false)
 const notifPanel = ref(null)
@@ -210,6 +270,7 @@ const notifIcon = ref(null)
 const menuPanel = ref(null)
 const menuIcon = ref(null)
 const route = useRoute()
+
 const isWorker = computed(() => {
   const userType = getAuthUserType()
   return userType.startsWith('trabalhador') || userType === 'responsavel'
@@ -229,9 +290,37 @@ const resolveForm = ref({
   feedback: '',
 })
 
+// VARIÁVEIS REATIVAS PARA A AVALIAÇÃO DO CIDADÃO
+const isSavingEvaluation = ref(false)
+const evaluationNotice = ref('')
+// jaAvaliado começa sempre a FALSE para garantir que podes escrever
+const jaAvaliado = ref(false)
+const avaliacaoExistente = ref(null)
+const citizenForm = ref({
+  texto: '',
+  classificacao: 5 // Valor por defeito
+})
+
+// Só permite avaliar se o estado for Resolvido ou Não resolvido
+const podeAvaliar = computed(() => {
+  const estado = selectedOccurrence.value?.situacao
+  return estado === 'Resolvido' || estado === 'Não resolvido'
+})
+
 async function loadOccurrence() {
   selectedOccurrence.value = await getOccurrence(route.params.id)
   resolveNotice.value = ''
+  
+  // Limpa o formulário e garante que mostra a caixa de escrita
+  citizenForm.value = { texto: '', classificacao: 5 }
+  jaAvaliado.value = false
+  evaluationNotice.value = ''
+
+  if (!selectedOccurrence.value) {
+    teamWorkers.value = []
+    assignedTeamLabel.value = ''
+    return
+  }
 
   if (!selectedOccurrence.value?.idEquipa) {
     teamWorkers.value = []
@@ -248,6 +337,44 @@ async function loadOccurrence() {
   }
 }
 
+// ─── FUNÇÃO QUE GRAVA EXATAMENTE COMO NO TEU MODELO SEQUELIZE ───
+async function submitCitizenEvaluation() {
+  if (!selectedOccurrence.value) return
+  
+  if (!citizenForm.value.texto.trim()) {
+    evaluationNotice.value = 'Aviso: Tem de escrever um comentário.'
+    return
+  }
+
+  isSavingEvaluation.value = true
+  evaluationNotice.value = ''
+
+  try {
+    // Aqui garantimos que os nomes batem certo com o teu MensagemModel
+    const payload = {
+      texto: citizenForm.value.texto,
+      dataMensagem: new Date().toISOString(),
+      classificacao: Number(citizenForm.value.classificacao),
+      idCidadao: Number(selectedOccurrence.value.idCidadao) || 1, // Podes ajustar o ID se vier do localStorage
+      idOcorrencia: Number(selectedOccurrence.value.id)
+    }
+
+    // Faz o POST para o backend
+    const novaMensagem = await createMensagem(payload)
+    
+    // Se a API não devolver o objeto criado, usamos o payload local para visualização
+    avaliacaoExistente.value = novaMensagem || payload
+    
+    // Agora sim, trancamos o formulário em modo leitura
+    jaAvaliado.value = true
+
+  } catch (error) {
+    evaluationNotice.value = error?.message || 'Erro ao comunicar com a base de dados.'
+  } finally {
+    isSavingEvaluation.value = false
+  }
+}
+
 const occurrenceTitle = computed(() => {
   if (!selectedOccurrence.value) return 'Ocorrência'
   return `Ocorrência ${selectedOccurrence.value.id}`
@@ -255,15 +382,9 @@ const occurrenceTitle = computed(() => {
 
 const occurrenceTypeMeta = computed(() => getOccurrenceTypeMeta(selectedOccurrence.value?.tipo))
 const occurrenceStatus = computed(() => selectedOccurrence.value?.situacao || 'Desconhecido')
-const occurrenceLocation = computed(
-  () => selectedOccurrence.value?.location || 'Local não disponível',
-)
-const occurrenceDescription = computed(
-  () => selectedOccurrence.value?.detalhes || 'Sem descrição disponível.',
-)
-const occurrenceMunicipality = computed(
-  () => selectedOccurrence.value?.municipio || selectedOccurrence.value?.freguesia || '',
-)
+const occurrenceLocation = computed(() => selectedOccurrence.value?.location || 'Local não disponível')
+const occurrenceDescription = computed(() => selectedOccurrence.value?.detalhes || 'Sem descrição disponível.')
+const occurrenceMunicipality = computed(() => selectedOccurrence.value?.municipio || selectedOccurrence.value?.freguesia || '')
 const specializationLabel = computed(() => {
   if (assignedTeamLabel.value) return assignedTeamLabel.value
   return 'A aguardar atribuição'
@@ -273,17 +394,14 @@ function toLocalDateTimeInput(value) {
   if (!value) return ''
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return ''
-
   const offset = date.getTimezoneOffset() * 60000
   return new Date(date.getTime() - offset).toISOString().slice(0, 16)
 }
 
 function formatDateTime(value) {
   if (!value) return '-'
-
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return '-'
-
   return date.toLocaleString('pt-PT', {
     dateStyle: 'short',
     timeStyle: 'short',
@@ -292,10 +410,7 @@ function formatDateTime(value) {
 
 async function fetchJson(path) {
   const response = await fetch(`${API_BASE_URL}${path}`)
-  if (!response.ok) {
-    throw new Error(`Falha ao carregar ${path}`)
-  }
-
+  if (!response.ok) throw new Error(`Falha ao carregar ${path}`)
   return response.json()
 }
 
@@ -305,7 +420,6 @@ async function loadTeamDetails(teamId) {
       fetchJson(`/equipas/${teamId}`),
       fetchJson('/trabalhadores'),
     ])
-
     assignedTeamLabel.value = team?.especializacao || ''
     teamWorkers.value = Array.isArray(workers)
       ? workers.filter((worker) => Number(worker.idEquipa) === Number(teamId))
@@ -316,7 +430,6 @@ async function loadTeamDetails(teamId) {
   }
 }
 
-// ─── Galeria dinâmica — usa as fotos reais da ocorrência ─────────────────────
 const gallery = ref([])
 const activeImage = ref(null)
 
@@ -328,23 +441,18 @@ watch(
       activeImage.value = null
       return
     }
-
-    // `photos` é o array completo; `image` é a primeira foto — ambos mapeados em backendOccurrenceToUi
     const photos = Array.isArray(occurrence.photos) && occurrence.photos.length
       ? occurrence.photos
       : occurrence.image
         ? [occurrence.image]
         : []
-
     gallery.value = photos
     activeImage.value = photos[0] || null
   },
   { immediate: true },
 )
 
-const reporterAvatar = computed(
-  () => selectedOccurrence.value?.userImg || defaultOccurrenceAvatar,
-)
+const reporterAvatar = computed(() => selectedOccurrence.value?.userImg || defaultOccurrenceAvatar)
 
 function toggleResolveForm() {
   resolveNotice.value = ''
@@ -353,10 +461,8 @@ function toggleResolveForm() {
 
 async function submitResolution() {
   if (!selectedOccurrence.value) return
-
   isSavingResolution.value = true
   resolveNotice.value = ''
-
   try {
     const payload = {
       estado: resolveForm.value.estado,
@@ -364,14 +470,11 @@ async function submitResolution() {
       dataResolucao: resolveForm.value.dataResolucao || null,
       feedback: resolveForm.value.feedback || '',
     }
-
     const updatedOccurrence = await resolveOccurrence(selectedOccurrence.value.id, payload)
     selectedOccurrence.value = updatedOccurrence
-
     if (updatedOccurrence?.idEquipa) {
       await loadTeamDetails(updatedOccurrence.idEquipa)
     }
-
     resolveForm.value.estado = updatedOccurrence?.situacao || resolveForm.value.estado
     resolveNotice.value = 'Ocorrência atualizada com sucesso.'
     resolveFormOpen.value = false
@@ -383,7 +486,6 @@ async function submitResolution() {
 }
 
 const notifications = ref([])
-
 const toggleNotif = (e) => {
   e.stopPropagation()
   showNotif.value = !showNotif.value
@@ -403,20 +505,10 @@ watch(
 )
 
 function handleDocClick(e) {
-  if (
-    showNotif.value &&
-    notifPanel.value &&
-    !notifPanel.value.contains(e.target) &&
-    !notifIcon.value.contains(e.target)
-  ) {
+  if (showNotif.value && notifPanel.value && !notifPanel.value.contains(e.target) && !notifIcon.value.contains(e.target)) {
     showNotif.value = false
   }
-  if (
-    showMenu.value &&
-    menuPanel.value &&
-    !menuPanel.value.contains(e.target) &&
-    !menuIcon.value.contains(e.target)
-  ) {
+  if (showMenu.value && menuPanel.value && !menuPanel.value.contains(e.target) && !menuIcon.value.contains(e.target)) {
     showMenu.value = false
   }
 }
@@ -444,7 +536,6 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   font-family: 'Montserrat', Arial, Helvetica, sans-serif;
   color: #1a1a1a;
 }
-
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -479,7 +570,6 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   height: 28px;
   object-fit: contain;
 }
-
 .hamburger-menu,
 .notifications {
   position: absolute;
@@ -551,12 +641,11 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   height: 30px;
   filter: brightness(0) invert(1);
 }
-
 .main-details-grid {
   display: grid;
   grid-template-columns: 1.2fr 0.8fr;
   gap: 40px;
-  margin-bottom: 50px;
+  margin-bottom: 30px;
 }
 .featured-image {
   width: 100%;
@@ -607,7 +696,6 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   opacity: 1;
   border: 2px solid #730000;
 }
-
 .info-sidebar {
   background: white;
   border: 1px solid #f1f5f9;
@@ -653,11 +741,18 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
 .team-section {
   border-top: 1px solid #f1f5f9;
   padding-top: 30px;
+  margin-top: 40px;
 }
 .section-title {
   display: flex;
   align-items: center;
   gap: 12px;
+  margin-bottom: 15px;
+}
+.section-title h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
 }
 .team-content {
   display: grid;
@@ -768,12 +863,114 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   color: #475569;
   font-size: 14px;
   margin: 0;
+  font-weight: 600;
 }
-
 .not-found-state {
   text-align: center;
   padding: 80px 20px;
   color: #64748b;
+}
+
+/* ─── SECÇÃO DE AVALIAÇÃO DO CIDADÃO ─── */
+.citizen-evaluation-section {
+  margin: 40px 0;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+.citizen-evaluation-section h3 {
+  color: #1a1a1a;
+  font-size: 22px;
+  margin: 0;
+}
+.instruction-text {
+  color: #475569;
+  font-size: 15px;
+  margin-bottom: 20px;
+}
+.evaluation-form-box {
+  background: #f8fafc;
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+.form-row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 16px;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+.rating-group {
+  max-width: 250px;
+}
+.form-group label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+}
+.select-rating {
+  background-color: white;
+  cursor: pointer;
+}
+.wide-textarea {
+  background-color: white;
+  min-height: 120px;
+}
+.submit-eval-btn {
+  background: #166534; 
+  padding: 12px 24px;
+}
+.submit-eval-btn:hover {
+  background: #14532d;
+}
+
+.evaluation-result-box {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 24px;
+  border-radius: 12px;
+  margin-top: 15px;
+}
+.eval-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #bbf7d0;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+}
+.stars {
+  font-size: 18px;
+  font-weight: 700;
+  color: #166534;
+}
+.rating-number {
+  font-size: 14px;
+  color: #475569;
+  margin-left: 6px;
+}
+.eval-date {
+  font-size: 12px;
+  color: #64748b;
+}
+.eval-text {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #0f172a;
+  margin: 0;
+}
+.success-msg {
+  color: #166534;
+}
+.error-msg {
+  color: #b91c1c;
 }
 
 @media (max-width: 900px) {
@@ -783,7 +980,6 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
     grid-template-columns: 1fr;
   }
 }
-
 .main-footer {
   padding: 60px 80px;
   background-color: #f5f1e9;
