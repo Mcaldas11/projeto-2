@@ -252,6 +252,7 @@ export const createTrabalhador = async (req, res, next) => {
       emailTrabalhador,
       telemovelTrabalhador,
       idEquipa,
+      idFreguesia,
       password,
     } = req.body;
 
@@ -282,6 +283,7 @@ export const createTrabalhador = async (req, res, next) => {
       emailTrabalhador,
       telemovelTrabalhador,
       idEquipa: normalizedIdEquipa,
+      idFreguesia: idFreguesia ? Number(idFreguesia) : null,
       credenciaisTrabalhadores: hashedPassword,
     });
 

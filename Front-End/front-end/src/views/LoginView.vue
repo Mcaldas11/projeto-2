@@ -182,6 +182,7 @@ const handleLogin = async () => {
     const profileEmail = profile.email || profile.emailTrabalhador || ''
     const { firstName, lastName } = splitName(profileName)
     const fotoPerfil = profile.fotoPerfil || ''
+    const freg = profile.fregCidadao || profile.idFreguesia || null
 
     localStorage.setItem(
       'userProfile',
@@ -190,6 +191,8 @@ const handleLogin = async () => {
         lastName,
         email: profileEmail,
         fotoPerfil,
+        fregCidadao: freg,
+        idFreguesia: freg,
       }),
     )
   }

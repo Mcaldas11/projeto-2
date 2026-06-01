@@ -6,15 +6,8 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 
-localStorage.removeItem('role')
-localStorage.removeItem('authToken')
-localStorage.removeItem('authUserType')
-localStorage.removeItem('authUserId')
-localStorage.removeItem('rememberMe')
-localStorage.removeItem('userProfile')
-sessionStorage.removeItem('authToken')
-sessionStorage.removeItem('authUserType')
-sessionStorage.removeItem('authUserId')
+// Preserve existing auth and profile data on app start.
+// Only clear the temporary registration session storage key used during the multi-step flow.
 sessionStorage.removeItem('vc-comunica-register')
 
 const app = createApp(App)

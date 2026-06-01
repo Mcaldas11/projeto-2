@@ -218,6 +218,7 @@ import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import avatarImg from '@/assets/avatar.png'
 import { getAuthUserId } from '@/utils/auth'
+import { listFreguesias } from '@/services/municipalityService'
 import {
   API_BASE_URL,
   listWorkerOccurrencesInResolution,
@@ -377,6 +378,23 @@ function handleLogout() {
 
 onMounted(() => {
   loadOccurrencesInResolution()
+
+  // try to resolve and display the human readable freguesia name
+  ;(async () => {
+    try {
+      const backendFreguesias = await listFreguesias()
+      const storedProfile = JSON.parse(localStorage.getItem('userProfile') || 'null')
+      const fid = storedProfile?.idFreguesia || storedProfile?.fregCidadao || null
+      if (fid) {
+        const match = backendFreguesias.find(
+          (f) => String(f.idFreguesia) === String(fid) || String(f.id) === String(fid),
+        )
+        worker.value.freguesia = match ? match.nome : ''
+      }
+    } catch {
+      // ignore errors, keep existing value
+    }
+  })()
 })
 </script>
 

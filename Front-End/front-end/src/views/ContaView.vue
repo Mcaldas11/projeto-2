@@ -63,8 +63,9 @@
           <div class="detail-field">
             <label>Freguesia</label>
             <div>
-              <select name="freguesia" class="display-box select-box">
-                <option v-for="freguesia in freguesias" :key="freguesia.id" :value="freguesia.nome">
+              <select name="freguesia" class="display-box select-box" v-model="selectedFregId">
+                <option value="" disabled>Seleciona a freguesia</option>
+                <option v-for="freguesia in freguesias" :key="freguesia.idFreguesia" :value="String(freguesia.idFreguesia)">
                   {{ freguesia.nome }}
                 </option>
               </select>
@@ -206,6 +207,7 @@ const userFirstName = ref(storedProfile?.firstName || '')
 const userLastName = ref(storedProfile?.lastName || '')
 const userEmail = ref(storedProfile?.email || '')
 const profilePhoto = ref(storedProfile?.fotoPerfil || '')
+const selectedFregId = ref(storedProfile?.fregCidadao || storedProfile?.idFreguesia || '')
 
 const showEditModal = ref(false)
 const editFirstName = ref('')

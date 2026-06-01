@@ -18,6 +18,15 @@
         <p class="welcome-text">Bem-vindo! Insere os teus dados para criares a tua conta</p>
 
         <form @submit.prevent="handleNext">
+          <div class="role-select">
+            <label>
+              <input type="radio" value="cidadao" v-model="role" /> Criar como Cidadão
+            </label>
+            <label>
+              <input type="radio" value="trabalhador" v-model="role" /> Criar como Trabalhador
+            </label>
+          </div>
+
           <div class="name-grid">
             <div class="input-field">
               <label>Primeiro Nome</label>
@@ -38,6 +47,8 @@
             <label>Telemóvel</label>
             <input type="tel" v-model="phone" placeholder="Ex: 912345678" required />
           </div>
+
+          
 
           <button type="submit" class="btn-primary">Continuar</button>
         </form>
@@ -61,6 +72,7 @@ const firstName = ref('')
 const lastName = ref('')
 const email = ref('')
 const phone = ref('')
+const role = ref('cidadao')
 
 const handleNext = () => {
   const payload = {
@@ -68,6 +80,7 @@ const handleNext = () => {
     lastName: lastName.value.trim(),
     email: email.value.trim(),
     phone: phone.value.trim(),
+    role: role.value || 'cidadao',
   }
 
   sessionStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
@@ -147,6 +160,21 @@ h2 {
   font-size: 0.85rem;
   color: #777;
   margin-bottom: 30px;
+}
+
+.role-select {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin-bottom: 18px;
+  font-size: 0.95rem;
+  color: #444;
+}
+.role-select label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
 }
 
 /* Grid para os nomes ficarem lado a lado */

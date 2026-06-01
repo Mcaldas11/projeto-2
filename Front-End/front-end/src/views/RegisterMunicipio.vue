@@ -90,7 +90,61 @@ const handleFinish = async () => {
   }
 
   const [firstName = '', lastName = ''] = [stored.firstName || '', stored.lastName || '']
-  const payload = {
+
+  // Respect role selected in the first step (default to 'cidadao')
+  const role = stored.role || 'cidadao'
+
+  if (!API_BASE_URL) {
+    errorMessage.value = 'Define VITE_API_BASE_URL para concluir o registo no backend.'
+    return
+  }
+
+  if (role === 'trabalhador') {
+    const payload = {
+      nomeTrabalhador: `${firstName} ${lastName}`.trim(),
+      emailTrabalhador: stored.email,
+      telemovelTrabalhador: stored.phone,
+      idFreguesia: Number(selectedFreguesia.value),
+      password: stored.password,
+    }
+
+    const response = await fetch(`${API_BASE_URL}/trabalhadores`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    })
+
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}))
+      errorMessage.value = body?.message || 'Não foi possível concluir o registo.'
+      return
+    }
+
+    const result = await response.json()
+    localStorage.setItem('role', 'trabalhador')
+    localStorage.setItem('authToken', result.token)
+    localStorage.setItem('authUserType', result.userType || 'trabalhador')
+    localStorage.setItem('authUserId', String(result.userId || ''))
+    // store structured profile (firstName, lastName) and freguesia id
+    localStorage.setItem(
+      'userProfile',
+      JSON.stringify({
+        firstName: firstName,
+        lastName: lastName,
+        email: stored.email,
+        idFreguesia: Number(selectedFreguesia.value),
+      }),
+    )
+
+    sessionStorage.removeItem(STORAGE_KEY)
+    router.push({ name: 'home' })
+    return
+  }
+
+  // Default: create cidadao
+  const payloadCidadao = {
     nome: `${firstName} ${lastName}`.trim(),
     email: stored.email,
     password: stored.password,
@@ -98,17 +152,12 @@ const handleFinish = async () => {
     fregCidadao: Number(selectedFreguesia.value),
   }
 
-  if (!API_BASE_URL) {
-    errorMessage.value = 'Define VITE_API_BASE_URL para concluir o registo no backend.'
-    return
-  }
-
   const response = await fetch(`${API_BASE_URL}/cidadaos`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(payloadCidadao),
   })
 
   if (!response.ok) {
@@ -128,6 +177,7 @@ const handleFinish = async () => {
       firstName,
       lastName,
       email: stored.email,
+      fregCidadao: Number(selectedFreguesia.value),
     }),
   )
 
