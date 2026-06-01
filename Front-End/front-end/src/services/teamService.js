@@ -83,6 +83,7 @@ const normalizeWorker = (worker, municipiosById) => ({
   email: worker.emailTrabalhador || worker.email || '',
   avatar: worker.fotoPerfil || worker.avatar || avatarImg,
   freguesia: getMunicipioNameById(municipiosById, worker.idFreguesia),
+  idFreguesia: worker.idFreguesia ?? null,
   idEquipa: worker.idEquipa ?? null,
 })
 
@@ -96,6 +97,7 @@ const normalizeTeam = (equipa, index, municipalitiesById, workers, occurrenceSta
     id: teamId,
     name: normalizeName(equipa.especializacao || equipa.name, `Equipa ${index + 1}`),
     freguesia: getMunicipioNameById(municipalitiesById, equipa.fregEquipa),
+    freguesiaId: equipa.fregEquipa ?? null,
     members: teamMembers,
     stats: occurrenceStatsByTeamId.get(String(teamId)) || {
       ativas: 0,
@@ -205,4 +207,25 @@ async function unassignWorkerFromTeam(teamId, workerId) {
   return listTeams()
 }
 
-export { API_BASE_URL, listTeams, listWorkers, assignWorkerToTeam, unassignWorkerFromTeam }
+async function deleteWorker(workerId) {
+  if (!API_BASE_URL) {
+    throw new Error('Define VITE_API_URL para apagar trabalhadores na base de dados.')
+  }
+
+  await fetchJson(
+    `/trabalhadores/${workerId}`,
+    {
+      method: 'DELETE',
+    },
+    true,
+  )
+}
+
+export {
+  API_BASE_URL,
+  listTeams,
+  listWorkers,
+  assignWorkerToTeam,
+  unassignWorkerFromTeam,
+  deleteWorker,
+}

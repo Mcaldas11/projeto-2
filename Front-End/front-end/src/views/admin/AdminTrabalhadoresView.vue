@@ -124,6 +124,36 @@
       </div>
     </main>
 
+    <!-- Edit Worker Modal -->
+    <div v-if="showEditModal" class="modal-overlay" @click.self="closeEditModal">
+      <div class="modal-card">
+        <h3>Editar trabalhador</h3>
+        <p class="modal-subtitle">{{ editWorkerData?.nome }} · {{ editWorkerData?.freguesia }}</p>
+
+        <label class="modal-label">Equipa (da mesma freguesia)</label>
+        <select v-model="editTeamId" class="modal-select">
+          <option value="">Sem equipa</option>
+          <option v-for="team in availableTeams" :key="team.id" :value="String(team.id)">
+            {{ team.name }}
+          </option>
+        </select>
+
+        <p v-if="availableTeams.length === 0" class="modal-hint">
+          Não existem equipas para esta freguesia.
+        </p>
+        <p v-if="editError" class="modal-error">{{ editError }}</p>
+
+        <div class="modal-actions">
+          <button class="modal-btn cancel" @click="closeEditModal" :disabled="isSaving">
+            Cancelar
+          </button>
+          <button class="modal-btn confirm" @click="saveWorkerTeam" :disabled="isSaving">
+            {{ isSaving ? 'A guardar...' : 'Guardar' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
     <Footer :columns="adminFooterColumns" :logo-src="adminFooterLogo" />
   </div>
 </template>
@@ -137,7 +167,13 @@ import notifOff from '@/assets/notificationsoff.png'
 import avatarImg from '@/assets/avatar.png'
 import adminFooterLogo from '@/assets/logo_footer.png'
 import { listFreguesias } from '@/services/municipalityService'
-import { listTeams, listWorkers } from '@/services/teamService'
+import {
+  listTeams,
+  listWorkers,
+  assignWorkerToTeam,
+  unassignWorkerFromTeam,
+  deleteWorker as removeWorker,
+} from '@/services/teamService'
 
 const adminFooterColumns = [
   [
@@ -145,7 +181,7 @@ const adminFooterColumns = [
     { label: 'Ocorrências', to: '/admin' },
     { label: 'Rotas', to: '/admin/rotas' },
     { label: 'Equipas', to: '/admin/equipas' },
-    { label: 'Funcionarios', to: '/admin/trabalhadores' },
+    { label: 'Funcionarios', to: '/admin/trabalhadores' },  
   ],
 ]
 
@@ -187,12 +223,28 @@ onMounted(() => document.addEventListener('click', handleDocClick))
 onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
 
 const allWorkers = ref([])
+const allTeams = ref([])
 
 const selectedFreguesia = ref('Todas')
+
+const showEditModal = ref(false)
+const editWorkerData = ref(null)
+const editTeamId = ref('')
+const editError = ref('')
+const isSaving = ref(false)
 
 const filteredWorkers = computed(() => {
   if (!selectedFreguesia.value || selectedFreguesia.value === 'Todas') return allWorkers.value
   return allWorkers.value.filter((w) => w.freguesia === selectedFreguesia.value)
+})
+
+const availableTeams = computed(() => {
+  if (!editWorkerData.value) return []
+  const workerFreg = editWorkerData.value.idFreguesia
+  if (!workerFreg) return []
+  return allTeams.value.filter(
+    (team) => String(team.freguesiaId) === String(workerFreg),
+  )
 })
 
 // Pagination
@@ -209,11 +261,64 @@ const visiblePages = computed(() => {
   return Array.from({ length: totalPages.value }, (_, index) => index + 1)
 })
 
-const deleteWorker = (id) => {
-  console.log('Delete worker:', id)
+const deleteWorker = async (id) => {
+  const confirmed = window.confirm('Tens a certeza que queres apagar este trabalhador?')
+  if (!confirmed) return
+
+  try {
+    await removeWorker(id)
+    await loadWorkersFromBackend()
+  } catch (error) {
+    loadError.value = error?.message || 'Não foi possível apagar o trabalhador.'
+  }
 }
+
 const editWorker = (id) => {
-  console.log('Edit worker:', id)
+  const worker = allWorkers.value.find((item) => item.id === id)
+  if (!worker) return
+
+  editWorkerData.value = { ...worker }
+  editTeamId.value = worker.idEquipa ? String(worker.idEquipa) : ''
+  editError.value = ''
+  showEditModal.value = true
+}
+
+const closeEditModal = () => {
+  showEditModal.value = false
+  editWorkerData.value = null
+  editTeamId.value = ''
+  editError.value = ''
+}
+
+const saveWorkerTeam = async () => {
+  if (!editWorkerData.value) return
+
+  if (editTeamId.value) {
+    const isAllowed = availableTeams.value.some(
+      (team) => String(team.id) === String(editTeamId.value),
+    )
+    if (!isAllowed) {
+      editError.value = 'A equipa selecionada não pertence à freguesia do trabalhador.'
+      return
+    }
+  }
+
+  isSaving.value = true
+  editError.value = ''
+
+  try {
+    if (!editTeamId.value) {
+      await unassignWorkerFromTeam(editWorkerData.value.idEquipa || 0, editWorkerData.value.id)
+    } else {
+      await assignWorkerToTeam(editTeamId.value, editWorkerData.value.id)
+    }
+    await loadWorkersFromBackend()
+    closeEditModal()
+  } catch (error) {
+    editError.value = error?.message || 'Não foi possível atualizar a equipa.'
+  } finally {
+    isSaving.value = false
+  }
 }
 
 const teamColorClasses = ['tag-blue', 'tag-green', 'tag-purple', 'tag-orange']
@@ -229,6 +334,8 @@ function buildWorkerCards(workers, teams) {
     email: worker.email,
     avatar: worker.avatar || avatarImg,
     freguesia: worker.freguesia || 'Sem freguesia',
+    idFreguesia: worker.idFreguesia || null,
+    idEquipa: worker.idEquipa || null,
     teams: worker.idEquipa
       ? [
           {
@@ -256,6 +363,7 @@ async function loadWorkersFromBackend() {
       ...loadedFreguesias.map((freguesia) => freguesia?.nome).filter(Boolean),
     ]
 
+    allTeams.value = loadedTeams
     allWorkers.value = buildWorkerCards(loadedWorkers, loadedTeams)
   } catch (error) {
     loadError.value = error?.message || 'Não foi possível carregar os trabalhadores.'
@@ -555,6 +663,78 @@ watch(selectedFreguesia, () => {
   font-size: 0.8rem;
   color: #888;
   margin-top: 10px;
+}
+
+/* MODAL */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+.modal-card {
+  background: #fff;
+  width: 420px;
+  max-width: calc(100% - 32px);
+  padding: 28px 24px;
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
+}
+.modal-subtitle {
+  color: #64748b;
+  margin: 6px 0 16px;
+}
+.modal-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 8px;
+}
+.modal-select {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+.modal-hint {
+  color: #94a3b8;
+  font-size: 13px;
+  margin-top: 8px;
+}
+.modal-error {
+  color: #b91c1c;
+  font-size: 13px;
+  margin-top: 8px;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+.modal-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.modal-btn.cancel {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+.modal-btn.confirm {
+  background: #730000;
+  color: #fff;
+}
+.modal-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 @media (max-width: 1024px) {

@@ -217,7 +217,7 @@ import SidebarMenu from '@/components/SidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import avatarImg from '@/assets/avatar.png'
-import { getAuthUserId } from '@/utils/auth'
+import { getAuthToken, getAuthUserId } from '@/utils/auth'
 import { listFreguesias } from '@/services/municipalityService'
 import {
   API_BASE_URL,
@@ -260,10 +260,75 @@ const worker = ref({
   genero: '',
   equipa: '',
   freguesia: '',
+  idFreguesia: storedProfile?.idFreguesia || storedProfile?.fregCidadao || null,
   credenciais: '',
   avatar: storedProfile?.fotoPerfil || avatarImg,
   ratingMedia: '',
 })
+
+const splitName = (fullName = '') => {
+  const parts = String(fullName).trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) {
+    return { firstName: '', lastName: '' }
+  }
+
+  return {
+    firstName: parts[0],
+    lastName: parts.slice(1).join(' '),
+  }
+}
+
+const syncWorkerProfileFromBackend = async () => {
+  if (!API_BASE_URL) return
+
+  const token = getAuthToken()
+  if (!token) return
+
+  const response = await fetch(`${API_BASE_URL}/trabalhadores/me`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  if (!response.ok) return
+
+  const profile = await response.json()
+  const fullName = profile.nomeTrabalhador || profile.nome || ''
+  const { firstName, lastName } = splitName(fullName)
+
+  worker.value.nome = firstName
+  worker.value.apelido = lastName
+  worker.value.email = profile.emailTrabalhador || profile.email || worker.value.email
+  worker.value.avatar = profile.fotoPerfil || worker.value.avatar
+  worker.value.idFreguesia = profile.idFreguesia || profile.fregCidadao || worker.value.idFreguesia
+
+  localStorage.setItem(
+    'userProfile',
+    JSON.stringify({
+      firstName: worker.value.nome,
+      lastName: worker.value.apelido,
+      email: worker.value.email,
+      fotoPerfil: worker.value.avatar,
+      idFreguesia: worker.value.idFreguesia,
+      fregCidadao: worker.value.idFreguesia,
+    }),
+  )
+}
+
+const resolveFreguesiaName = async () => {
+  try {
+    const backendFreguesias = await listFreguesias()
+    const fid = worker.value.idFreguesia
+    if (!fid) return
+
+    const match = backendFreguesias.find(
+      (f) => String(f.idFreguesia) === String(fid) || String(f.id) === String(fid),
+    )
+    worker.value.freguesia = match ? match.nome : ''
+  } catch {
+    // ignore errors, keep existing value
+  }
+}
 
 // Modais de Edição de Dados
 const showEditModal = ref(false)
@@ -376,25 +441,10 @@ function handleLogout() {
   router.replace({ name: 'login' })
 }
 
-onMounted(() => {
-  loadOccurrencesInResolution()
-
-  // try to resolve and display the human readable freguesia name
-  ;(async () => {
-    try {
-      const backendFreguesias = await listFreguesias()
-      const storedProfile = JSON.parse(localStorage.getItem('userProfile') || 'null')
-      const fid = storedProfile?.idFreguesia || storedProfile?.fregCidadao || null
-      if (fid) {
-        const match = backendFreguesias.find(
-          (f) => String(f.idFreguesia) === String(fid) || String(f.id) === String(fid),
-        )
-        worker.value.freguesia = match ? match.nome : ''
-      }
-    } catch {
-      // ignore errors, keep existing value
-    }
-  })()
+onMounted(async () => {
+  await loadOccurrencesInResolution()
+  await syncWorkerProfileFromBackend()
+  await resolveFreguesiaName()
 })
 </script>
 

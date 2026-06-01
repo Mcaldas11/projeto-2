@@ -6,6 +6,7 @@ export const requiredFieldsByResource = {
     "nomeTrabalhador",
     "emailTrabalhador",
     "telemovelTrabalhador",
+    "idFreguesia",
   ],
   recursos: ["tipo", "estado", "localizacao", "equipaResponsavel"],
   ocorrencias: [

@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { Readable } from "stream";
-import { Equipa, Trabalhador } from "../config/db.config.js";
+import { Equipa, Municipio, Trabalhador } from "../config/db.config.js";
 import cloudinary from "../config/cloudinary.js";
 import {
   conflictError,
@@ -277,13 +277,23 @@ export const createTrabalhador = async (req, res, next) => {
       }
     }
 
+    const normalizedIdFreguesia = Number(idFreguesia);
+    if (!Number.isInteger(normalizedIdFreguesia) || normalizedIdFreguesia <= 0) {
+      return res.status(400).json({ message: "Invalid idFreguesia" });
+    }
+
+    const municipio = await Municipio.findByPk(normalizedIdFreguesia);
+    if (!municipio) {
+      return res.status(400).json({ message: "Invalid idFreguesia" });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const trabalhador = await Trabalhador.create({
       nomeTrabalhador,
       emailTrabalhador,
       telemovelTrabalhador,
       idEquipa: normalizedIdEquipa,
-      idFreguesia: idFreguesia ? Number(idFreguesia) : null,
+      idFreguesia: normalizedIdFreguesia,
       credenciaisTrabalhadores: hashedPassword,
     });
 
@@ -407,6 +417,22 @@ export const updateTrabalhador = async (req, res, next) => {
         const equipa = await Equipa.findByPk(normalizedIdEquipa);
         if (!equipa) {
           return res.status(400).json({ message: "Invalid idEquipa" });
+        }
+
+        const teamFreg = Number(equipa.fregEquipa);
+        if (!Number.isInteger(teamFreg) || teamFreg <= 0) {
+          return res.status(400).json({
+            message: "Equipa sem freguesia atribuida.",
+          });
+        }
+
+        if (!trabalhador.idFreguesia) {
+          // if worker has no freguesia yet, inherit it from the assigned team
+          req.body.idFreguesia = teamFreg;
+        } else if (teamFreg !== Number(trabalhador.idFreguesia)) {
+          return res.status(400).json({
+            message: "A equipa deve ser da mesma freguesia do trabalhador.",
+          });
         }
 
         // only admin can change the active team
