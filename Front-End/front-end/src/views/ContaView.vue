@@ -269,7 +269,7 @@ function handleSaveEdit() {
   showEditModal.value = false
 }
 
-// Dados das Ocorrências (Baseado na captura image_eb9c7e.png)
+// Dados das Ocorrências
 const showLogoutModal = ref(false)
 const showDeleteModal = ref(false)
 
