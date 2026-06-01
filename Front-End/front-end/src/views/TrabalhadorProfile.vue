@@ -259,6 +259,7 @@ const worker = ref({
   email: storedProfile?.email || '',
   genero: '',
   equipa: '',
+  idEquipa: storedProfile?.idEquipa || null,
   freguesia: '',
   idFreguesia: storedProfile?.idFreguesia || storedProfile?.fregCidadao || null,
   credenciais: '',
@@ -301,6 +302,7 @@ const syncWorkerProfileFromBackend = async () => {
   worker.value.email = profile.emailTrabalhador || profile.email || worker.value.email
   worker.value.avatar = profile.fotoPerfil || worker.value.avatar
   worker.value.idFreguesia = profile.idFreguesia || profile.fregCidadao || worker.value.idFreguesia
+  worker.value.idEquipa = profile.idEquipa ?? worker.value.idEquipa
 
   localStorage.setItem(
     'userProfile',
@@ -309,10 +311,34 @@ const syncWorkerProfileFromBackend = async () => {
       lastName: worker.value.apelido,
       email: worker.value.email,
       fotoPerfil: worker.value.avatar,
+      idEquipa: worker.value.idEquipa,
       idFreguesia: worker.value.idFreguesia,
       fregCidadao: worker.value.idFreguesia,
     }),
   )
+}
+
+const resolveEquipaName = async () => {
+  if (!API_BASE_URL) return
+
+  const teamId = worker.value.idEquipa
+  if (!teamId) {
+    worker.value.equipa = 'Sem equipa'
+    return
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/equipas`)
+    if (!response.ok) return
+
+    const teams = await response.json()
+    const match = (Array.isArray(teams) ? teams : []).find(
+      (team) => String(team.idEquipa || team.id) === String(teamId),
+    )
+    worker.value.equipa = match?.especializacao || match?.name || `Equipa ${teamId}`
+  } catch {
+    // ignore errors, keep existing value
+  }
 }
 
 const resolveFreguesiaName = async () => {
@@ -445,6 +471,7 @@ onMounted(async () => {
   await loadOccurrencesInResolution()
   await syncWorkerProfileFromBackend()
   await resolveFreguesiaName()
+  await resolveEquipaName()
 })
 </script>
 
