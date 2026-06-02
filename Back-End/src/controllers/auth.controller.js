@@ -21,8 +21,14 @@ const getResponsavelEmails = () =>
     .map((email) => email.trim())
     .filter(Boolean);
 
-const isResponsavelEmail = (email) =>
-  getResponsavelEmails().includes((email || "").trim());
+const isResponsavelEmail = (email) => {
+  const e = (email || "").trim();
+  if (!e) return false;
+  const configured = getResponsavelEmails();
+  if (configured.includes(e)) return true;
+  // Fallback: treat any email starting with "responsavel." as a responsavel
+  return e.toLowerCase().startsWith("responsavel.");
+};
 
 export const unifiedLogin = async (req, res, next) => {
   try {

@@ -75,8 +75,14 @@ const getResponsavelEmails = () =>
     .map((email) => email.trim())
     .filter(Boolean);
 
-const isResponsavelEmail = (email) =>
-  getResponsavelEmails().includes((email || "").trim());
+const isResponsavelEmail = (email) => {
+  const e = (email || "").trim();
+  if (!e) return false;
+  const configured = getResponsavelEmails();
+  if (configured.includes(e)) return true;
+  // Fallback: treat any email starting with "responsavel." as a responsavel
+  return e.toLowerCase().startsWith("responsavel.");
+};
 
 const isRequesterAdmin = async (req) => {
   if (!req.userData || !req.userData.userType) {
@@ -214,7 +220,9 @@ export const updateTrabalhadorMe = async (req, res, next) => {
       updates.emailTrabalhador = req.body.email;
     }
 
-    if (Object.prototype.hasOwnProperty.call(req.body, "telemovelTrabalhador")) {
+    if (
+      Object.prototype.hasOwnProperty.call(req.body, "telemovelTrabalhador")
+    ) {
       updates.telemovelTrabalhador = req.body.telemovelTrabalhador;
     } else if (Object.prototype.hasOwnProperty.call(req.body, "nrTelemovel")) {
       updates.telemovelTrabalhador = req.body.nrTelemovel;
@@ -291,7 +299,10 @@ export const createTrabalhador = async (req, res, next) => {
     }
 
     const normalizedIdFreguesia = Number(idFreguesia);
-    if (!Number.isInteger(normalizedIdFreguesia) || normalizedIdFreguesia <= 0) {
+    if (
+      !Number.isInteger(normalizedIdFreguesia) ||
+      normalizedIdFreguesia <= 0
+    ) {
       return res.status(400).json({ message: "Invalid idFreguesia" });
     }
 

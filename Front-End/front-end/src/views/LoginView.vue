@@ -94,13 +94,10 @@ const splitName = (fullName = '') => {
 }
 
 const loadProfile = async (userType) => {
-  const endpoint =
-    userType === 'trabalhador' ||
-    userType === 'trabalhador_admin' ||
-    userType === 'trabalhador_responsavel'
-      ? '/trabalhadores/me'
-      : '/cidadaos/me'
-  ;('/responsavel/me')
+  let endpoint = '/cidadaos/me'
+  if (userType && String(userType).startsWith('trabalhador')) {
+    endpoint = '/trabalhadores/me'
+  }
 
   const profileResponse = await fetch(`${API_BASE_URL}${endpoint}`, {
     headers: {
