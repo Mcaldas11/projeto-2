@@ -37,7 +37,7 @@
       </div>
     </nav>
 
-    <main class="main-content">
+    <main class="main-content" v-if="selectedFreguesiaId">
       <div class="title-filter">
         <h1 class="page-title">Equipas</h1>
       </div>
@@ -48,7 +48,7 @@
 
       <div v-else-if="isLoading" class="load-state"></div>
 
-      <div v-else-if="selectedFreguesia" class="teams-list">
+      <div v-else-if="selectedFreguesia || selectedFreguesiaId" class="teams-list">
         <div v-for="team in filteredTeams" :key="team.id" class="team-card">
           <div class="team-layout">
             <!-- Left side: Team members -->
@@ -58,8 +58,13 @@
               </div>
               <div class="members-list">
                 <div v-for="member in team.members" :key="member.id" class="member-row">
-                  <img :src="member.avatar" class="member-avatar" />
-                  <span class="member-name">{{ member.name }}</span>
+                  <img
+                    :src="getWorkerById(member.id)?.avatar || member.avatar"
+                    class="member-avatar"
+                  />
+                  <span class="member-name">{{
+                    getWorkerById(member.id)?.name || member.name
+                  }}</span>
                   <button
                     class="btn-delete-member"
                     title="Remover"
@@ -108,7 +113,9 @@
           <div>
             <p class="modal-kicker">Adicionar trabalhador</p>
             <h3>{{ activeTeam?.name }}</h3>
-            <p class="modal-subtitle">Filtro ativo: {{ selectedFreguesia }}</p>
+            <p class="modal-subtitle">
+              Filtro ativo: {{ selectedFreguesia || selectedFreguesiaId || 'Sem filtro' }}
+            </p>
           </div>
           <button class="modal-close" @click="closeWorkerModal">✕</button>
         </div>
@@ -140,18 +147,19 @@
       </div>
     </div>
 
-    <Footer :columns="adminFooterColumns" :logo-src="adminFooterLogo" />
+    <Footer :columns="responsavelFooterColumns" :logo-src="adminFooterLogo" />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import Footer from '@/components/footer.vue'
 import ResponsavelSidebarMenu from '@/components/ResponsavelSidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import adminFooterLogo from '@/assets/logo_footer.png'
 import { FREGUESIAS } from '@/utils/freguesias'
+import { getAuthToken } from '@/utils/auth'
 import {
   assignWorkerToTeam,
   listTeams,
@@ -159,13 +167,14 @@ import {
   unassignWorkerFromTeam,
 } from '@/services/teamService'
 
-const adminFooterColumns = [
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
+
+const responsavelFooterColumns = [
   [
-    { label: 'Home', to: '/admin' },
-    { label: 'Ocorrências', to: '/admin' },
-    { label: 'Rotas', to: '/admin/rotas' },
-    { label: 'Equipas', to: '/admin/equipas' },
-    { label: 'Funcionarios', to: '/admin/trabalhadores' },
+    { label: 'Home', to: '/responsavel/perfil' },
+    { label: 'Ocorrências', to: '/ocorrencias' },
+    { label: 'Rotas', to: '/responsavel/rotas' },
+    { label: 'Equipas', to: '/responsavel/equipas' },
   ],
 ]
 
@@ -182,6 +191,9 @@ const isLoading = ref(true)
 const loadError = ref('')
 
 const notifications = ref([])
+let storagePollInterval = null
+let storageHandler = null
+let lastRawProfile = localStorage.getItem('userProfile')
 
 const toggleNotif = (e) => {
   e.stopPropagation()
@@ -200,25 +212,58 @@ const activeTeam = computed(
 )
 
 const selectedFreguesia = ref('')
+const selectedFreguesiaId = ref(null)
 
-const storedProfile = JSON.parse(localStorage.getItem('userProfile') || 'null')
+const storedProfile = ref(JSON.parse(localStorage.getItem('userProfile') || 'null'))
+
+function setStoredProfileFromLocalStorage() {
+  try {
+    storedProfile.value = JSON.parse(localStorage.getItem('userProfile') || 'null')
+  } catch (e) {
+    storedProfile.value = null
+  }
+}
+
+async function loadResponsibleParish() {
+  const token = getAuthToken()
+  if (!token || !API_BASE_URL) return
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/trabalhadores/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (response.ok) {
+      const data = await response.json()
+      selectedFreguesiaId.value = data.idFreguesia
+    }
+  } catch (err) {
+    console.error('Erro ao carregar freguesia do responsável:', err)
+  }
+}
+
+function getWorkerById(id) {
+  return workers.value.find((w) => String(w.id) === String(id)) || null
+}
 
 const availableFreguesias = computed(() => {
-  const respFregId = storedProfile?.fregCidadao || storedProfile?.idFreguesia || null
-  // if we have a responsible's freguesia id, show only that freguesia (after it's resolved)
-  if (respFregId && selectedFreguesia.value) return [selectedFreguesia.value]
-  return FREGUESIAS.filter((f) => f !== 'Todas')
+  if (selectedFreguesia.value) return [selectedFreguesia.value]
+  return []
 })
 
 const filteredTeams = computed(() => {
-  if (!selectedFreguesia.value) return []
-
-  return teams.value.filter((team) => team.freguesia === selectedFreguesia.value)
+  const respFregId = selectedFreguesiaId.value
+  if (respFregId) {
+    return teams.value.filter((team) => Number(team.freguesiaId) === Number(respFregId))
+  }
+  return []
 })
 
 const visibleWorkers = computed(() => {
-  if (!selectedFreguesia.value) return []
-  return workers.value.filter((worker) => worker.freguesia === selectedFreguesia.value)
+  const respFregId = selectedFreguesiaId.value
+  if (respFregId) {
+    return workers.value.filter((worker) => Number(worker.idFreguesia) === Number(respFregId))
+  }
+  return []
 })
 
 const workerAssignments = computed(() => {
@@ -256,6 +301,11 @@ async function handleAddWorker(worker) {
     const result = await assignWorkerToTeam(activeTeam.value.id, worker.id)
     if (result?.added) {
       teams.value = result.teams || teams.value
+      try {
+        workers.value = await listWorkers()
+      } catch (err) {
+        // keep previous workers on error
+      }
       workerNotice.value = `${worker.name} foi adicionado a ${activeTeam.value.name}.`
       return
     }
@@ -274,6 +324,11 @@ async function handleAddWorker(worker) {
 async function handleRemoveMember(teamId, memberId) {
   try {
     teams.value = await unassignWorkerFromTeam(teamId, memberId)
+    try {
+      workers.value = await listWorkers()
+    } catch (err) {
+      // keep previous workers on error
+    }
   } catch (error) {
     workerNotice.value = error?.message || 'Não foi possível remover o trabalhador.'
   }
@@ -287,14 +342,13 @@ async function loadInitialTeamsAndWorkers() {
     const [loadedTeams, loadedWorkers] = await Promise.all([listTeams(), listWorkers()])
     teams.value = loadedTeams
     workers.value = loadedWorkers
-    // if we have a stored profile with freguesia id, try to select that freguesia
-    const respFregId = storedProfile?.fregCidadao || storedProfile?.idFreguesia || null
+
+    // Resolve o nome da freguesia para exibição baseando-se no ID carregado
+    const respFregId = selectedFreguesiaId.value
     if (respFregId) {
-      // teams have freguesiaId, workers have idFreguesia — try to find a matching name
-      const teamMatch = teams.value.find((t) => String(t.freguesiaId) === String(respFregId))
-      const workerMatch = workers.value.find((w) => String(w.idFreguesia) === String(respFregId))
-      const name = teamMatch?.freguesia || workerMatch?.freguesia || ''
-      if (name) selectedFreguesia.value = name
+      const teamMatch = teams.value.find((t) => Number(t.freguesiaId) === Number(respFregId))
+      const workerMatch = workers.value.find((w) => Number(w.idFreguesia) === Number(respFregId))
+      selectedFreguesia.value = teamMatch?.freguesia || workerMatch?.freguesia || ''
     }
   } catch (error) {
     loadError.value = error?.message || 'Não foi possível carregar os dados da base de dados.'
@@ -316,18 +370,34 @@ function handleDocClick(e) {
 }
 
 onMounted(async () => {
+  await loadResponsibleParish()
   await loadInitialTeamsAndWorkers()
-  // select first available freguesia by default
-  if (!selectedFreguesia.value) {
-    const first =
-      availableFreguesias.value && availableFreguesias.value.length > 0
-        ? availableFreguesias.value[0]
-        : ''
-    if (first) selectedFreguesia.value = first
-  }
+
   document.addEventListener('click', handleDocClick)
+
+  // listen to localStorage changes (other tabs or updates) and re-resolve
+  storageHandler = (event) => {
+    if (!event || event.key === 'userProfile' || event.key === null) {
+      setStoredProfileFromLocalStorage()
+      // after updating profile, try to resolve again (teams/workers may already be loaded)
+      resolveFreguesiaFromProfile()
+    }
+  }
+  window.addEventListener('storage', storageHandler)
+  // also poll localStorage for same-tab updates (some app code updates localStorage without emitting events)
+  storagePollInterval = setInterval(() => {
+    const current = localStorage.getItem('userProfile')
+    if (current !== lastRawProfile) {
+      lastRawProfile = current
+      setStoredProfileFromLocalStorage()
+    }
+  }, 800)
 })
-onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleDocClick)
+  if (storageHandler) window.removeEventListener('storage', storageHandler)
+  if (storagePollInterval) clearInterval(storagePollInterval)
+})
 
 const decrementMax = (team) => {
   if (team.maxPerRoute > 1) team.maxPerRoute--
