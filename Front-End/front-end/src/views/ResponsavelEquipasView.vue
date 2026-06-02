@@ -40,12 +40,6 @@
     <main class="main-content">
       <div class="title-filter">
         <h1 class="page-title">Equipas</h1>
-        <div class="filter-select">
-          <label>Freguesia</label>
-          <select v-model="selectedFreguesia">
-            <option v-for="f in availableFreguesias" :key="f" :value="f">{{ f }}</option>
-          </select>
-        </div>
       </div>
 
       <div v-if="loadError" class="load-error">
@@ -207,7 +201,14 @@ const activeTeam = computed(
 
 const selectedFreguesia = ref('')
 
-const availableFreguesias = computed(() => FREGUESIAS.filter((f) => f !== 'Todas'))
+const storedProfile = JSON.parse(localStorage.getItem('userProfile') || 'null')
+
+const availableFreguesias = computed(() => {
+  const respFregId = storedProfile?.fregCidadao || storedProfile?.idFreguesia || null
+  // if we have a responsible's freguesia id, show only that freguesia (after it's resolved)
+  if (respFregId && selectedFreguesia.value) return [selectedFreguesia.value]
+  return FREGUESIAS.filter((f) => f !== 'Todas')
+})
 
 const filteredTeams = computed(() => {
   if (!selectedFreguesia.value) return []
@@ -286,6 +287,15 @@ async function loadInitialTeamsAndWorkers() {
     const [loadedTeams, loadedWorkers] = await Promise.all([listTeams(), listWorkers()])
     teams.value = loadedTeams
     workers.value = loadedWorkers
+    // if we have a stored profile with freguesia id, try to select that freguesia
+    const respFregId = storedProfile?.fregCidadao || storedProfile?.idFreguesia || null
+    if (respFregId) {
+      // teams have freguesiaId, workers have idFreguesia — try to find a matching name
+      const teamMatch = teams.value.find((t) => String(t.freguesiaId) === String(respFregId))
+      const workerMatch = workers.value.find((w) => String(w.idFreguesia) === String(respFregId))
+      const name = teamMatch?.freguesia || workerMatch?.freguesia || ''
+      if (name) selectedFreguesia.value = name
+    }
   } catch (error) {
     loadError.value = error?.message || 'Não foi possível carregar os dados da base de dados.'
   } finally {

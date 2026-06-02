@@ -1,8 +1,8 @@
 import "dotenv/config";
 import bcrypt from "bcrypt";
+import { Op } from "sequelize";
 import { sequelize, Trabalhador } from "../config/db.config.js";
 
-const EMAIL = process.env.RESPONSAVEL_EMAIL || "responsavel.1@vcc.pt";
 const PASSWORD = process.env.RESPONSAVEL_PASSWORD || "responsavelVCC";
 
 async function setResponsavelPassword() {
@@ -11,10 +11,13 @@ async function setResponsavelPassword() {
 
     const transaction = await sequelize.transaction();
     try {
+      const where = { emailTrabalhador: { [Op.like]: "responsavel.%" } };
       const [updatedCount] = await Trabalhador.update(
         { credenciaisTrabalhadores: hashed },
-        { where: { emailTrabalhador: EMAIL }, transaction },
+        { where, transaction },
       );
+
+      console.log(`Updated ${updatedCount} responsavel(s) password.`);
 
       await transaction.commit();
     } catch (err) {

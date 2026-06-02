@@ -27,7 +27,7 @@
           </router-link>
         </div>
         <div class="sidebar-bottom">
-          <router-link :to="accountRoute" class="sidebar-item" @click="closeMenu">
+          <router-link to="/responsavel/perfil" class="sidebar-item" @click="closeMenu">
             <span class="sidebar-label">Conta</span>
             <img src="@/assets/conta.png" alt="conta" class="sidebar-icon" />
           </router-link>
