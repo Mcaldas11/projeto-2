@@ -28,6 +28,12 @@ function mapOccurrencePayload(payload = {}) {
 }
 
 async function listOccurrences() {
+  const token = getAuthToken()
+  if (!token) {
+    // If not logged in, show all occurrences
+    return listAllOccurrences()
+  }
+
   const userType = getAuthUserType()
   const isCitizen = userType === 'cidadao'
   const isAdminUser = userType === 'trabalhador_admin' || userType === 'responsavel'

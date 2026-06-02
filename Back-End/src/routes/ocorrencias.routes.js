@@ -21,10 +21,12 @@ const uploadFotos = multer({
   },
 });
 
-// Apply auth middleware to all occurrence routes
+router.get("/", ocorrenciasControllers.getAllOcorrencias);
+router.get("/:id", validateIntegerParam("id"), ocorrenciasControllers.getOcorrenciaById);
+
+// Apply auth middleware to all other occurrence routes
 router.use(authMiddleware);
 
-router.get("/", ocorrenciasControllers.getAllOcorrencias);
 router.post(
   "/",
   requireJsonObject,
@@ -32,7 +34,6 @@ router.post(
   ocorrenciasControllers.createOcorrencia,
 );
 
-router.get("/:id", validateIntegerParam("id"), ocorrenciasControllers.getOcorrenciaById);
 router.post(
   "/:id/fotos",
   validateIntegerParam("id"),
