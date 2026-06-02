@@ -1,5 +1,6 @@
 import express from "express";
 
+import authRoutes from "./auth.routes.js";
 import cidadaosRoutes from "./cidadaos.routes.js";
 import equipasRoutes from "./equipas.routes.js";
 import mensagensRoutes from "./mensagens.routes.js";
@@ -10,6 +11,7 @@ import trabalhadoresRoutes from "./trabalhadores.routes.js";
 
 const router = express.Router();
 
+router.use("/auth", authRoutes);
 router.use("/cidadaos", cidadaosRoutes);
 router.use("/municipios", municipiosRoutes);
 router.use("/equipas", equipasRoutes);
