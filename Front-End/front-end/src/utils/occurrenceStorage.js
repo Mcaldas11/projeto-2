@@ -105,6 +105,7 @@ function backendOccurrenceToUi(occurrence = {}) {
     severidade: occurrence.severidade || '',
     foto: occurrence.foto || fotos,
     userImg: occurrence.userImg || avatarImg,
+    mensagens: occurrence.mensagens || [],
   }
 }
 

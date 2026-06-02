@@ -141,6 +141,23 @@ async function listWorkerOccurrencesInResolution() {
   return Array.isArray(data) ? data.map((occurrence) => backendOccurrenceToUi(occurrence)) : []
 }
 
+async function listWorkerHomeOccurrences() {
+  if (!API_BASE_URL) {
+    throw new Error('Define VITE_API_URL para carregar as ocorrências da home.')
+  }
+
+  const response = await fetch(`${API_BASE_URL}/trabalhadores/me/ocorrencias/home`, {
+    headers: buildAuthHeaders(),
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to load home occurrences from backend')
+  }
+
+  const data = await response.json()
+  return Array.isArray(data) ? data.map((occurrence) => backendOccurrenceToUi(occurrence)) : []
+}
+
 async function createOccurrence(payload, files = null) {
   if (!API_BASE_URL) {
     throw new Error('Define VITE_API_URL para criar ocorrências na base de dados.')
@@ -226,6 +243,7 @@ export {
   createOccurrence,
   resolveOccurrence,
   listWorkerOccurrencesInResolution,
+  listWorkerHomeOccurrences,
   listOccurrenceMarkers,
   API_BASE_URL,
 }

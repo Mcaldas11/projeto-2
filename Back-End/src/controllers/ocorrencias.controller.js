@@ -1,6 +1,6 @@
 import { Readable } from "stream";
-import { Ocorrencia, Cidadao } from "../config/db.config.js";
-import { Trabalhador } from "../config/db.config.js";
+import { Ocorrencia, Cidadao, Trabalhador, Mensagem } from "../config/db.config.js";
+import { Op } from "sequelize";
 import cloudinary from "../config/cloudinary.js";
 import {
   genericError,
@@ -287,6 +287,52 @@ export const getOcorrenciasEmResolucaoForTrabalhador = async (req, res, next) =>
     res.json(data);
   } catch (error) {
     next(genericError("Error fetching ocorrencias em resolucao for trabalhador"));
+  }
+};
+
+export const getOcorrenciasHomeForTrabalhador = async (req, res, next) => {
+  try {
+    if (!req.userData || !normalizeWorkerType(req.userData.userType)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const trabalhador = await Trabalhador.findByPk(req.userData.userId);
+    if (!trabalhador) {
+      return next(notFoundError("trabalhador", req.userData.userId));
+    }
+
+    const orConditions = [];
+    if (trabalhador.idFreguesia) {
+      orConditions.push({ estado: DEFAULT_ESTADO, idFreguesia: trabalhador.idFreguesia });
+    }
+    if (trabalhador.idEquipa) {
+      orConditions.push({ idEquipa: trabalhador.idEquipa });
+    }
+
+    if (orConditions.length === 0) {
+      return res.json([]);
+    }
+
+    const ocorrencias = await Ocorrencia.findAll({
+      where: { [Op.or]: orConditions },
+      include: [{
+        model: Mensagem,
+        as: "mensagens",
+      }],
+      order: [["dataOcorrencia", "DESC"]],
+    });
+
+    const data = ocorrencias.map((ocorrencia) => {
+      const fotos = normalizeFotosField(ocorrencia.foto).map((foto) => foto.url);
+      return {
+        ...ocorrencia.toJSON(),
+        foto: buildFotosComIndice(fotos),
+      };
+    });
+
+    res.json(data);
+  } catch (error) {
+    next(genericError("Error fetching ocorrencias for worker home"));
   }
 };
 

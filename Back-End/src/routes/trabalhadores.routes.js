@@ -57,6 +57,11 @@ router.get(
   authMiddleware,
   ocorrenciasControllers.getOcorrenciasEmResolucaoForTrabalhador,
 );
+router.get(
+  "/me/ocorrencias/home",
+  authMiddleware,
+  ocorrenciasControllers.getOcorrenciasHomeForTrabalhador,
+);
 
 router.get(
   "/:id",

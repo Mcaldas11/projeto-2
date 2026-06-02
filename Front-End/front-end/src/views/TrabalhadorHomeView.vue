@@ -49,6 +49,7 @@
                 <tr>
                   <th>Status ↕</th>
                   <th>Tipo de Ocorrência <span class="info-circle">?</span></th>
+                  <th>Avaliação</th>
                   <th></th>
                 </tr>
               </thead>
@@ -60,6 +61,13 @@
                   <td :class="['type-cell', task.typeClass]">
                     {{ task.tipo || 'Sem tipo' }}
                   </td>
+                  <td>
+                    <div v-if="task.mensagens && task.mensagens.length > 0" class="worker-eval-info">
+                      <span class="stars">⭐ {{ task.mensagens[0].classificacao }}/5</span>
+                      <p class="eval-preview" :title="task.mensagens[0].texto">{{ task.mensagens[0].texto }}</p>
+                    </div>
+                    <span v-else class="no-eval">-</span>
+                  </td>
                   <td class="action-cell">
                     <router-link :to="`/ocorrencia/${task.id}`">
                       <img src="@/assets/detalhes.png" alt="Ver" class="info-btn" />
@@ -67,7 +75,7 @@
                   </td>
                 </tr>
                 <tr v-if="tasks.length === 0">
-                  <td colspan="3" class="empty-state">Sem ocorrências aceites.</td>
+                  <td colspan="4" class="empty-state">Sem ocorrências disponíveis.</td>
                 </tr>
               </tbody>
             </table>
@@ -163,7 +171,7 @@ import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import defaultAvatar from '@/assets/avatar.png'
 import workerFooterLogo from '@/assets/logoP.png'
-import { API_BASE_URL, listWorkerOccurrencesInResolution } from '@/services/occurrenceService'
+import { API_BASE_URL, listWorkerHomeOccurrences } from '@/services/occurrenceService'
 import { getAuthToken } from '@/utils/auth'
 import { resolveOccurrenceCoordinates } from '@/utils/occurrenceStorage'
 import {
@@ -340,10 +348,8 @@ onMounted(async () => {
     const token = getAuthToken()
     const headers = token ? { Authorization: `Bearer ${token}` } : {}
 
-    const workerOccurrences = await listWorkerOccurrencesInResolution()
-    tasks.value = Array.isArray(workerOccurrences)
-      ? workerOccurrences.filter((occurrence) => occurrence.statusClass === 'em-resolucao')
-      : []
+    const workerOccurrences = await listWorkerHomeOccurrences()
+    tasks.value = Array.isArray(workerOccurrences) ? workerOccurrences : []
     drawAcceptedOccurrencesOnMap()
 
     if (!API_BASE_URL || !token) {
@@ -633,6 +639,30 @@ h2 {
   width: 28px;
   height: 28px;
   cursor: pointer;
+}
+
+.worker-eval-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.stars {
+  font-weight: 700;
+  color: #166534;
+  font-size: 13px;
+}
+.eval-preview {
+  margin: 0;
+  font-size: 12px;
+  color: #64748b;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.no-eval {
+  color: #cbd5e1;
+  font-size: 12px;
 }
 
 .empty-state {
