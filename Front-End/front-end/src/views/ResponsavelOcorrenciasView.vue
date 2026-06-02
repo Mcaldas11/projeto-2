@@ -1,11 +1,11 @@
 <template>
   <div class="page-container">
     <nav class="navbar">
-      <router-link to="/">
-        <div class="logo-area">
-          <img src="@/assets/logo.svg" alt="VC Comunica Logo" class="logo-img" />
-        </div>
-      </router-link>
+      <div class="logo-area">
+        <router-link to="/responsavel/perfil">
+          <img src="@/assets/logoP.png" alt="VC Comunica Logo" class="logo-img" />
+        </router-link>
+      </div>
 
       <div class="nav-icons" ref="navIcons">
         <img

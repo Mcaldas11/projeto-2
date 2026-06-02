@@ -3,7 +3,7 @@
   <div class="page-container">
     <nav class="navbar">
       <div class="logo-area">
-        <router-link to="/admin/perfil">
+        <router-link to="/responsavel/perfil">
           <img src="@/assets/logoP.png" alt="VC Comunica Logo" class="logo-img" />
         </router-link>
       </div>

@@ -4,7 +4,9 @@
     <!-- NAVBAR ALINHADA (SEM BOTÃO LIGADO A OCORRÊNCIAS) -->
     <nav class="navbar">
       <div class="logo-area">
-        <img src="@/assets/logoP.png" alt="VC Comunica Logo" class="logo-img" />
+        <router-link to="/responsavel/perfil">
+          <img src="@/assets/logoP.png" alt="VC Comunica Logo" class="logo-img" />
+        </router-link>
       </div>
       <div class="nav-icons">
         <!-- Notificações e Menu Hambúrguer juntos no lado direito -->
