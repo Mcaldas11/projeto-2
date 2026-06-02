@@ -85,7 +85,12 @@
                   occurrenceStatus
                 }}</span>
               </p>
-              <p><strong>Localização:</strong><br />{{ occurrenceLocation }}</p>
+              <p>
+                <strong>Localização:</strong><br />{{ occurrenceLocation }}<br />
+                <button @click="viewOnMap" class="map-link-btn">
+                 Ver no mapa
+                </button>
+              </p>
               <p><strong>Descrição:</strong><br />{{ occurrenceDescription }}</p>
 
               <p v-if="selectedOccurrence.dataAgendada">
@@ -253,7 +258,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import Footer from '@/components/footer.vue'
@@ -273,6 +278,7 @@ const notifIcon = ref(null)
 const menuPanel = ref(null)
 const menuIcon = ref(null)
 const route = useRoute()
+const router = useRouter()
 
 const isWorker = computed(() => {
   const userType = getAuthUserType()
@@ -313,6 +319,17 @@ const podeAvaliar = computed(() => {
   const estado = selectedOccurrence.value?.situacao
   return (estado === 'Resolvido' || estado === 'Não resolvido') && isCitizen.value
 })
+
+function viewOnMap() {
+  if (!selectedOccurrence.value) return
+  router.push({
+    path: '/ocorrencias',
+    query: {
+      id: selectedOccurrence.value.id,
+      mode: 'mapa'
+    }
+  })
+}
 
 async function loadOccurrence() {
   selectedOccurrence.value = await getOccurrence(route.params.id)
@@ -1000,6 +1017,26 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
 }
 .error-msg {
   color: #b91c1c;
+}
+
+.map-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: all 0.2s;
+}
+.map-link-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
 }
 
 @media (max-width: 900px) {

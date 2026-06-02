@@ -166,6 +166,7 @@
 
 <script setup>
 import { computed, nextTick, onMounted, onBeforeUnmount, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import Footer from '@/components/footer.vue'
@@ -182,6 +183,7 @@ import { getOccurrenceStatusColor, getOccurrenceTypeMeta } from '@/utils/occurre
 import { resolveOccurrenceCoordinates } from '@/utils/occurrenceStorage'
 import { getNewOccurrenceRoute } from '@/utils/auth'
 
+const route = useRoute()
 const viewMode = ref('lista')
 const showNotif = ref(false)
 const showMenu = ref(false)
@@ -356,7 +358,12 @@ function renderMarkers() {
     marker.addTo(markerLayer)
   })
 
-  fitMarkers()
+  // Se houver uma ocorrência selecionada, vamos centrar nela em vez de fazer fitBounds em todas
+  if (selectedOccurrence.value && selectedOccurrence.value.latitude && selectedOccurrence.value.longitude) {
+    mapInstance.setView([selectedOccurrence.value.latitude, selectedOccurrence.value.longitude], 16)
+  } else {
+    fitMarkers()
+  }
 }
 
 function initializeMap() {
@@ -428,7 +435,12 @@ async function loadOccurrences() {
 
   ocorrencias.value = enrichedOccurrences
 
-  if (selectedOccurrence.value) {
+  if (route.query.id) {
+    const found = enrichedOccurrences.find((o) => String(o.id) === String(route.query.id))
+    if (found) {
+      selectedOccurrence.value = found
+    }
+  } else if (selectedOccurrence.value) {
     selectedOccurrence.value =
       enrichedOccurrences.find((occurrence) => occurrence.id === selectedOccurrence.value.id) ||
       null
@@ -473,7 +485,13 @@ function handleDocClick(e) {
 
 onMounted(async () => {
   document.addEventListener('click', handleDocClick)
+
+  if (route.query.mode === 'mapa') {
+    viewMode.value = 'mapa'
+  }
+
   await loadOccurrences()
+
   if (viewMode.value === 'mapa') {
     await nextTick()
     initializeMap()
