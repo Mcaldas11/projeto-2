@@ -1,4 +1,4 @@
-<!-- falta arrumar o genero -->
+<!-- base errada -->
 <template>
   <div class="page-container">
     <!-- NAVBAR ALINHADA (SEM BOTÃO LIGADO A OCORRÊNCIAS) -->

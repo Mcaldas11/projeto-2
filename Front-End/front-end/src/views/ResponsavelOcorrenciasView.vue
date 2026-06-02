@@ -1,4 +1,3 @@
-<!-- falta arrumar o genero -->
 <template>
   <div class="page-container">
     <!-- NAVBAR ALINHADA (SEM BOTÃO LIGADO A OCORRÊNCIAS) -->

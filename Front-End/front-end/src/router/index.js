@@ -13,6 +13,10 @@ import TrabalhadorProfile from '../views/TrabalhadorProfile.vue'
 
 import ResponsavelPerfilView from '../views/ResponsavelPerfilView.vue'
 import ResponsavelRotasView from '../views/ResponsavelRotasView.vue'
+import ResponsavelOcorrenciasView from '../views/ResponsavelOcorrenciasView.vue'
+import ResponsavelEquipasView from '../views/ResponsavelEquipasView.vue'
+import ResponsavelRecursosView from '../views/ResponsavelRecursosView.vue'
+import ResponsavelTrabalhadoresView from '../views/ResponsavelTrabalhadoresView.vue'
 
 // Admin Views
 import AdminHomeView from '../views/admin/AdminHomeView.vue'
@@ -53,6 +57,8 @@ const router = createRouter({
       component: TrabalhadorProfile,
       meta: { requiresWorker: true },
     },
+
+    // Responsável Routes
     {
       path: '/responsavel/perfil',
       name: 'responsavel-profile',
@@ -60,9 +66,33 @@ const router = createRouter({
       meta: { requiresWorker: true },
     },
     {
+      path: '/responsavel/ocorrencias',
+      name: 'responsavel-ocorrencias',
+      component: ResponsavelOcorrenciasView,
+      meta: { requiresWorker: true },
+    },
+    {
       path: '/responsavel/rotas',
       name: 'responsavel-rotas',
       component: ResponsavelRotasView,
+      meta: { requiresWorker: true },
+    },
+    {
+      path: '/responsavel/equipas',
+      name: 'responsavel-equipas',
+      component: ResponsavelEquipasView,
+      meta: { requiresWorker: true },
+    },
+    {
+      path: '/responsavel/recursos',
+      name: 'responsavel-recursos',
+      component: ResponsavelRecursosView,
+      meta: { requiresWorker: true },
+    },
+    {
+      path: '/responsavel/trabalhadores',
+      name: 'responsavel-trabalhadores',
+      component: ResponsavelTrabalhadoresView,
       meta: { requiresWorker: true },
     },
 
