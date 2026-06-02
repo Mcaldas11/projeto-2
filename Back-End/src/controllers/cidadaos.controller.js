@@ -113,6 +113,87 @@ export const getCidadaoMe = async (req, res, next) => {
   }
 };
 
+export const updateCidadaoMe = async (req, res, next) => {
+  try {
+    if (!req.userData || req.userData.userType !== "cidadao") {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const cidadao = await Cidadao.findByPk(req.userData.userId);
+
+    if (!cidadao) {
+      return next(notFoundError("cidadao", req.userData.userId));
+    }
+
+    const updates = {};
+
+    const normalizeFullName = (value) => {
+      const parts = String(value || "")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+      return parts.join(" ");
+    };
+
+    if (Object.prototype.hasOwnProperty.call(req.body, "nome")) {
+      updates.nome = normalizeFullName(req.body.nome);
+    } else if (req.body.firstName || req.body.lastName || req.body.apelido) {
+      const { firstName, lastName, apelido } = req.body;
+      const fullName = [firstName, lastName || apelido]
+        .filter(Boolean)
+        .join(" ");
+      updates.nome = normalizeFullName(fullName);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(req.body, "email")) {
+      updates.email = req.body.email;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(req.body, "nrTelemovel")) {
+      updates.nrTelemovel = req.body.nrTelemovel;
+    } else if (Object.prototype.hasOwnProperty.call(req.body, "telemovel")) {
+      updates.nrTelemovel = req.body.telemovel;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(req.body, "fregCidadao")) {
+      updates.fregCidadao = req.body.fregCidadao;
+    } else if (Object.prototype.hasOwnProperty.call(req.body, "idFreguesia")) {
+      updates.fregCidadao = req.body.idFreguesia;
+    }
+
+    if (Object.keys(updates).length > 0) {
+      await cidadao.update(updates);
+    }
+
+    const updatedCidadao = await Cidadao.findByPk(req.userData.userId, {
+      attributes: [
+        "idCidadao",
+        "nome",
+        "fregCidadao",
+        "nrTelemovel",
+        "email",
+        "fotoPerfil",
+      ],
+    });
+
+    res.json(updatedCidadao);
+  } catch (error) {
+    if (error?.name === "SequelizeUniqueConstraintError") {
+      return next(
+        conflictError(
+          { email: ["Email already in use"] },
+          "Conflict: Email already in use.",
+        ),
+      );
+    }
+    if (handleSequelizeValidation(error, next)) {
+      return;
+    }
+
+    next(genericError("Error updating cidadao profile"));
+  }
+};
+
 export const createCidadao = async (req, res, next) => {
   try {
     const { password, ...rest } = req.body;

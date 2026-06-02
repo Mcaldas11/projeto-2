@@ -41,11 +41,21 @@
       <!-- Cabeçalho do Perfil (Estilo Identidade Visual Nova) -->
       <section class="profile-header">
         <div class="user-info">
-          <div class="avatar-container">
+          <div class="avatar-container clickable" @click="triggerPhotoUpload">
             <img v-if="worker.avatar" :src="worker.avatar" alt="Avatar" class="profile-avatar" />
             <div v-else class="profile-avatar-placeholder">
               {{ worker.nome[0] }}{{ worker.apelido[0] }}
             </div>
+            <div class="avatar-overlay">
+              <span class="camera-icon">📷</span>
+            </div>
+            <input
+              type="file"
+              ref="photoInput"
+              style="display: none"
+              accept="image/*"
+              @change="handlePhotoChange"
+            />
           </div>
           <div class="user-text">
             <h2>{{ worker.nome }} {{ worker.apelido }}</h2>
@@ -139,6 +149,12 @@
 
           <label>Apelido:</label>
           <input v-model="editLastName" class="display-box" />
+
+          <label>Email:</label>
+          <input v-model="editEmail" class="display-box" />
+
+          <label>Telemóvel:</label>
+          <input v-model="editPhone" class="display-box" />
         </div>
         <div class="modal-actions">
           <button class="modal-btn cancel" @click="showEditModal = false">VOLTAR</button>
@@ -170,7 +186,7 @@ import Footer from '@/components/footer.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import avatarImg from '@/assets/avatar.png'
-import { getAuthToken } from '@/utils/auth'
+import { getAuthToken, getAuthUserId } from '@/utils/auth'
 import SidebarMenu from '@/components/SidebarMenu.vue'
 
 const responsavelFooterColumns = [
@@ -186,6 +202,54 @@ const responsavelFooterColumns = [
 
 const router = useRouter()
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
+
+const photoInput = ref(null)
+
+const triggerPhotoUpload = () => {
+  photoInput.value?.click()
+}
+
+async function handlePhotoChange(event) {
+  const file = event.target.files?.[0]
+  if (!file) return
+
+  const trabalhadorId = getAuthUserId()
+  const token = getAuthToken()
+
+  if (!API_BASE_URL || !trabalhadorId || !token) {
+    alert('Não foi possível atualizar a foto. Erro de autenticação.')
+    return
+  }
+
+  const formData = new FormData()
+  formData.append('file', file)
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/trabalhadores/${trabalhadorId}/foto`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.message || 'Falha ao atualizar foto no servidor.')
+    }
+
+    const data = await response.json()
+    if (data.success && data.fotoPerfil) {
+      worker.value.avatar = data.fotoPerfil
+      // Update localStorage
+      const profile = JSON.parse(localStorage.getItem('userProfile') || '{}')
+      profile.fotoPerfil = data.fotoPerfil
+      localStorage.setItem('userProfile', JSON.stringify(profile))
+    }
+  } catch (error) {
+    alert(error.message || 'Não foi possível atualizar a foto.')
+  }
+}
 
 const splitName = (fullName = '') => {
   const parts = String(fullName).trim().split(/\s+/).filter(Boolean)
@@ -300,11 +364,13 @@ async function loadResponsibleProfile() {
 const showEditModal = ref(false)
 const editFirstName = ref('')
 const editLastName = ref('')
+const editEmail = ref('')
 const isSavingProfile = ref(false)
 
 const openEditModal = () => {
   editFirstName.value = worker.value.nome
   editLastName.value = worker.value.apelido
+  editEmail.value = worker.value.email
   showEditModal.value = true
 }
 
@@ -337,6 +403,7 @@ async function handleSaveEdit() {
       body: JSON.stringify({
         firstName: editFirstName.value.trim(),
         lastName: editLastName.value.trim(),
+        email: editEmail.value.trim(),
       }),
     })
 
@@ -350,6 +417,7 @@ async function handleSaveEdit() {
 
     worker.value.nome = firstName || editFirstName.value.trim()
     worker.value.apelido = lastName || editLastName.value.trim()
+    worker.value.email = payload?.emailTrabalhador || editEmail.value.trim()
 
     localStorage.setItem(
       'userProfile',
@@ -519,6 +587,36 @@ onMounted(() => {
   height: 80px;
   border-radius: 50%;
   object-fit: cover;
+}
+.avatar-container {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+.avatar-container.clickable {
+  cursor: pointer;
+}
+.avatar-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.avatar-container:hover .avatar-overlay {
+  opacity: 1;
+}
+.camera-icon {
+  color: #fff;
+  font-size: 20px;
 }
 .profile-avatar-placeholder {
   background: #cfe8df;

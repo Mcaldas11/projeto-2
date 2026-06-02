@@ -42,11 +42,21 @@
       <!-- Cabeçalho do Perfil (Estilo Identidade Visual Nova) -->
       <section class="profile-header">
         <div class="user-info">
-          <div class="avatar-container">
+          <div class="avatar-container clickable" @click="triggerPhotoUpload">
             <img v-if="worker.avatar" :src="worker.avatar" alt="Avatar" class="profile-avatar" />
             <div v-else class="profile-avatar-placeholder">
               {{ worker.nome?.[0] || '' }}{{ worker.apelido?.[0] || '' }}
             </div>
+            <div class="avatar-overlay">
+              <span class="camera-icon">📷</span>
+            </div>
+            <input
+              type="file"
+              ref="photoInput"
+              style="display: none"
+              accept="image/*"
+              @change="handlePhotoChange"
+            />
           </div>
           <div class="user-text">
             <h2>{{ worker.nome }} {{ worker.apelido }}</h2>
@@ -74,7 +84,7 @@
           </div>
 
           <div class="detail-field">
-            <label>Freguesia de Atuação 🔒</label>
+            <label>Freguesia de Atuação</label>
             <div class="display-box disabled-box">{{ worker.freguesia }}</div>
           </div>
 
@@ -173,6 +183,9 @@
 
           <label>Email:</label>
           <input v-model="editEmail" class="display-box" />
+
+          <label>Telemóvel:</label>
+          <input v-model="editPhone" class="display-box" />
         </div>
         <div class="modal-actions">
           <button class="modal-btn cancel" @click="showEditModal = false">VOLTAR</button>
@@ -357,6 +370,54 @@ const resolveFreguesiaName = async () => {
   }
 }
 
+const photoInput = ref(null)
+
+const triggerPhotoUpload = () => {
+  photoInput.value?.click()
+}
+
+async function handlePhotoChange(event) {
+  const file = event.target.files?.[0]
+  if (!file) return
+
+  const trabalhadorId = getAuthUserId()
+  const token = getAuthToken()
+
+  if (!API_BASE_URL || !trabalhadorId || !token) {
+    alert('Não foi possível atualizar a foto. Erro de autenticação.')
+    return
+  }
+
+  const formData = new FormData()
+  formData.append('file', file)
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/trabalhadores/${trabalhadorId}/foto`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.message || 'Falha ao atualizar foto no servidor.')
+    }
+
+    const data = await response.json()
+    if (data.success && data.fotoPerfil) {
+      worker.value.avatar = data.fotoPerfil
+      // Update localStorage
+      const profile = JSON.parse(localStorage.getItem('userProfile') || '{}')
+      profile.fotoPerfil = data.fotoPerfil
+      localStorage.setItem('userProfile', JSON.stringify(profile))
+    }
+  } catch (error) {
+    alert(error.message || 'Não foi possível atualizar a foto.')
+  }
+}
+
 // Modais de Edição de Dados
 const showEditModal = ref(false)
 const editFirstName = ref('')
@@ -370,15 +431,60 @@ const openEditModal = () => {
   showEditModal.value = true
 }
 
-function handleSaveEdit() {
+async function handleSaveEdit() {
   if (!editFirstName.value.trim() || !editLastName.value.trim()) {
     alert('Nome e apelido não podem ficar vazios.')
     return
   }
-  worker.value.nome = editFirstName.value.trim()
-  worker.value.apelido = editLastName.value.trim()
-  worker.value.email = editEmail.value.trim()
-  showEditModal.value = false
+
+  const token = getAuthToken()
+  if (!API_BASE_URL || !token) {
+    alert('Não foi possível guardar o perfil. Erro de autenticação.')
+    return
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/trabalhadores/me`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        firstName: editFirstName.value.trim(),
+        lastName: editLastName.value.trim(),
+        email: editEmail.value.trim(),
+      }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.message || 'Falha ao guardar perfil no servidor.')
+    }
+
+    const updatedProfile = await response.json()
+    const { firstName, lastName } = splitName(updatedProfile.nomeTrabalhador)
+
+    worker.value.nome = firstName
+    worker.value.apelido = lastName
+    worker.value.email = updatedProfile.emailTrabalhador
+
+    localStorage.setItem(
+      'userProfile',
+      JSON.stringify({
+        firstName: worker.value.nome,
+        lastName: worker.value.apelido,
+        email: worker.value.email,
+        fotoPerfil: updatedProfile.fotoPerfil || worker.value.avatar,
+        idEquipa: updatedProfile.idEquipa,
+        idFreguesia: updatedProfile.idFreguesia,
+      }),
+    )
+
+    showEditModal.value = false
+  } catch (error) {
+    alert(error.message || 'Não foi possível guardar o perfil.')
+  }
 }
 
 // Ocorrências vinculadas à freguesia do funcionário
@@ -619,6 +725,36 @@ onMounted(async () => {
   height: 80px;
   border-radius: 50%;
   object-fit: cover;
+}
+.avatar-container {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+.avatar-container.clickable {
+  cursor: pointer;
+}
+.avatar-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.avatar-container:hover .avatar-overlay {
+  opacity: 1;
+}
+.camera-icon {
+  color: #fff;
+  font-size: 20px;
 }
 .profile-avatar-placeholder {
   background: #cfe8df;

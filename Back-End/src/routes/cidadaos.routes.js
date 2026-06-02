@@ -36,6 +36,7 @@ router.post(
 
 router.post("/login", cidadaosControllers.loginCidadao);
 router.get("/me", authMiddleware, cidadaosControllers.getCidadaoMe);
+router.put("/me", authMiddleware, requireJsonObject, cidadaosControllers.updateCidadaoMe);
 
 // Create an occurrence for the authenticated cidadao (uses token userId)
 router.get(

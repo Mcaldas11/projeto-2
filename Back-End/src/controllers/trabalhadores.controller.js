@@ -200,7 +200,7 @@ export const updateTrabalhadorMe = async (req, res, next) => {
 
     if (Object.prototype.hasOwnProperty.call(req.body, "nomeTrabalhador")) {
       updates.nomeTrabalhador = normalizeFullName(req.body.nomeTrabalhador);
-    } else {
+    } else if (req.body.firstName || req.body.lastName || req.body.apelido) {
       const { firstName, lastName, apelido } = req.body;
       const fullName = [firstName, lastName || apelido]
         .filter(Boolean)
@@ -208,11 +208,24 @@ export const updateTrabalhadorMe = async (req, res, next) => {
       updates.nomeTrabalhador = normalizeFullName(fullName);
     }
 
-    if (!updates.nomeTrabalhador) {
-      return res.status(400).json({ message: "Nome é obrigatório" });
+    if (Object.prototype.hasOwnProperty.call(req.body, "emailTrabalhador")) {
+      updates.emailTrabalhador = req.body.emailTrabalhador;
+    } else if (Object.prototype.hasOwnProperty.call(req.body, "email")) {
+      updates.emailTrabalhador = req.body.email;
     }
 
-    await trabalhador.update(updates);
+    if (Object.prototype.hasOwnProperty.call(req.body, "telemovelTrabalhador")) {
+      updates.telemovelTrabalhador = req.body.telemovelTrabalhador;
+    } else if (Object.prototype.hasOwnProperty.call(req.body, "nrTelemovel")) {
+      updates.telemovelTrabalhador = req.body.nrTelemovel;
+    } else if (Object.prototype.hasOwnProperty.call(req.body, "telemovel")) {
+      updates.telemovelTrabalhador = req.body.telemovel;
+    }
+
+    // Only apply updates if we have something to update
+    if (Object.keys(updates).length > 0) {
+      await trabalhador.update(updates);
+    }
 
     const updatedTrabalhador = await Trabalhador.findByPk(req.userData.userId, {
       attributes: [

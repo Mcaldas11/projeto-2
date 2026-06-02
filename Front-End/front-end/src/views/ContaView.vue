@@ -39,7 +39,19 @@
 
       <section class="profile-header">
         <div class="user-info">
-          <img :src="profilePhoto" alt="Avatar" class="profile-avatar" />
+          <div class="avatar-wrapper" @click="triggerPhotoUpload">
+            <img :src="profilePhoto" alt="Avatar" class="profile-avatar" />
+            <div class="avatar-overlay">
+              <span class="camera-icon">Foto</span>
+            </div>
+            <input
+              type="file"
+              ref="photoInput"
+              style="display: none"
+              accept="image/*"
+              @change="handlePhotoChange"
+            />
+          </div>
           <div class="user-text">
             <h2>{{ userFirstName }} {{ userLastName }}</h2>
             <p>{{ userEmail }}</p>
@@ -129,6 +141,8 @@
           <input v-model="editLastName" class="display-box" />
           <label style="font-weight: 700; color: #475569">Email:</label>
           <input v-model="editEmail" class="display-box" />
+          <label style="font-weight: 700; color: #475569">Telemóvel:</label>
+          <input v-model="editPhone" class="display-box" />
         </div>
         <div class="modal-actions">
           <button class="modal-btn cancel" @click="handleCancelEdit">VOLTAR</button>
@@ -206,6 +220,7 @@ const storedProfile = JSON.parse(localStorage.getItem('userProfile') || 'null')
 const userFirstName = ref(storedProfile?.firstName || '')
 const userLastName = ref(storedProfile?.lastName || '')
 const userEmail = ref(storedProfile?.email || '')
+const userPhone = ref(storedProfile?.nrTelemovel || '')
 const profilePhoto = ref(storedProfile?.fotoPerfil || '')
 const selectedFregId = ref(storedProfile?.fregCidadao || storedProfile?.idFreguesia || '')
 
@@ -213,6 +228,7 @@ const showEditModal = ref(false)
 const editFirstName = ref('')
 const editLastName = ref('')
 const editEmail = ref('')
+const editPhone = ref('')
 const router = useRouter()
 const newOccurrenceRoute = computed(() => getNewOccurrenceRoute())
 
@@ -238,14 +254,63 @@ const editarNome = () => {
   editFirstName.value = userFirstName.value
   editLastName.value = userLastName.value
   editEmail.value = userEmail.value
+  editPhone.value = userPhone.value
   showEditModal.value = true
+}
+
+const photoInput = ref(null)
+
+const triggerPhotoUpload = () => {
+  photoInput.value?.click()
+}
+
+async function handlePhotoChange(event) {
+  const file = event.target.files?.[0]
+  if (!file) return
+
+  const cidadaoId = localStorage.getItem('authUserId') || sessionStorage.getItem('authUserId')
+  const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken')
+
+  if (!API_BASE_URL || !cidadaoId || !token) {
+    alert('Não foi possível atualizar a foto. Erro de autenticação.')
+    return
+  }
+
+  const formData = new FormData()
+  formData.append('file', file)
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/cidadaos/${cidadaoId}/foto`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.message || 'Falha ao atualizar foto no servidor.')
+    }
+
+    const data = await response.json()
+    if (data.success && data.fotoPerfil) {
+      profilePhoto.value = data.fotoPerfil
+      // Update localStorage
+      const profile = JSON.parse(localStorage.getItem('userProfile') || '{}')
+      profile.fotoPerfil = data.fotoPerfil
+      localStorage.setItem('userProfile', JSON.stringify(profile))
+    }
+  } catch (error) {
+    alert(error.message || 'Não foi possível atualizar a foto.')
+  }
 }
 
 function handleCancelEdit() {
   showEditModal.value = false
 }
 
-function handleSaveEdit() {
+async function handleSaveEdit() {
   if (!editFirstName.value.trim() || !editLastName.value.trim()) {
     alert('Nome e apelido não podem ficar vazios.')
     return
@@ -254,19 +319,68 @@ function handleSaveEdit() {
     alert('Por favor insere um email válido.')
     return
   }
-  userFirstName.value = editFirstName.value.trim()
-  userLastName.value = editLastName.value.trim()
-  userEmail.value = editEmail.value.trim()
-  localStorage.setItem(
-    'userProfile',
-    JSON.stringify({
-      firstName: userFirstName.value,
-      lastName: userLastName.value,
-      email: userEmail.value,
-      fotoPerfil: profilePhoto.value,
-    }),
-  )
-  showEditModal.value = false
+
+  const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken')
+  if (!API_BASE_URL || !token) {
+    alert('Não foi possível guardar o perfil. Erro de autenticação.')
+    return
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/cidadaos/me`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        firstName: editFirstName.value.trim(),
+        lastName: editLastName.value.trim(),
+        email: editEmail.value.trim(),
+        telemovel: editPhone.value.trim(),
+        idFreguesia: selectedFregId.value,
+      }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.message || 'Falha ao guardar perfil no servidor.')
+    }
+
+    const updatedCidadao = await response.json()
+
+    // Update reactive state
+    const { firstName, lastName } = splitName(updatedCidadao.nome)
+    userFirstName.value = firstName
+    userLastName.value = lastName
+    userEmail.value = updatedCidadao.email
+    userPhone.value = updatedCidadao.nrTelemovel
+    selectedFregId.value = String(updatedCidadao.fregCidadao)
+
+    localStorage.setItem(
+      'userProfile',
+      JSON.stringify({
+        firstName: userFirstName.value,
+        lastName: userLastName.value,
+        email: userEmail.value,
+        nrTelemovel: userPhone.value,
+        fotoPerfil: updatedCidadao.fotoPerfil || profilePhoto.value,
+        fregCidadao: updatedCidadao.fregCidadao,
+      }),
+    )
+    showEditModal.value = false
+  } catch (error) {
+    alert(error.message || 'Não foi possível guardar o perfil.')
+  }
+}
+
+const splitName = (fullName = '') => {
+  const parts = String(fullName).trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return { firstName: '', lastName: '' }
+  return {
+    firstName: parts[0],
+    lastName: parts.slice(1).join(' '),
+  }
 }
 
 // Dados das Ocorrências
@@ -497,6 +611,35 @@ onMounted(async () => {
   height: 80px;
   border-radius: 50%;
   object-fit: cover;
+  display: block;
+}
+.avatar-wrapper {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  cursor: pointer;
+  border-radius: 50%;
+  overflow: hidden;
+}
+.avatar-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.avatar-wrapper:hover .avatar-overlay {
+  opacity: 1;
+}
+.camera-icon {
+  color: #fff;
+  font-size: 20px;
 }
 .user-text h2 {
   margin: 0;
