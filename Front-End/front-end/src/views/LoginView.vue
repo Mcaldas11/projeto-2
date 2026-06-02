@@ -17,14 +17,6 @@
         <p class="subtitle">Olá! Introduz os teus dados para poderes reportar ocorrências</p>
 
         <form @submit.prevent="handleLogin">
-          <div class="role-select">
-            <label>
-              <input type="radio" value="cidadao" v-model="role" /> Entrar como Cidadão
-            </label>
-            <label>
-              <input type="radio" value="trabalhador" v-model="role" /> Entrar como Trabalhador
-            </label>
-          </div>
           <div class="input-group">
             <label for="email">Email</label>
             <input
@@ -78,7 +70,6 @@ import { API_BASE_URL } from '@/services/municipalityService'
 const email = ref('')
 const password = ref('')
 const rememberMe = ref(false)
-const role = ref('cidadao')
 const errorMessage = ref('')
 
 const router = useRouter()
@@ -132,13 +123,7 @@ const handleLogin = async () => {
     return
   }
 
-  const endpoint =
-    role.value === 'cidadao'
-      ? '/cidadaos/login'
-      : role.value === 'trabalhador'
-        ? '/trabalhadores/login'
-        : '/responsavel/login'
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const response = await fetch(`${API_BASE_URL}/auth/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
