@@ -132,6 +132,13 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
+  if (to.name === 'new-ocorrencia') {
+    const role = localStorage.getItem('role') || sessionStorage.getItem('authUserType')
+    if (role !== 'cidadao') {
+      return next({ name: 'home' })
+    }
+  }
+
   if ((to.name === 'conta' || to.name === 'new-ocorrencia') && !isAuthenticated()) {
     return next({ name: 'login', query: { redirect: to.fullPath } })
   }

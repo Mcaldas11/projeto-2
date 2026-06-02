@@ -8,7 +8,7 @@
       </router-link>
 
       <div class="nav-icons" ref="navIcons">
-        <router-link :to="newOccurrenceRoute" class="icon add">+</router-link>
+        <router-link v-if="newOccurrenceRoute" :to="newOccurrenceRoute" class="icon add">+</router-link>
         <img
           :src="notifications.length === 0 ? notifOff : notifOn"
           alt="notifications"
