@@ -176,8 +176,9 @@ import {
   listOccurrences,
   listAllOccurrences,
   listOccurrencesByState,
+  API_BASE_URL,
 } from '@/services/occurrenceService'
-import { getAuthUserType } from '@/utils/auth'
+import { getAuthUserType, getAuthToken } from '@/utils/auth'
 import { getOccurrenceStatusColor, getOccurrenceTypeMeta } from '@/utils/occurrenceTypes'
 import { resolveOccurrenceCoordinates } from '@/utils/occurrenceStorage'
 import { getNewOccurrenceRoute } from '@/utils/auth'
@@ -217,6 +218,24 @@ const removeNotif = (i) => notifications.value.splice(i, 1)
 const ocorrencias = ref([])
 const ocorrenciasError = ref('')
 const fetchInfo = ref({ allCount: null, byStateCount: null, fallbackCount: null, errors: [] })
+const responsibleFreguesiaId = ref(null)
+
+async function loadResponsibleParish() {
+  const token = getAuthToken()
+  if (!token || !API_BASE_URL) return
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/trabalhadores/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (response.ok) {
+      const data = await response.json()
+      responsibleFreguesiaId.value = data.idFreguesia
+    }
+  } catch (err) {
+    console.error('Erro ao carregar freguesia do responsável:', err)
+  }
+}
 
 const selectedOccurrenceMeta = computed(() => getOccurrenceTypeMeta(selectedOccurrence.value?.tipo))
 
@@ -426,7 +445,14 @@ async function loadOccurrences() {
     data.map((occurrence) => enrichOccurrence(occurrence)),
   )
 
-  ocorrencias.value = enrichedOccurrences
+  // Filtra as ocorrências para mostrar apenas as da freguesia do responsável
+  if (responsibleFreguesiaId.value !== null) {
+    ocorrencias.value = enrichedOccurrences.filter(
+      (occ) => Number(occ.idFreguesia) === Number(responsibleFreguesiaId.value),
+    )
+  } else {
+    ocorrencias.value = enrichedOccurrences
+  }
 
   if (selectedOccurrence.value) {
     selectedOccurrence.value =
@@ -473,6 +499,7 @@ function handleDocClick(e) {
 
 onMounted(async () => {
   document.addEventListener('click', handleDocClick)
+  await loadResponsibleParish()
   await loadOccurrences()
   if (viewMode.value === 'mapa') {
     await nextTick()
