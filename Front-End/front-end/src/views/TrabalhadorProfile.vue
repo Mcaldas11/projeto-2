@@ -222,6 +222,7 @@ import { listFreguesias } from '@/services/municipalityService'
 import {
   API_BASE_URL,
   listWorkerOccurrencesInResolution,
+  listWorkerResolvedOccurrences,
   resolveOccurrence,
 } from '@/services/occurrenceService'
 
@@ -398,12 +399,39 @@ function normalizeOccurrenceRow(occurrence) {
   }
 }
 
-async function loadOccurrencesInResolution() {
+const loadOccurrencesInResolution = async () => {
   try {
     const data = await listWorkerOccurrencesInResolution()
     ocorrencias.value = data.map(normalizeOccurrenceRow)
   } catch {
     ocorrencias.value = []
+  }
+}
+
+async function loadTeamAverageRating() {
+  try {
+    const resolved = await listWorkerResolvedOccurrences()
+    const ratings = []
+    
+    resolved.forEach(occ => {
+      if (occ.mensagens && occ.mensagens.length > 0) {
+        occ.mensagens.forEach(msg => {
+          if (msg.classificacao != null) {
+            ratings.push(Number(msg.classificacao))
+          }
+        })
+      }
+    })
+
+    if (ratings.length > 0) {
+      const sum = ratings.reduce((a, b) => a + b, 0)
+      worker.value.ratingMedia = (sum / ratings.length).toFixed(1)
+    } else {
+      worker.value.ratingMedia = '0.0'
+    }
+  } catch (error) {
+    console.error('Erro ao calcular média de avaliações:', error)
+    worker.value.ratingMedia = '0.0'
   }
 }
 
@@ -469,6 +497,7 @@ function handleLogout() {
 
 onMounted(async () => {
   await loadOccurrencesInResolution()
+  await loadTeamAverageRating()
   await syncWorkerProfileFromBackend()
   await resolveFreguesiaName()
   await resolveEquipaName()

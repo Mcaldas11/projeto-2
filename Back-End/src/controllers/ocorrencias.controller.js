@@ -218,7 +218,13 @@ export const getOcorrenciasResolvidasForTrabalhador = async (req, res, next) => 
       return res.json([]);
     }
 
-    const ocorrencias = await Ocorrencia.findAll({ where: { idEquipa: trabalhador.idEquipa } });
+    const ocorrencias = await Ocorrencia.findAll({
+      where: { idEquipa: trabalhador.idEquipa },
+      include: [{
+        model: Mensagem,
+        as: "mensagens",
+      }],
+    });
     const data = mapOcorrenciasWithFotos(ocorrencias)
       .filter((ocorrencia) => ocorrencia.dataResolucao)
       .sort((left, right) => {
