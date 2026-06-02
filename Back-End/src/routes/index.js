@@ -7,9 +7,11 @@ import municipiosRoutes from "./municipios.routes.js";
 import ocorrenciasRoutes from "./ocorrencias.routes.js";
 import recursosRoutes from "./recursos.routes.js";
 import trabalhadoresRoutes from "./trabalhadores.routes.js";
+import authRoutes from "./auth.routes.js";
 
 const router = express.Router();
 
+router.use("/auth", authRoutes);
 router.use("/cidadaos", cidadaosRoutes);
 router.use("/municipios", municipiosRoutes);
 router.use("/equipas", equipasRoutes);

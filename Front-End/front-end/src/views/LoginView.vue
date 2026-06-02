@@ -17,14 +17,6 @@
         <p class="subtitle">Olá! Introduz os teus dados para poderes reportar ocorrências</p>
 
         <form @submit.prevent="handleLogin">
-          <div class="role-select">
-            <label>
-              <input type="radio" value="cidadao" v-model="role" /> Entrar como Cidadão
-            </label>
-            <label>
-              <input type="radio" value="trabalhador" v-model="role" /> Entrar como Trabalhador
-            </label>
-          </div>
           <div class="input-group">
             <label for="email">Email</label>
             <input
@@ -78,7 +70,6 @@ import { API_BASE_URL } from '@/services/municipalityService'
 const email = ref('')
 const password = ref('')
 const rememberMe = ref(false)
-const role = ref('cidadao')
 const errorMessage = ref('')
 
 const router = useRouter()
@@ -132,72 +123,70 @@ const handleLogin = async () => {
     return
   }
 
-  const endpoint =
-    role.value === 'cidadao'
-      ? '/cidadaos/login'
-      : role.value === 'trabalhador'
-        ? '/trabalhadores/login'
-        : '/responsavel/login'
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      email: email.value.trim(),
-      password: password.value,
-    }),
-  })
-
-  const payload = await response.json().catch(() => ({}))
-
-  if (!response.ok) {
-    errorMessage.value = payload?.message || 'Credenciais inválidas.'
-    return
-  }
-
-  const resolvedRole =
-    payload.userType === 'trabalhador_admin'
-      ? 'admin'
-      : payload.userType === 'trabalhador_responsavel'
-        ? 'responsavel'
-        : payload.userType === 'trabalhador'
-          ? 'trabalhador'
-          : 'cidadao'
-
-  localStorage.setItem('role', resolvedRole)
-  localStorage.setItem('authToken', payload.token)
-  localStorage.setItem('authUserType', payload.userType || resolvedRole)
-  localStorage.setItem('authUserId', String(payload.userId || ''))
-
-  if (rememberMe.value) {
-    localStorage.setItem('rememberMe', 'true')
-  } else {
-    localStorage.removeItem('rememberMe')
-  }
-
-  const profile = await loadProfile(payload.userType || resolvedRole)
-  if (profile) {
-    const profileName = profile.nome || profile.nomeTrabalhador || ''
-    const profileEmail = profile.email || profile.emailTrabalhador || ''
-    const { firstName, lastName } = splitName(profileName)
-    const fotoPerfil = profile.fotoPerfil || ''
-    const freg = profile.fregCidadao || profile.idFreguesia || null
-
-    localStorage.setItem(
-      'userProfile',
-      JSON.stringify({
-        firstName,
-        lastName,
-        email: profileEmail,
-        fotoPerfil,
-        fregCidadao: freg,
-        idFreguesia: freg,
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: email.value.trim(),
+        password: password.value,
       }),
-    )
-  }
+    })
 
-  router.push(resolveLoginRoute(payload.userType || resolvedRole))
+    const payload = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      errorMessage.value = payload?.message || 'Credenciais inválidas.'
+      return
+    }
+
+    const resolvedRole =
+      payload.userType === 'trabalhador_admin'
+        ? 'admin'
+        : payload.userType === 'trabalhador_responsavel'
+          ? 'responsavel'
+          : payload.userType === 'trabalhador'
+            ? 'trabalhador'
+            : 'cidadao'
+
+    localStorage.setItem('role', resolvedRole)
+    localStorage.setItem('authToken', payload.token)
+    localStorage.setItem('authUserType', payload.userType || resolvedRole)
+    localStorage.setItem('authUserId', String(payload.userId || ''))
+
+    if (rememberMe.value) {
+      localStorage.setItem('rememberMe', 'true')
+    } else {
+      localStorage.removeItem('rememberMe')
+    }
+
+    const profile = await loadProfile(payload.userType || resolvedRole)
+    if (profile) {
+      const profileName = profile.nome || profile.nomeTrabalhador || ''
+      const profileEmail = profile.email || profile.emailTrabalhador || ''
+      const { firstName, lastName } = splitName(profileName)
+      const fotoPerfil = profile.fotoPerfil || ''
+      const freg = profile.fregCidadao || profile.idFreguesia || null
+
+      localStorage.setItem(
+        'userProfile',
+        JSON.stringify({
+          firstName,
+          lastName,
+          email: profileEmail,
+          fotoPerfil,
+          fregCidadao: freg,
+          idFreguesia: freg,
+        }),
+      )
+    }
+
+    router.push(resolveLoginRoute(payload.userType || resolvedRole))
+  } catch (err) {
+    errorMessage.value = 'Erro de rede ou servidor ao tentar fazer login.'
+  }
 }
 </script>
 
