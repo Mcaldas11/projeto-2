@@ -6,10 +6,9 @@
     </div>
 
     <div class="top-logo">
-    <router-link to="/" class="logo-link">
-      <img src="@/assets/logo.png" alt="VC Comunica" class="logo-img">
-    </router-link>
-      
+      <router-link to="/" class="logo-link">
+        <img src="@/assets/logo.png" alt="VC Comunica" class="logo-img" />
+      </router-link>
     </div>
 
     <main class="auth-card-wrapper">
@@ -24,7 +23,12 @@
           </div>
           <div class="input-field">
             <label>Confirma a tua password</label>
-            <input type="password" v-model="confirmPassword" placeholder="Reescreve a tua password" required />
+            <input
+              type="password"
+              v-model="confirmPassword"
+              placeholder="Reescreve a tua password"
+              required
+            />
           </div>
           <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
           <button type="submit" class="btn-primary">Continuar</button>
@@ -133,7 +137,10 @@ const handleSubmit = () => {
   gap: 10px;
   color: white;
 }
-.logo-img { height: 45px; cursor: pointer }
+.logo-img {
+  height: 45px;
+  cursor: pointer;
+}
 .auth-card {
   background: white;
   width: 420px;
@@ -189,5 +196,9 @@ h2 {
   color: #16a34a;
   text-decoration: none;
   font-weight: 700;
+}
+
+form {
+  padding-bottom: 180px;
 }
 </style>

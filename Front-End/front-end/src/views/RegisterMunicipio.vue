@@ -6,10 +6,9 @@
     </div>
 
     <div class="top-logo">
-    <router-link to="/" class="logo-link">
-      <img src="@/assets/logo.png" alt="VC Comunica" class="logo-img">
-    </router-link>
-      
+      <router-link to="/" class="logo-link">
+        <img src="@/assets/logo.png" alt="VC Comunica" class="logo-img" />
+      </router-link>
     </div>
 
     <main class="auth-card-wrapper">
@@ -21,10 +20,19 @@
           <div class="input-field">
             <label for="municipio">Freguesia</label>
             <div class="select-wrapper">
-              <select id="municipio" v-model="selectedFreguesia" required :disabled="loadingFreguesias">
+              <select
+                id="municipio"
+                v-model="selectedFreguesia"
+                required
+                :disabled="loadingFreguesias"
+              >
                 <option value="" disabled>Seleciona a tua freguesia</option>
                 <option v-if="loadingFreguesias" value="">A carregar freguesias...</option>
-                <option v-for="freguesia in freguesias" :key="freguesia.idFreguesia" :value="String(freguesia.idFreguesia)">
+                <option
+                  v-for="freguesia in freguesias"
+                  :key="freguesia.idFreguesia"
+                  :value="String(freguesia.idFreguesia)"
+                >
                   {{ freguesia.nome }}
                 </option>
               </select>
@@ -239,7 +247,10 @@ const handleFinish = async () => {
   gap: 10px;
   color: white;
 }
-.logo-img { height: 45px; cursor: pointer }
+.logo-img {
+  height: 45px;
+  cursor: pointer;
+}
 
 .auth-card {
   background: white;
@@ -273,6 +284,10 @@ h2 {
   margin-bottom: 8px;
 }
 
+form {
+  padding-bottom: 250px;
+}
+
 .select-wrapper {
   position: relative;
   width: 100%;
@@ -280,7 +295,8 @@ h2 {
 
 select {
   width: 100%;
-  padding: 12px 15px;
+  display: block;
+  padding: 12px 15px 12px;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   font-size: 0.9rem;

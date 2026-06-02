@@ -58,7 +58,7 @@
             <a href="#" class="forgot-password">Esqueci-me da password</a>
           </div>
 
-          <button type="submit" class="btn-sign-in">Sign in</button>
+          <button type="submit" class="btn-sign-in">Log in</button>
         </form>
 
         <p class="footer-text">

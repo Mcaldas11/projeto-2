@@ -6,10 +6,9 @@
     </div>
 
     <div class="top-logo">
-    <router-link to="/" class="logo-link">
-      <img src="@/assets/logo.png" alt="VC Comunica" class="logo-img">
-    </router-link>
-      
+      <router-link to="/" class="logo-link">
+        <img src="@/assets/logo.png" alt="VC Comunica" class="logo-img" />
+      </router-link>
     </div>
 
     <main class="auth-card-wrapper">
@@ -47,8 +46,6 @@
             <label>Telemóvel</label>
             <input type="tel" v-model="phone" placeholder="Ex: 912345678" required />
           </div>
-
-          
 
           <button type="submit" class="btn-primary">Continuar</button>
         </form>
@@ -141,7 +138,10 @@ const handleNext = () => {
   gap: 10px;
   color: white;
 }
-.logo-img { height: 45px; cursor: pointer }
+.logo-img {
+  height: 45px;
+  cursor: pointer;
+}
 
 .auth-card {
   background: white;
@@ -226,5 +226,9 @@ h2 {
   color: #16a34a;
   text-decoration: none;
   font-weight: 700;
+}
+
+form {
+  padding-bottom: 70px;
 }
 </style>
