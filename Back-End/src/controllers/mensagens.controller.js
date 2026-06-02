@@ -19,7 +19,12 @@ const handleSequelizeValidation = (error, next) => {
 
 export const getAllMensagens = async (req, res, next) => {
   try {
-    const mensagens = await Mensagem.findAll();
+    const { idOcorrencia, idCidadao } = req.query;
+    const where = {};
+    if (idOcorrencia) where.idOcorrencia = idOcorrencia;
+    if (idCidadao) where.idCidadao = idCidadao;
+
+    const mensagens = await Mensagem.findAll({ where });
     res.json(mensagens);
   } catch (error) {
     next(genericError("Error fetching mensagens"));

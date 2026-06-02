@@ -169,7 +169,10 @@
               </span>
             </div>
             <p class="eval-text"><strong>O seu comentário:</strong> {{ avaliacaoExistente.texto }}</p>
-            <p class="success-msg" style="margin-top: 10px; font-weight: bold;">✔ Avaliação guardada na base de dados com sucesso!</p>
+            <div class="eval-footer-actions" style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
+              <p class="success-msg" style="font-weight: bold; margin: 0;">✔ Avaliação guardada com sucesso!</p>
+              <button class="report-btn report-btn-secondary" @click="jaAvaliado = false">Editar Avaliação</button>
+            </div>
           </div>
 
           <div v-else class="evaluation-form-box">
@@ -200,7 +203,7 @@
 
             <div class="resolve-actions">
               <button class="report-btn submit-eval-btn" :disabled="isSavingEvaluation" @click="submitCitizenEvaluation">
-                {{ isSavingEvaluation ? 'A guardar no backend...' : 'Submeter Avaliação' }}
+                {{ isSavingEvaluation ? 'A guardar no backend...' : (avaliacaoExistente ? 'Atualizar Avaliação' : 'Submeter Avaliação') }}
               </button>
               <p v-if="evaluationNotice" class="resolve-notice error-msg">
                 {{ evaluationNotice }}
@@ -258,10 +261,10 @@ import SidebarMenu from '@/components/SidebarMenu.vue'
 import { defaultOccurrenceAvatar } from '@/utils/occurrenceStorage'
 import { API_BASE_URL, getOccurrence, resolveOccurrence } from '@/services/occurrenceService'
 import { getOccurrenceTypeMeta } from '@/utils/occurrenceTypes'
-import { getAuthUserType, getNewOccurrenceRoute } from '@/utils/auth'
+import { getAuthUserType, getNewOccurrenceRoute, getAuthUserId } from '@/utils/auth'
 
 // O teu serviço que comunica com a tabela Mensagem do backend
-import { createMensagem } from '@/services/messageService'
+import { createMensagem, getMensagensByOcorrencia, updateMensagem } from '@/services/messageService'
 
 const showNotif = ref(false)
 const showMenu = ref(false)
@@ -274,6 +277,10 @@ const route = useRoute()
 const isWorker = computed(() => {
   const userType = getAuthUserType()
   return userType.startsWith('trabalhador') || userType === 'responsavel'
+})
+const isCitizen = computed(() => {
+  const userType = getAuthUserType()
+  return userType === 'cidadao'
 })
 const newOccurrenceRoute = computed(() => getNewOccurrenceRoute())
 
@@ -301,10 +308,10 @@ const citizenForm = ref({
   classificacao: 5 // Valor por defeito
 })
 
-// Só permite avaliar se o estado for Resolvido ou Não resolvido
+// Só permite avaliar se o estado for Resolvido ou Não resolvido E se for cidadão
 const podeAvaliar = computed(() => {
   const estado = selectedOccurrence.value?.situacao
-  return estado === 'Resolvido' || estado === 'Não resolvido'
+  return (estado === 'Resolvido' || estado === 'Não resolvido') && isCitizen.value
 })
 
 async function loadOccurrence() {
@@ -320,6 +327,22 @@ async function loadOccurrence() {
     teamWorkers.value = []
     assignedTeamLabel.value = ''
     return
+  }
+
+  // Tentar carregar avaliação existente para esta ocorrência
+  try {
+    const currentUserId = getAuthUserId()
+    const mensagens = await getMensagensByOcorrencia(selectedOccurrence.value.id, currentUserId)
+    if (mensagens && mensagens.length > 0) {
+      // Assumimos que a última mensagem é a avaliação mais recente do utilizador
+      const ultimaAvaliacao = mensagens[mensagens.length - 1]
+      avaliacaoExistente.value = ultimaAvaliacao
+      citizenForm.value.texto = ultimaAvaliacao.texto
+      citizenForm.value.classificacao = ultimaAvaliacao.classificacao
+      jaAvaliado.value = true
+    }
+  } catch (error) {
+    console.error('Erro ao carregar avaliações:', error)
   }
 
   if (!selectedOccurrence.value?.idEquipa) {
@@ -350,20 +373,26 @@ async function submitCitizenEvaluation() {
   evaluationNotice.value = ''
 
   try {
-    // Aqui garantimos que os nomes batem certo com o teu MensagemModel
+    const currentUserId = getAuthUserId()
     const payload = {
       texto: citizenForm.value.texto,
       dataMensagem: new Date().toISOString(),
       classificacao: Number(citizenForm.value.classificacao),
-      idCidadao: Number(selectedOccurrence.value.idCidadao) || 1, // Podes ajustar o ID se vier do localStorage
+      idCidadao: Number(currentUserId) || 1,
       idOcorrencia: Number(selectedOccurrence.value.id)
     }
 
-    // Faz o POST para o backend
-    const novaMensagem = await createMensagem(payload)
+    let resultado
+    if (avaliacaoExistente.value && avaliacaoExistente.value.idMensagem) {
+      // Se já existe, atualizamos
+      resultado = await updateMensagem(avaliacaoExistente.value.idMensagem, payload)
+    } else {
+      // Se não existe, criamos
+      resultado = await createMensagem(payload)
+    }
     
     // Se a API não devolver o objeto criado, usamos o payload local para visualização
-    avaliacaoExistente.value = novaMensagem || payload
+    avaliacaoExistente.value = resultado || payload
     
     // Agora sim, trancamos o formulário em modo leitura
     jaAvaliado.value = true

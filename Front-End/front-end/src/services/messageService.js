@@ -44,14 +44,20 @@ export async function createMensagem(messageData) {
 /**
  * Get messages for a specific occurrence
  * @param {number} occurrenceId - Occurrence ID
+ * @param {number} [citizenId] - Optional Citizen ID to filter by
  * @returns {Promise<Array>} List of messages
  */
-export async function getMensagensByOcorrencia(occurrenceId) {
+export async function getMensagensByOcorrencia(occurrenceId, citizenId = null) {
   if (!API_BASE_URL) {
     throw new Error('Define VITE_API_URL para buscar mensagens no backend.')
   }
 
-  const response = await fetch(`${API_BASE_URL}/mensagens?idOcorrencia=${occurrenceId}`, {
+  let url = `${API_BASE_URL}/mensagens?idOcorrencia=${occurrenceId}`
+  if (citizenId) {
+    url += `&idCidadao=${citizenId}`
+  }
+
+  const response = await fetch(url, {
     headers: buildAuthHeaders(),
   })
 
