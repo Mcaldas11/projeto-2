@@ -405,62 +405,76 @@ export const loginTrabalhador = async (req, res, next) => {
 export const updateTrabalhador = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const trabalhador = await Trabalhador.findByPk(id);
 
+    const isAdmin = await isRequesterAdmin(req);
+    const canManage = await canManageWorkerAccount(req, id);
+
+    if (!canManage) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const trabalhador = await Trabalhador.findByPk(id);
     if (!trabalhador) {
       return next(notFoundError("trabalhador", id));
     }
 
-    const isAdmin = await isRequesterAdmin(req);
+    const { firstName, lastName, email, nomeTrabalhador, idEquipa, ...rest } = req.body;
+    
+    // Apply general updates
+    trabalhador.set(rest);
 
-    if (Object.prototype.hasOwnProperty.call(req.body, "idEquipa")) {
-      const { idEquipa } = req.body;
+    // Handle name
+    if (firstName !== undefined || lastName !== undefined) {
+      const currentName = trabalhador.nomeTrabalhador || "";
+      const nameParts = currentName.split(" ");
+      const newFirstName = firstName !== undefined ? firstName : (nameParts[0] || "");
+      const newLastName = lastName !== undefined ? lastName : (nameParts.slice(1).join(" ") || "");
+      trabalhador.nomeTrabalhador = `${newFirstName} ${newLastName}`.trim();
+    } else if (nomeTrabalhador !== undefined) {
+      trabalhador.nomeTrabalhador = nomeTrabalhador;
+    }
 
+    // Handle email
+    if (email !== undefined) {
+      trabalhador.emailTrabalhador = email;
+    }
+
+    // Handle idEquipa (with admin checks)
+    if (idEquipa !== undefined) {
       if (idEquipa === "" || idEquipa === null) {
-        // clearing team requires admin
-        if (!isAdmin)
-          return res.status(403).json({ message: "Only admin can clear team" });
-        req.body.idEquipa = null;
+        if (!isAdmin) return res.status(403).json({ message: "Only admin can clear team" });
+        trabalhador.idEquipa = null;
       } else {
         const normalizedIdEquipa = Number(idEquipa);
-        if (!Number.isInteger(normalizedIdEquipa) || normalizedIdEquipa <= 0) {
-          return res.status(400).json({ message: "Invalid idEquipa" });
-        }
-
         const equipa = await Equipa.findByPk(normalizedIdEquipa);
-        if (!equipa) {
-          return res.status(400).json({ message: "Invalid idEquipa" });
-        }
+        if (!equipa) return res.status(400).json({ message: "Invalid idEquipa" });
 
         const teamFreg = Number(equipa.fregEquipa);
-        if (!Number.isInteger(teamFreg) || teamFreg <= 0) {
-          return res.status(400).json({
-            message: "Equipa sem freguesia atribuida.",
-          });
-        }
-
         if (!trabalhador.idFreguesia) {
-          // if worker has no freguesia yet, inherit it from the assigned team
-          req.body.idFreguesia = teamFreg;
-        } else if (teamFreg !== Number(trabalhador.idFreguesia)) {
-          return res.status(400).json({
-            message: "A equipa deve ser da mesma freguesia do trabalhador.",
-          });
+          trabalhador.idFreguesia = teamFreg;
+        } else if (teamFreg && teamFreg !== Number(trabalhador.idFreguesia)) {
+          return res.status(400).json({ message: "A equipa deve ser da mesma freguesia do trabalhador." });
         }
 
-        // only admin can change the active team
-        if (!isAdmin) {
-          return res
-            .status(403)
-            .json({ message: "Only admin can change team" });
-        }
-
-        req.body.idEquipa = normalizedIdEquipa;
+        if (!isAdmin) return res.status(403).json({ message: "Only admin can change team" });
+        trabalhador.idEquipa = normalizedIdEquipa;
       }
     }
 
-    await trabalhador.update(req.body);
-    res.json(trabalhador);
+    await trabalhador.save();
+    
+    const updated = await Trabalhador.findByPk(id, {
+      attributes: [
+        "idTrabalhador",
+        "nomeTrabalhador",
+        "emailTrabalhador",
+        "telemovelTrabalhador",
+        "idEquipa",
+        "idFreguesia",
+        "fotoPerfil",
+      ],
+    });
+    res.json(updated);
   } catch (error) {
     if (error?.name === "SequelizeUniqueConstraintError") {
       return next(

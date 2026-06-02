@@ -42,20 +42,20 @@
       <!-- Cabeçalho do Perfil (Estilo Identidade Visual Nova) -->
       <section class="profile-header">
         <div class="user-info">
-          <div class="avatar-container clickable" @click="triggerPhotoUpload">
-            <img v-if="worker.avatar" :src="worker.avatar" alt="Avatar" class="profile-avatar" />
+          <div class="avatar-container" @click="$refs.fileInput.click()">
+            <img v-if="worker.avatar && worker.avatar !== avatarImg" :src="worker.avatar" alt="Avatar" class="profile-avatar" />
             <div v-else class="profile-avatar-placeholder">
               {{ worker.nome?.[0] || '' }}{{ worker.apelido?.[0] || '' }}
             </div>
             <div class="avatar-overlay">
-              <span class="camera-icon">📷</span>
+              <span class="overlay-text">{{ worker.avatar && worker.avatar !== avatarImg ? 'Alterar Foto' : 'Adicionar Foto' }}</span>
             </div>
             <input
               type="file"
-              ref="photoInput"
+              ref="fileInput"
               style="display: none"
               accept="image/*"
-              @change="handlePhotoChange"
+              @change="onFileChange"
             />
           </div>
           <div class="user-text">
@@ -431,24 +431,55 @@ const openEditModal = () => {
   showEditModal.value = true
 }
 
+const onFileChange = async (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const token = getAuthToken()
+  const userId = getAuthUserId()
+  if (!token || !userId) return
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/trabalhadores/${userId}/foto`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    })
+
+    if (!response.ok) throw new Error('Falha ao carregar a foto')
+
+    const data = await response.json()
+    worker.value.avatar = data.fotoPerfil
+    
+    // Update local storage
+    const updatedProfile = { ...JSON.parse(localStorage.getItem('userProfile') || '{}'), fotoPerfil: data.fotoPerfil }
+    localStorage.setItem('userProfile', JSON.stringify(updatedProfile))
+  } catch (error) {
+    alert(error.message)
+  }
+}
+
 async function handleSaveEdit() {
   if (!editFirstName.value.trim() || !editLastName.value.trim()) {
     alert('Nome e apelido não podem ficar vazios.')
     return
   }
-
+  
   const token = getAuthToken()
-  if (!API_BASE_URL || !token) {
-    alert('Não foi possível guardar o perfil. Erro de autenticação.')
-    return
-  }
+  const userId = getAuthUserId()
+  if (!token || !userId) return
 
   try {
-    const response = await fetch(`${API_BASE_URL}/trabalhadores/me`, {
+    const response = await fetch(`${API_BASE_URL}/trabalhadores/${userId}`, {
       method: 'PUT',
       headers: {
-        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         firstName: editFirstName.value.trim(),
@@ -458,32 +489,33 @@ async function handleSaveEdit() {
     })
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.message || 'Falha ao guardar perfil no servidor.')
+      const errorData = await response.json()
+      throw new Error(errorData.message || 'Falha ao salvar as alterações')
     }
 
-    const updatedProfile = await response.json()
-    const { firstName, lastName } = splitName(updatedProfile.nomeTrabalhador)
+    const updatedWorker = await response.json()
+    const fullName = updatedWorker.nomeTrabalhador || updatedWorker.nome || ''
+    const { firstName, lastName } = splitName(fullName)
 
     worker.value.nome = firstName
     worker.value.apelido = lastName
-    worker.value.email = updatedProfile.emailTrabalhador
-
+    worker.value.email = updatedWorker.emailTrabalhador || updatedWorker.email || worker.value.email
+    
     localStorage.setItem(
       'userProfile',
       JSON.stringify({
         firstName: worker.value.nome,
         lastName: worker.value.apelido,
         email: worker.value.email,
-        fotoPerfil: updatedProfile.fotoPerfil || worker.value.avatar,
-        idEquipa: updatedProfile.idEquipa,
-        idFreguesia: updatedProfile.idFreguesia,
+        fotoPerfil: worker.value.avatar,
+        idEquipa: worker.value.idEquipa,
+        idFreguesia: worker.value.idFreguesia,
       }),
     )
 
     showEditModal.value = false
   } catch (error) {
-    alert(error.message || 'Não foi possível guardar o perfil.')
+    alert(error.message)
   }
 }
 
@@ -719,22 +751,20 @@ onMounted(async () => {
   align-items: center;
   gap: 20px;
 }
-.profile-avatar,
-.profile-avatar-placeholder {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-}
 .avatar-container {
   position: relative;
   width: 80px;
   height: 80px;
+  cursor: pointer;
   border-radius: 50%;
   overflow: hidden;
 }
-.avatar-container.clickable {
-  cursor: pointer;
+.profile-avatar,
+.profile-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.3s;
 }
 .avatar-overlay {
   position: absolute;
@@ -747,14 +777,17 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: opacity 0.3s;
 }
 .avatar-container:hover .avatar-overlay {
   opacity: 1;
 }
-.camera-icon {
-  color: #fff;
-  font-size: 20px;
+.overlay-text {
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
 }
 .profile-avatar-placeholder {
   background: #cfe8df;

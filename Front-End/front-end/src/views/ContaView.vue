@@ -39,17 +39,20 @@
 
       <section class="profile-header">
         <div class="user-info">
-          <div class="avatar-wrapper" @click="triggerPhotoUpload">
-            <img :src="profilePhoto" alt="Avatar" class="profile-avatar" />
+          <div class="avatar-container" @click="$refs.fileInput.click()">
+            <img v-if="profilePhoto" :src="profilePhoto" alt="Avatar" class="profile-avatar" />
+            <div v-else class="profile-avatar-placeholder">
+              {{ userFirstName?.[0] || '' }}{{ userLastName?.[0] || '' }}
+            </div>
             <div class="avatar-overlay">
-              <span class="camera-icon">Foto</span>
+              <span class="overlay-text">{{ profilePhoto ? 'Alterar Foto' : 'Adicionar Foto' }}</span>
             </div>
             <input
               type="file"
-              ref="photoInput"
+              ref="fileInput"
               style="display: none"
               accept="image/*"
-              @change="handlePhotoChange"
+              @change="onFileChange"
             />
           </div>
           <div class="user-text">
@@ -176,7 +179,7 @@
     </div>
 
     <!-- Review Ocorrencia Modal -->
-    <div v-if="showREviewModal" class="modal-overlay" @click.self="showReviewModal = false">
+    <div v-if="showReviewModal" class="modal-overlay" @click.self="showReviewModal = false">
       <div class="modal-card">
         <h3>Avalie a resolução da ocorrência</h3>
         <div class="form-row">
@@ -188,8 +191,8 @@
           ></textarea>
         </div>
         <div class="modal-actions">
-          <button class="modal-btn cancel" @click="handleCancelEdit">Cancelar</button>
-          <button class="modal-btn confirm" @click="handleSaveEdit">Guardar</button>
+          <button class="modal-btn cancel" @click="showReviewModal = false">Cancelar</button>
+          <button class="modal-btn confirm" @click="submitReview">Guardar</button>
         </div>
       </div>
     </div>
@@ -207,11 +210,16 @@ import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import { listOccurrences } from '@/services/occurrenceService'
 import { API_BASE_URL, listFreguesias } from '@/services/municipalityService'
-import { getNewOccurrenceRoute } from '@/utils/auth'
+import { getNewOccurrenceRoute, getAuthToken, getAuthUserId } from '@/utils/auth'
 
 const showNotif = ref(false)
 const showMenu = ref(false)
+const showReviewModal = ref(false)
 const notifications = ref([])
+
+const form = ref({
+  description: ''
+})
 
 const freguesias = ref([])
 
@@ -248,7 +256,15 @@ const toggleMenu = () => {
 }
 const removeNotif = (i) => notifications.value.splice(i, 1)
 
-const reviewOcorrencia = () => {}
+const reviewOcorrencia = () => {
+  showReviewModal.value = true
+}
+
+const submitReview = () => {
+  // Logic to submit review can be added here
+  showReviewModal.value = false
+  alert('Avaliação guardada com sucesso!')
+}
 
 const editarNome = () => {
   editFirstName.value = userFirstName.value
@@ -310,6 +326,39 @@ function handleCancelEdit() {
   showEditModal.value = false
 }
 
+const onFileChange = async (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const token = localStorage.getItem('authToken')
+  const userId = localStorage.getItem('authUserId')
+  if (!token || !userId) return
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/cidadaos/${userId}/foto`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    })
+
+    if (!response.ok) throw new Error('Falha ao carregar a foto')
+
+    const data = await response.json()
+    profilePhoto.value = data.fotoPerfil
+    
+    // Update local storage
+    const updatedProfile = { ...JSON.parse(localStorage.getItem('userProfile') || '{}'), fotoPerfil: data.fotoPerfil }
+    localStorage.setItem('userProfile', JSON.stringify(updatedProfile))
+  } catch (error) {
+    alert(error.message)
+  }
+}
+
 async function handleSaveEdit() {
   if (!editFirstName.value.trim() || !editLastName.value.trim()) {
     alert('Nome e apelido não podem ficar vazios.')
@@ -319,43 +368,36 @@ async function handleSaveEdit() {
     alert('Por favor insere um email válido.')
     return
   }
-
-  const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken')
-  if (!API_BASE_URL || !token) {
-    alert('Não foi possível guardar o perfil. Erro de autenticação.')
-    return
-  }
+  
+  const token = getAuthToken()
+  const userId = getAuthUserId()
+  if (!token || !userId) return
 
   try {
-    const response = await fetch(`${API_BASE_URL}/cidadaos/me`, {
+    const response = await fetch(`${API_BASE_URL}/cidadaos/${userId}`, {
       method: 'PUT',
       headers: {
-        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         firstName: editFirstName.value.trim(),
         lastName: editLastName.value.trim(),
         email: editEmail.value.trim(),
-        telemovel: editPhone.value.trim(),
-        idFreguesia: selectedFregId.value,
       }),
     })
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.message || 'Falha ao guardar perfil no servidor.')
+      const errorData = await response.json()
+      throw new Error(errorData.message || 'Falha ao salvar as alterações')
     }
 
     const updatedCidadao = await response.json()
-
-    // Update reactive state
-    const { firstName, lastName } = splitName(updatedCidadao.nome)
-    userFirstName.value = firstName
-    userLastName.value = lastName
-    userEmail.value = updatedCidadao.email
-    userPhone.value = updatedCidadao.nrTelemovel
-    selectedFregId.value = String(updatedCidadao.fregCidadao)
+    
+    // Update local state
+    userFirstName.value = editFirstName.value.trim()
+    userLastName.value = editLastName.value.trim()
+    userEmail.value = editEmail.value.trim()
 
     localStorage.setItem(
       'userProfile',
@@ -363,23 +405,13 @@ async function handleSaveEdit() {
         firstName: userFirstName.value,
         lastName: userLastName.value,
         email: userEmail.value,
-        nrTelemovel: userPhone.value,
-        fotoPerfil: updatedCidadao.fotoPerfil || profilePhoto.value,
+        fotoPerfil: profilePhoto.value,
         fregCidadao: updatedCidadao.fregCidadao,
       }),
     )
     showEditModal.value = false
   } catch (error) {
-    alert(error.message || 'Não foi possível guardar o perfil.')
-  }
-}
-
-const splitName = (fullName = '') => {
-  const parts = String(fullName).trim().split(/\s+/).filter(Boolean)
-  if (parts.length === 0) return { firstName: '', lastName: '' }
-  return {
-    firstName: parts[0],
-    lastName: parts.slice(1).join(' '),
+    alert(error.message)
   }
 }
 
@@ -606,20 +638,29 @@ onMounted(async () => {
   align-items: center;
   gap: 20px;
 }
-.profile-avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-  display: block;
-}
-.avatar-wrapper {
+.avatar-container {
   position: relative;
   width: 80px;
   height: 80px;
   cursor: pointer;
   border-radius: 50%;
   overflow: hidden;
+}
+.profile-avatar,
+.profile-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.3s;
+}
+.profile-avatar-placeholder {
+  background: #cfe8df;
+  color: #0b2b2b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 24px;
 }
 .avatar-overlay {
   position: absolute;
@@ -632,14 +673,17 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: opacity 0.3s;
 }
-.avatar-wrapper:hover .avatar-overlay {
+.avatar-container:hover .avatar-overlay {
   opacity: 1;
 }
-.camera-icon {
-  color: #fff;
-  font-size: 20px;
+.overlay-text {
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
 }
 .user-text h2 {
   margin: 0;

@@ -277,14 +277,51 @@ export const loginCidadao = async (req, res, next) => {
 export const updateCidadao = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const cidadao = await Cidadao.findByPk(id);
 
+    // Security check: only admin or the user themselves
+    let isAdmin = false;
+    if (req.userData.userType === "trabalhador_admin") {
+      isAdmin = true;
+    }
+
+    if (!isAdmin && (req.userData.userType !== "cidadao" || Number(req.userData.userId) !== Number(id))) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const cidadao = await Cidadao.findByPk(id);
     if (!cidadao) {
       return next(notFoundError("cidadao", id));
     }
 
-    await cidadao.update(req.body);
-    res.json(cidadao);
+    const { firstName, lastName, email, nome, ...rest } = req.body;
+    
+    // Apply general updates
+    cidadao.set(rest);
+
+    // Handle name
+    if (firstName !== undefined || lastName !== undefined) {
+      const currentName = cidadao.nome || "";
+      const nameParts = currentName.split(" ");
+      const newFirstName = firstName !== undefined ? firstName : (nameParts[0] || "");
+      const newLastName = lastName !== undefined ? lastName : (nameParts.slice(1).join(" ") || "");
+      cidadao.nome = `${newFirstName} ${newLastName}`.trim();
+    } else if (nome !== undefined) {
+      cidadao.nome = nome;
+    }
+
+    // Handle email
+    if (email !== undefined) {
+      cidadao.email = email;
+    }
+
+    await cidadao.save();
+    
+    // Fetch updated data to return
+    const updatedCidadao = await Cidadao.findByPk(id, {
+      attributes: ["idCidadao", "nome", "email", "fregCidadao", "nrTelemovel", "fotoPerfil"]
+    });
+
+    res.json(updatedCidadao);
   } catch (error) {
     if (error?.name === "SequelizeUniqueConstraintError") {
       return next(
