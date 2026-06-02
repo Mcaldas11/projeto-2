@@ -115,7 +115,7 @@
                 <strong>Localização:</strong><br />
                 {{ occurrence?.location || occurrence?.detalhes || 'Sem localização disponível.' }}<br />
                 <button @click="viewOnMap" class="map-link-btn">
-                  📍 Ver no mapa
+                 Ver no mapa
                 </button>
               </p>
               <p>
