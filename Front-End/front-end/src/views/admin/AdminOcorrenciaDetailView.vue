@@ -113,7 +113,10 @@
               </p>
               <p>
                 <strong>Localização:</strong><br />
-                {{ occurrence?.location || occurrence?.detalhes || 'Sem localização disponível.' }}
+                {{ occurrence?.location || occurrence?.detalhes || 'Sem localização disponível.' }}<br />
+                <button @click="viewOnMap" class="map-link-btn">
+                 Ver no mapa
+                </button>
               </p>
               <p>
                 <strong>Descrição:</strong><br />
@@ -151,7 +154,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import Footer from '@/components/footer.vue'
 import AdminSidebarMenu from '@/components/AdminSidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
@@ -162,6 +165,7 @@ import { API_BASE_URL } from '@/services/municipalityService'
 import { getOccurrence } from '@/services/occurrenceService'
 
 const route = useRoute()
+const router = useRouter()
 
 const adminFooterColumns = [
   [
@@ -187,6 +191,17 @@ const gallery = ref([])
 const activeImageIndex = ref(0)
 
 const notifications = ref([])
+
+function viewOnMap() {
+  if (!occurrence.value) return
+  router.push({
+    path: '/ocorrencias',
+    query: {
+      id: occurrence.value.id,
+      mode: 'mapa'
+    }
+  })
+}
 
 const toggleNotif = (e) => {
   e.stopPropagation()
@@ -608,6 +623,27 @@ watch(() => route.params.id, loadDetail, { immediate: true })
   font-weight: 700;
   font-size: 13px;
 }
+
+.map-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: all 0.2s;
+}
+.map-link-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
 .em-resolucao {
   background: #fef9c3;
   color: #ca8a04;

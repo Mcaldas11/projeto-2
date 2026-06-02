@@ -21,6 +21,8 @@ function getAccountRoute() {
 }
 
 function getNewOccurrenceRoute() {
+  const role = getAuthUserType()
+  if (role !== 'cidadao') return null
   return isAuthenticated() ? '/new-ocorrencia' : '/login'
 }
 
