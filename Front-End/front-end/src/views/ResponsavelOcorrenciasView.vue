@@ -1,22 +1,26 @@
 <template>
   <div class="page-container">
-    <!-- NAVBAR ALINHADA (SEM BOTÃO LIGADO A OCORRÊNCIAS) -->
     <nav class="navbar">
-      <div class="logo-area">
-        <img src="@/assets/logoP.png" alt="VC Comunica Logo" class="logo-img" />
-      </div>
-      <div class="nav-icons">
-        <!-- Notificações e Menu Hambúrguer juntos no lado direito -->
+      <router-link to="/">
+        <div class="logo-area">
+          <img src="@/assets/logo.svg" alt="VC Comunica Logo" class="logo-img" />
+        </div>
+      </router-link>
+
+      <div class="nav-icons" ref="navIcons">
+        <router-link :to="newOccurrenceRoute" class="icon add">+</router-link>
         <img
           :src="notifications.length === 0 ? notifOff : notifOn"
           alt="notifications"
           class="icon notification"
           @click="toggleNotif"
+          ref="notifIcon"
         />
-        <span class="icon menu-hamburger" @click="toggleMenu">☰</span>
+        <span class="icon" ref="menuIcon" @click="toggleMenu">☰</span>
+
         <ResponsavelSidebarMenu v-model="showMenu" />
 
-        <div v-if="showNotif" class="notifications">
+        <div v-if="showNotif" class="notifications" ref="notifPanel">
           <h4>Notificações</h4>
           <div class="notif-list">
             <div
@@ -34,932 +38,766 @@
       </div>
     </nav>
 
-    <!-- CONTEÚDO PRINCIPAL NO NOVO DESIGN -->
-    <main class="content-wrapper">
-      <h1 class="page-title">Perfil do Responsável</h1>
-
-      <!-- Cabeçalho do Perfil (Estilo Identidade Visual Nova) -->
-      <section class="profile-header">
-        <div class="user-info">
-          <div class="avatar-container clickable" @click="triggerPhotoUpload">
-            <img v-if="worker.avatar" :src="worker.avatar" alt="Avatar" class="profile-avatar" />
-            <div v-else class="profile-avatar-placeholder">
-              {{ worker.nome[0] }}{{ worker.apelido[0] }}
-            </div>
-            <div class="avatar-overlay">
-              <span class="camera-icon">📷</span>
-            </div>
-            <input
-              type="file"
-              ref="photoInput"
-              style="display: none"
-              accept="image/*"
-              @change="handlePhotoChange"
-            />
-          </div>
-          <div class="user-text">
-            <h2>{{ worker.nome }} {{ worker.apelido }}</h2>
-            <p>{{ worker.email }}</p>
-          </div>
+    <main class="main-content">
+      <div class="title-header">
+        <div class="icon-main-bg">
+          <img src="@/assets/ocorrencias.png" alt="Ocorrências" class="icon-main-img" />
         </div>
-        <button @click="openEditModal" class="btn-edit">Editar</button>
+        <h1>Ocorrências</h1>
+      </div>
+
+      <div class="view-toggle">
+        <span>Ver como:</span>
+        <div class="toggle-buttons">
+          <button
+            :class="['toggle-btn', { active: viewMode === 'lista' }]"
+            @click="viewMode = 'lista'"
+          >
+            Lista
+          </button>
+          <button
+            :class="['toggle-btn', { active: viewMode === 'mapa' }]"
+            @click="viewMode = 'mapa'"
+          >
+            Mapa
+          </button>
+        </div>
+      </div>
+
+      <section v-if="viewMode === 'lista'" class="list-view">
+        <div
+          v-if="ocorrenciasError"
+          class="error-banner"
+          style="color: #9b1c1c; margin-bottom: 12px"
+        >
+          {{ ocorrenciasError }}
+        </div>
+        <div
+          v-if="
+            fetchInfo.allCount !== null ||
+            fetchInfo.byStateCount !== null ||
+            fetchInfo.fallbackCount !== null
+          "
+          style="font-size: 0.9rem; color: #6b7280; margin-bottom: 8px"
+        ></div>
+        <table class="occ-table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Situação ↕</th>
+              <th>
+                Tipo de Problema <img src="@/assets/detalhes.png" alt="Detalhes" class="th-icon" />
+              </th>
+              <th>Detalhes</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="occ in ocorrencias" :key="occ.id">
+              <td class="user-cell">
+                <img :src="occ.userImg" class="avatar" />
+                {{ occ.nome }}
+              </td>
+              <td>
+                <span :class="['status-badge', occ.statusClass]">{{ occ.situacao }}</span>
+              </td>
+              <td>{{ occ.tipo }}</td>
+              <td class="details-cell">{{ occ.detalhes }}</td>
+              <td>
+                <router-link :to="`/ocorrencia/${occ.id}`">
+                  <img src="@/assets/detalhes.png" alt="Detalhes" class="info-btn" />
+                </router-link>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </section>
 
-      <!-- Detalhes e Informações Técnicas do Responsável -->
-      <section class="profile-details">
-        <div class="details-grid">
-          <div class="detail-field">
-            <label>Género</label>
-            <select v-model="worker.genero" class="display-box select-box">
-              <option value="Masculino">Masculino</option>
-              <option value="Feminino">Feminino</option>
-              <option value="Outro">Outro</option>
-            </select>
+      <section v-else class="map-view">
+        <div class="map-container">
+          <div class="map-placeholder">
+            <div ref="mapElement" class="map-leaflet"></div>
           </div>
 
-          <div class="detail-field">
-            <label>Freguesia</label>
-            <div class="display-box disabled-box">{{ worker.freguesia }}</div>
-          </div>
-        </div>
-      </section>
-
-      <!-- SECÇÃO INFERIOR: APENAS OCORRÊNCIAS DA FREGUESIA E ROTAS AGENDADAS -->
-      <section class="worker-dashboard-bottom">
-        <!-- Listagem de Ocorrências com base na Tabela do Novo Design -->
-        <div class="dashboard-block user-occurrences">
-          <h3>Ocorrências em {{ worker.freguesia }}</h3>
-          <div class="table-container">
-            <table class="occ-table">
-              <thead>
-                <tr>
-                  <th>Situação</th>
-                  <th>Tipo de Problema</th>
-                  <th>Localização</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="occ in ocorrencias" :key="occ.id">
-                  <td>
-                    <span :class="['status-badge', occ.statusClass]">{{ occ.status }}</span>
-                  </td>
-                  <td>{{ occ.tipo }}</td>
-                  <td class="details-cell">{{ occ.local }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Listagem de Rotas & Agendamentos -->
-        <div class="dashboard-block worker-routes">
-          <h3>Rotas & Agendamentos Semanais</h3>
-          <div class="routes-list-wrapper">
-            <button
-              v-for="route in rotas"
-              :key="route.id"
-              type="button"
-              class="route-minimal-card route-link"
-              @click="openRoute(route)"
-            >
-              <div class="route-info-side">
-                <h4>{{ route.nome }}</h4>
-                <p>{{ route.descricao }}</p>
+          <div class="map-info-card" :class="{ empty: !selectedOccurrence }">
+            <template v-if="selectedOccurrence">
+              <div class="card-header">
+                <img
+                  :src="selectedOccurrenceMeta.icon"
+                  :alt="selectedOccurrenceMeta.label"
+                  class="icon-type"
+                />
+                <h3>{{ selectedOccurrenceMeta.label }}</h3>
               </div>
-              <div class="route-date-side">
-                <span class="r-date">{{ route.data }}</span>
-                <span class="r-time">⏰ {{ route.hora }}</span>
+              <p>
+                <strong>Status:</strong>
+                <span :class="['status-badge', selectedOccurrence.statusClass]">{{
+                  selectedOccurrence.situacao
+                }}</span>
+              </p>
+              <p>
+                <strong>Localização:</strong><br />{{
+                  selectedOccurrence.location || 'Local não disponível'
+                }}
+              </p>
+              <p><strong>Descrição:</strong><br />{{ selectedOccurrence.detalhes }}</p>
+              <div class="reported-by">
+                <strong>Reportado por:</strong>
+                <div class="user-chip">
+                  <img :src="selectedOccurrence.userImg" class="avatar-xs" alt="Reportado por" />
+                  <span>{{ selectedOccurrence.nome }}</span>
+                </div>
               </div>
-            </button>
-            <div v-if="rotas.length === 0" class="notif-empty">Nenhuma rota planeada.</div>
+            </template>
+            <template v-else>
+              <div class="card-header">
+                <h3>Selecione uma ocorrência</h3>
+              </div>
+              <p>Clique num marcador no mapa para ver os detalhes da ocorrência.</p>
+            </template>
           </div>
         </div>
       </section>
-
-      <button class="btn-logout" @click="showLogoutModal = true">Terminar Sessão</button>
     </main>
 
-    <!-- MODAL: EDITAR PERFIL (MATRICULADO NO SEU DESIGN NOVO) -->
-    <div v-if="showEditModal" class="modal-overlay" @click.self="showEditModal = false">
-      <div class="modal-card">
-        <h3>Editar Perfil</h3>
-        <div class="modal-form-body">
-          <label>Nome:</label>
-          <input v-model="editFirstName" class="display-box" />
-
-          <label>Apelido:</label>
-          <input v-model="editLastName" class="display-box" />
-
-          <label>Email:</label>
-          <input v-model="editEmail" class="display-box" />
-
-          <label>Telemóvel:</label>
-          <input v-model="editPhone" class="display-box" />
-        </div>
-        <div class="modal-actions">
-          <button class="modal-btn cancel" @click="showEditModal = false">VOLTAR</button>
-          <button class="modal-btn confirm" @click="handleSaveEdit">SALVAR</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- MODAL: TERMINAR SESSÃO -->
-    <div v-if="showLogoutModal" class="modal-overlay" @click.self="showLogoutModal = false">
-      <div class="modal-card confirmation-card">
-        <h3>Terminar Sessão</h3>
-        <p>Tens a certeza que queres terminar sessão do painel técnico?</p>
-        <div class="modal-actions">
-          <button class="modal-btn cancel" @click="showLogoutModal = false">Cancelar</button>
-          <button class="modal-btn confirm" @click="handleLogout">Sim, sair</button>
-        </div>
-      </div>
-    </div>
-
-    <Footer :columns="responsavelFooterColumns" />
+    <Footer />
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, nextTick, onMounted, onBeforeUnmount, ref, watch } from 'vue'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 import Footer from '@/components/footer.vue'
+import ResponsavelSidebarMenu from '@/components/ResponsavelSidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
-import avatarImg from '@/assets/avatar.png'
-import { getAuthToken, getAuthUserId } from '@/utils/auth'
-import ResponsavelSidebarMenu from '@/components/ResponsavelSidebarMenu.vue'
+import {
+  listOccurrences,
+  listAllOccurrences,
+  listOccurrencesByState,
+} from '@/services/occurrenceService'
+import { getAuthUserType } from '@/utils/auth'
+import { getOccurrenceStatusColor, getOccurrenceTypeMeta } from '@/utils/occurrenceTypes'
+import { resolveOccurrenceCoordinates } from '@/utils/occurrenceStorage'
+import { getNewOccurrenceRoute } from '@/utils/auth'
 
-const responsavelFooterColumns = [
-  [
-    { label: 'Home', to: '/responsavel/perfil' },
-    { label: 'Ocorrências', to: '/ocorrencias' },
-    { label: 'Rotas', to: '/responsavel/rotas' },
-  ],
-  [{ label: 'Perfil', to: '/responsavel/perfil' }],
-]
-
-const router = useRouter()
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
-
-const photoInput = ref(null)
-
-const triggerPhotoUpload = () => {
-  photoInput.value?.click()
-}
-
-async function handlePhotoChange(event) {
-  const file = event.target.files?.[0]
-  if (!file) return
-
-  const trabalhadorId = getAuthUserId()
-  const token = getAuthToken()
-
-  if (!API_BASE_URL || !trabalhadorId || !token) {
-    alert('Não foi possível atualizar a foto. Erro de autenticação.')
-    return
-  }
-
-  const formData = new FormData()
-  formData.append('file', file)
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/trabalhadores/${trabalhadorId}/foto`, {
-      method: 'PATCH',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.message || 'Falha ao atualizar foto no servidor.')
-    }
-
-    const data = await response.json()
-    if (data.success && data.fotoPerfil) {
-      worker.value.avatar = data.fotoPerfil
-      // Update localStorage
-      const profile = JSON.parse(localStorage.getItem('userProfile') || '{}')
-      profile.fotoPerfil = data.fotoPerfil
-      localStorage.setItem('userProfile', JSON.stringify(profile))
-    }
-  } catch (error) {
-    alert(error.message || 'Não foi possível atualizar a foto.')
-  }
-}
-
-const splitName = (fullName = '') => {
-  const parts = String(fullName).trim().split(/\s+/).filter(Boolean)
-
-  if (parts.length === 0) {
-    return { firstName: '', lastName: '' }
-  }
-
-  return {
-    firstName: parts[0],
-    lastName: parts.slice(1).join(' '),
-  }
-}
-
-const createWorkerProfile = (profile = null) => {
-  const { firstName, lastName } = splitName(profile?.nomeTrabalhador || profile?.name || '')
-
-  return {
-    nome: firstName || profile?.firstName || '',
-    apelido: lastName || profile?.lastName || '',
-    email: profile?.emailTrabalhador || profile?.email || '',
-    genero: profile?.genero || '',
-    equipa: '',
-    freguesia: '',
-    credenciais: '',
-    avatar: profile?.fotoPerfil || avatarImg,
-    ratingMedia: '',
-  }
-}
-
-// Sistema de Notificações e Menu
+const viewMode = ref('lista')
 const showNotif = ref(false)
 const showMenu = ref(false)
 const notifications = ref([])
 
-const toggleNotif = () => {
+const notifPanel = ref(null)
+const notifIcon = ref(null)
+const menuPanel = ref(null)
+const menuIcon = ref(null)
+const mapElement = ref(null)
+const newOccurrenceRoute = computed(() => getNewOccurrenceRoute())
+
+const selectedOccurrence = ref(null)
+const mapCenter = [41.36405, -8.73894]
+let mapInstance = null
+let markerLayer = null
+const geocodeCache = new Map()
+
+const toggleNotif = (e) => {
+  e.stopPropagation()
   showNotif.value = !showNotif.value
   showMenu.value = false
 }
-const toggleMenu = () => {
+
+const toggleMenu = (e) => {
+  e.stopPropagation()
   showMenu.value = !showMenu.value
   showNotif.value = false
 }
+
 const removeNotif = (i) => notifications.value.splice(i, 1)
 
-const storedProfile = JSON.parse(localStorage.getItem('userProfile') || 'null')
-const worker = ref(createWorkerProfile(storedProfile))
-
-async function loadResponsibleProfile() {
-  if (!API_BASE_URL) {
-    return
-  }
-
-  const token = getAuthToken()
-  if (!token) {
-    return
-  }
-
-  try {
-    const profileResponse = await fetch(`${API_BASE_URL}/trabalhadores/me`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-
-    if (!profileResponse.ok) {
-      return
-    }
-
-    const profile = await profileResponse.json()
-    const { firstName, lastName } = splitName(profile.nomeTrabalhador || '')
-
-    const [equipaResponse, municipioResponse] = await Promise.all([
-      profile.idEquipa
-        ? fetch(`${API_BASE_URL}/equipas/${profile.idEquipa}`)
-        : Promise.resolve(null),
-      profile.idFreguesia
-        ? fetch(`${API_BASE_URL}/municipios/${profile.idFreguesia}`)
-        : Promise.resolve(null),
-    ])
-
-    const equipa = equipaResponse?.ok ? await equipaResponse.json() : null
-    const municipio = municipioResponse?.ok ? await municipioResponse.json() : null
-
-    worker.value = {
-      nome: firstName || storedProfile?.firstName || '',
-      apelido: lastName || storedProfile?.lastName || '',
-      email: profile.emailTrabalhador || storedProfile?.email || '',
-      genero: profile.genero || '',
-      equipa: equipa?.especializacao || '',
-      freguesia: municipio?.nome || '',
-      credenciais: '',
-      avatar: profile.fotoPerfil || storedProfile?.fotoPerfil || avatarImg,
-      ratingMedia: '',
-    }
-
-    localStorage.setItem(
-      'userProfile',
-      JSON.stringify({
-        firstName: worker.value.nome,
-        lastName: worker.value.apelido,
-        email: worker.value.email,
-        fotoPerfil: worker.value.avatar,
-      }),
-    )
-  } catch {
-    worker.value = createWorkerProfile(storedProfile)
-  }
-}
-
-// Modais de Edição de Dados
-const showEditModal = ref(false)
-const editFirstName = ref('')
-const editLastName = ref('')
-const editEmail = ref('')
-const isSavingProfile = ref(false)
-
-const openEditModal = () => {
-  editFirstName.value = worker.value.nome
-  editLastName.value = worker.value.apelido
-  editEmail.value = worker.value.email
-  showEditModal.value = true
-}
-
-async function handleSaveEdit() {
-  if (isSavingProfile.value) {
-    return
-  }
-
-  if (!editFirstName.value.trim() || !editLastName.value.trim()) {
-    alert('Nome e apelido não podem ficar vazios.')
-    return
-  }
-
-  isSavingProfile.value = true
-
-  const token = getAuthToken()
-  if (!API_BASE_URL || !token) {
-    alert('Não foi possível guardar o perfil.')
-    isSavingProfile.value = false
-    return
-  }
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/trabalhadores/me`, {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        firstName: editFirstName.value.trim(),
-        lastName: editLastName.value.trim(),
-        email: editEmail.value.trim(),
-      }),
-    })
-
-    const payload = await response.json().catch(() => ({}))
-
-    if (!response.ok) {
-      throw new Error(payload?.message || 'Não foi possível guardar o perfil.')
-    }
-
-    const { firstName, lastName } = splitName(payload?.nomeTrabalhador || '')
-
-    worker.value.nome = firstName || editFirstName.value.trim()
-    worker.value.apelido = lastName || editLastName.value.trim()
-    worker.value.email = payload?.emailTrabalhador || editEmail.value.trim()
-
-    localStorage.setItem(
-      'userProfile',
-      JSON.stringify({
-        firstName: worker.value.nome,
-        lastName: worker.value.apelido,
-        email: worker.value.email,
-        fotoPerfil: worker.value.avatar,
-      }),
-    )
-
-    showEditModal.value = false
-  } catch (error) {
-    alert(error.message || 'Não foi possível guardar o perfil.')
-  } finally {
-    isSavingProfile.value = false
-  }
-}
-
-// Ocorrências vinculadas à freguesia do funcionário
 const ocorrencias = ref([])
+const ocorrenciasError = ref('')
+const fetchInfo = ref({ allCount: null, byStateCount: null, fallbackCount: null, errors: [] })
 
-// Rotas exclusivas do Trabalhador
-const rotas = ref([])
+const selectedOccurrenceMeta = computed(() => getOccurrenceTypeMeta(selectedOccurrence.value?.tipo))
 
-const openRoute = (route) => {
-  router.push({
-    name: 'responsavel-rotas',
-    query: { routeId: String(route.id) },
+function createMarkerIcon(occurrence) {
+  const typeMeta = getOccurrenceTypeMeta(occurrence.tipo)
+  const markerColor = getOccurrenceStatusColor(occurrence.statusClass)
+  const typeBackgroundColor = typeMeta.backgroundColor || '#f59e0b'
+
+  return L.divIcon({
+    className: 'occurrence-marker-icon',
+    html: `
+      <span class="occurrence-marker-pin" style="--marker-color: ${markerColor}">
+        <span class="occurrence-marker-content">
+          <span class="occurrence-marker-badge" style="--type-color: ${typeBackgroundColor}">
+            <img src="${typeMeta.icon}" alt="${typeMeta.label}" class="occurrence-marker-symbol" />
+          </span>
+        </span>
+      </span>
+    `,
+    iconSize: [34, 48],
+    iconAnchor: [17, 48],
+    popupAnchor: [0, -42],
   })
 }
 
-// Logout do Operador
-const showLogoutModal = ref(false)
-function handleLogout() {
-  localStorage.removeItem('role')
-  localStorage.removeItem('authToken')
-  localStorage.removeItem('authUserType')
-  localStorage.removeItem('authUserId')
-  localStorage.removeItem('rememberMe')
-  localStorage.removeItem('userProfile')
-  sessionStorage.removeItem('authToken')
-  sessionStorage.removeItem('authUserType')
-  sessionStorage.removeItem('authUserId')
-  sessionStorage.removeItem('vc-comunica-register')
-  showLogoutModal.value = false
-  router.replace({ name: 'login' })
+async function geocodeLocation(locationValue) {
+  const query = String(locationValue || '').trim()
+  if (!query) return null
+
+  if (geocodeCache.has(query)) {
+    return geocodeCache.get(query)
+  }
+
+  const endpoint = new URL('https://nominatim.openstreetmap.org/search')
+  endpoint.searchParams.set('format', 'jsonv2')
+  endpoint.searchParams.set('limit', '1')
+  endpoint.searchParams.set('countrycodes', 'pt')
+  endpoint.searchParams.set('q', query)
+
+  try {
+    const response = await fetch(endpoint.toString(), {
+      headers: {
+        Accept: 'application/json',
+        'Accept-Language': 'pt-PT,pt;q=0.9,en;q=0.7',
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error('Nominatim request failed')
+    }
+
+    const result = await response.json()
+    const firstResult = Array.isArray(result) ? result[0] : null
+
+    if (!firstResult) {
+      geocodeCache.set(query, null)
+      return null
+    }
+
+    const resolved = {
+      latitude: Number(firstResult.lat),
+      longitude: Number(firstResult.lon),
+      displayName: firstResult.display_name,
+    }
+
+    geocodeCache.set(query, resolved)
+    return resolved
+  } catch {
+    geocodeCache.set(query, null)
+    return null
+  }
 }
 
-onMounted(() => {
-  loadResponsibleProfile()
+async function enrichOccurrence(occurrence) {
+  const locationQuery = occurrence.location || occurrence.tipo || occurrence.detalhes
+  const geocoded = await geocodeLocation(locationQuery)
+
+  if (geocoded) {
+    return {
+      ...occurrence,
+      latitude: geocoded.latitude,
+      longitude: geocoded.longitude,
+      location: occurrence.location || geocoded.displayName,
+    }
+  }
+
+  return {
+    ...occurrence,
+    ...resolveOccurrenceCoordinates(occurrence),
+  }
+}
+
+function fitMarkers() {
+  if (!mapInstance || !markerLayer) return
+
+  const markerBounds = []
+  ocorrencias.value.forEach((occurrence) => {
+    if (occurrence.latitude == null || occurrence.longitude == null) return
+    markerBounds.push([occurrence.latitude, occurrence.longitude])
+  })
+
+  if (markerBounds.length === 0) {
+    mapInstance.setView(mapCenter, 14)
+    return
+  }
+
+  if (markerBounds.length === 1) {
+    mapInstance.setView(markerBounds[0], 16)
+    return
+  }
+
+  mapInstance.fitBounds(markerBounds, { padding: [40, 40] })
+}
+
+function renderMarkers() {
+  if (!mapInstance || !markerLayer) return
+
+  markerLayer.clearLayers()
+
+  ocorrencias.value.forEach((occurrence) => {
+    if (occurrence.latitude == null || occurrence.longitude == null) return
+
+    const marker = L.marker([occurrence.latitude, occurrence.longitude], {
+      icon: createMarkerIcon(occurrence),
+      riseOnHover: true,
+    })
+
+    marker.bindPopup(`
+      <strong>${occurrence.nome}</strong><br />
+      ${occurrence.situacao}
+    `)
+
+    marker.on('click', () => {
+      selectOccurrence(occurrence)
+    })
+
+    marker.addTo(markerLayer)
+  })
+
+  fitMarkers()
+}
+
+function initializeMap() {
+  if (mapInstance || !mapElement.value) return
+
+  mapInstance = L.map(mapElement.value, {
+    zoomControl: true,
+    scrollWheelZoom: true,
+  }).setView(mapCenter, 14)
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors',
+  }).addTo(mapInstance)
+
+  markerLayer = L.layerGroup().addTo(mapInstance)
+  renderMarkers()
+}
+
+function destroyMap() {
+  if (markerLayer) {
+    markerLayer.clearLayers()
+    markerLayer = null
+  }
+
+  if (mapInstance) {
+    mapInstance.remove()
+    mapInstance = null
+  }
+}
+
+async function loadOccurrences() {
+  const role = getAuthUserType() || ''
+  let data = []
+
+  try {
+    if (/^trabalhador/.test(String(role)) || role === 'trabalhador') {
+      // Logic for workers (assuming they still want specific filtering or access)
+      try {
+        const all = await listAllOccurrences()
+        data = (all || []).filter((o) => {
+          const situRaw = String(o.situacao || o.estado || '')
+          const situ = situRaw.toLowerCase()
+          const status = String(o.statusClass || '').toLowerCase()
+          const waitingByText =
+            (situ.includes('espera') && situ.includes('equip')) ||
+            /a\s*espera\s*(da|de)?\s*equip/i.test(situRaw)
+          const waitingByStatus = status.includes('espera')
+          return waitingByText || waitingByStatus
+        })
+        fetchInfo.value.allCount = Array.isArray(all) ? all.length : 0
+      } catch (e) {
+        console.error('listAllOccurrences failed:', e)
+        const byState = await listOccurrencesByState('À espera da equipa')
+        data = byState || []
+      }
+    } else {
+      // Guests and Citizens
+      data = await listOccurrences()
+    }
+  } catch (error) {
+    console.error('Error loading occurrences:', error)
+    ocorrenciasError.value = `Erro ao carregar ocorrências: ${error.message || error}`
+    data = []
+  }
+
+  const enrichedOccurrences = await Promise.all(
+    data.map((occurrence) => enrichOccurrence(occurrence)),
+  )
+
+  ocorrencias.value = enrichedOccurrences
+
+  if (selectedOccurrence.value) {
+    selectedOccurrence.value =
+      enrichedOccurrences.find((occurrence) => occurrence.id === selectedOccurrence.value.id) ||
+      null
+  }
+
+  renderMarkers()
+}
+
+function selectOccurrence(marker) {
+  selectedOccurrence.value = marker
+}
+
+watch(viewMode, async (mode) => {
+  if (mode === 'mapa') {
+    await nextTick()
+    initializeMap()
+    mapInstance?.invalidateSize()
+    renderMarkers()
+  } else {
+    destroyMap()
+  }
+})
+
+function handleDocClick(e) {
+  if (
+    showNotif.value &&
+    notifPanel.value &&
+    !notifPanel.value.contains(e.target) &&
+    !notifIcon.value.contains(e.target)
+  ) {
+    showNotif.value = false
+  }
+  if (
+    showMenu.value &&
+    menuPanel.value &&
+    !menuPanel.value.contains(e.target) &&
+    !menuIcon.value.contains(e.target)
+  ) {
+    showMenu.value = false
+  }
+}
+
+onMounted(async () => {
+  document.addEventListener('click', handleDocClick)
+  await loadOccurrences()
+  if (viewMode.value === 'mapa') {
+    await nextTick()
+    initializeMap()
+    mapInstance?.invalidateSize()
+  }
+})
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleDocClick)
+  destroyMap()
 })
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap');
-
 .page-container {
-  font-family: 'Montserrat', sans-serif;
+  font-family: Arial, sans-serif;
   color: #1a1a1a;
-  line-height: 1.5;
-  background-color: #fff;
 }
 
-/* NAVBAR EQUILIBRADA COM ÍCONES À DIREITA */
+/* NAVBAR (Styles da Home) */
 .navbar {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   padding: 20px 80px;
-  border-bottom: 1px solid #f1f5f9;
+  align-items: center;
+  background: white;
 }
 .logo-img {
   height: 40px;
 }
 .nav-icons {
   display: flex;
+  gap: 20px;
   align-items: center;
-  gap: 24px;
   position: relative;
-}
-.icon {
   cursor: pointer;
-  user-select: none;
+}
+.icon.add {
+  background: #730000;
+  color: white;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 700;
 }
 .icon.notification {
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   object-fit: contain;
 }
-.menu-hamburger {
-  font-size: 24px;
-  color: #1e293b;
-}
 
-/* NOTIFICAÇÕES */
+/* MENU & NOTIFICAÇÕES */
+.hamburger-menu,
 .notifications {
   position: absolute;
-  top: 40px;
+  top: 44px;
   right: 0;
-  width: 320px;
-  background: #ffffff;
-  color: #0b2b2b;
+  background: #fff;
   border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  z-index: 100;
+  padding: 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  z-index: 70;
 }
-.notifications h4 {
-  margin: 0 0 12px 0;
-  font-size: 16px;
-  font-weight: 800;
+.hamburger-menu {
+  width: 200px;
 }
-.notif-list {
+.menu-list {
   display: flex;
   flex-direction: column;
+  gap: 10px;
+  align-items: flex-end;
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  text-decoration: none;
+  color: #0b2b2b;
+  font-weight: 700;
+  padding: 8px;
+  width: 100%;
+}
+.menu-label {
+  font-size: 13px;
+}
+.menu-icon {
+  width: 14px;
+  height: 14px;
 }
 .notif-item {
   background: #dff3ec;
   padding: 12px;
   border-radius: 8px;
+  cursor: pointer;
   margin-bottom: 8px;
-  font-size: 13px;
 }
 .notif-title {
   font-weight: 700;
-  margin-bottom: 2px;
-}
-.notif-empty {
-  color: #94a3b8;
-  text-align: center;
-  font-size: 13px;
-  padding: 10px 0;
 }
 
-/* CONTEÚDO EMBALADO NO MODELO */
-.content-wrapper {
-  max-width: 1000px;
-  margin: 40px auto;
-  padding: 0 40px;
+/* CONTEÚDO ESPECÍFICO */
+.main-content {
+  padding: 40px 80px;
+  min-height: 70vh;
 }
-.page-title {
-  font-size: 42px;
-  font-weight: 900;
-  color: #1e293b;
-  margin-bottom: 40px;
-}
-
-/* HEADER COM AVATAR */
-.profile-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 40px;
-  background: #f8fafc;
-  padding: 24px;
-  border-radius: 16px;
-}
-.user-info {
+.title-header {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 15px;
+  margin-bottom: 30px;
 }
-.profile-avatar,
-.profile-avatar-placeholder {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-.avatar-container {
-  position: relative;
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  overflow: hidden;
-}
-.avatar-container.clickable {
-  cursor: pointer;
-}
-.avatar-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-.avatar-container:hover .avatar-overlay {
-  opacity: 1;
-}
-.camera-icon {
-  color: #fff;
-  font-size: 20px;
-}
-.profile-avatar-placeholder {
-  background: #cfe8df;
-  color: #0b2b2b;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 24px;
-}
-.user-text h2 {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 800;
-  color: #1e293b;
-}
-.user-text p {
-  margin: 4px 0 0 0;
-  color: #64748b;
-}
-.btn-edit {
-  background: #d1dfdb;
-  color: #1e293b;
-  border: none;
-  padding: 10px 24px;
+.icon-main-bg {
+  background: #730000;
+  padding: 10px;
   border-radius: 8px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.2s;
 }
-.btn-edit:hover {
-  background: #c3d3cf;
+.icon-main-img {
+  width: 30px;
+  height: 30px;
+  filter: brightness(0) invert(1);
 }
-
-/* FORMULÁRIO / GRID DE CAMPOS */
-.details-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px 40px;
-  margin-bottom: 50px;
-}
-.detail-field label {
-  display: block;
+.title-header h1 {
+  font-size: 32px;
   font-weight: 800;
-  color: #475569;
-  margin-bottom: 8px;
-  font-size: 14px;
-}
-.display-box {
-  background: #f8fafc;
-  width: 100%;
-  padding: 14px;
-  border-radius: 10px;
-  border: 1px solid #f1f5f9;
-  color: #1e293b;
-  font-weight: 600;
-  box-sizing: border-box;
-  font-size: 15px;
-}
-.select-box {
-  appearance: none;
-  background: #f8fafc
-    url("data:image/svg+xml;utf8,<svg fill='%2394a3b8' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>")
-    no-repeat right 12px center;
-  cursor: pointer;
-}
-.disabled-box {
-  background: #f1f5f9;
-  color: #64748b;
-}
-.rating-box {
-  color: #1e293b;
-  font-weight: 700;
-}
-.full-width {
-  grid-column: span 2;
 }
 
-/* SPOILER CREDENCIAIS MANTIDO E ADAPTADO */
-.spoiler-credential {
-  background: #1e293b;
-  border-radius: 10px;
-  padding: 14px;
-  cursor: pointer;
-  position: relative;
-  min-height: 48px;
+.view-toggle {
   display: flex;
   align-items: center;
-  box-sizing: border-box;
-}
-.spoiler-credential .cred-text {
-  color: transparent;
-  font-family: monospace;
-  font-size: 15px;
-  user-select: none;
-}
-.spoiler-credential .spoiler-label {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  color: #f8fafc;
-  font-size: 13px;
-  font-weight: 600;
-}
-.spoiler-credential.revealed {
-  background: #f8fafc;
-  border: 1.5px dashed #730000;
-}
-.spoiler-credential.revealed .cred-text {
-  color: #730000;
+  gap: 10px;
+  margin-bottom: 30px;
   font-weight: bold;
-  user-select: text;
+}
+.toggle-buttons {
+  display: flex;
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 4px;
+}
+.toggle-btn {
+  border: none;
+  padding: 6px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s;
+}
+.toggle-btn.active {
+  background: #3b82f6;
+  color: white;
 }
 
-/* LAYOUT INFERIOR: APENAS OCORRÊNCIAS E ROTAS */
-.worker-dashboard-bottom {
-  display: flex;
-  flex-direction: column;
-  gap: 40px;
-  margin-top: 20px;
-}
-.dashboard-block h3 {
-  font-size: 20px;
-  font-weight: 800;
-  color: #1e293b;
-  margin-bottom: 16px;
-}
-.table-container {
-  border: 1px solid #f1f5f9;
-  border-radius: 15px;
-  overflow: hidden;
-}
+/* TABELA */
 .occ-table {
   width: 100%;
   border-collapse: collapse;
-  text-align: left;
-  font-size: 14px;
 }
 .occ-table th {
+  text-align: left;
   padding: 15px;
-  background: #f8fafc;
-  color: #94a3b8;
-  font-weight: 700;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid #eee;
+  color: #64748b;
 }
 .occ-table td {
   padding: 15px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f8fafc;
+}
+.avatar {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  margin-right: 10px;
+  vertical-align: middle;
+}
+.info-btn {
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
 }
 
-/* BADGES DE ESTADO EXCLUSIVOS */
+/* MAPA */
+.map-container {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 30px;
+  height: 500px;
+}
+.map-placeholder {
+  position: relative;
+  background: #e2e8f0;
+  border-radius: 15px;
+  overflow: hidden;
+  height: 100%;
+}
+.map-leaflet {
+  width: 100%;
+  height: 100%;
+}
+.map-leaflet :deep(.leaflet-container) {
+  width: 100%;
+  height: 100%;
+  font-family: inherit;
+}
+.map-leaflet :deep(.leaflet-div-icon.occurrence-marker-icon) {
+  background: transparent;
+  border: none;
+}
+.map-leaflet :deep(.occurrence-marker-pin) {
+  width: 30px;
+  height: 30px;
+  margin-top: 5px;
+  background: var(--marker-color, #dc2626);
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.24);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.map-leaflet :deep(.occurrence-marker-content) {
+  transform: rotate(45deg);
+  position: relative;
+  z-index: 1;
+}
+.map-leaflet :deep(.occurrence-marker-badge) {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--type-color, #f59e0b);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+.map-leaflet :deep(.occurrence-marker-symbol) {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  display: block;
+}
+.icon-type {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  padding: 6px;
+  border-radius: 8px;
+  background: #facc15;
+}
+.map-info-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+}
+.map-info-card.empty {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: #64748b;
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+.map-info-card p {
+  margin: 0 0 18px;
+  font-weight: 400;
+}
+.map-info-card strong {
+  display: inline-block;
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+.icon-yellow {
+  background: #facc15;
+  padding: 8px;
+  border-radius: 8px;
+}
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 5px;
+}
+.reported-by {
+  margin-top: 8px;
+}
+.reported-by strong {
+  margin-bottom: 10px;
+}
+.avatar-xs {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+}
+
+/* STATUS BADGES */
 .status-badge {
   padding: 4px 12px;
   border-radius: 20px;
-  font-size: 12px;
-  font-weight: 800;
-  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+.resolvido {
+  background: #dcfce7;
+  color: #166534;
 }
 .em-resolucao {
   background: #fef9c3;
-  color: #ca8a04;
+  color: #854d0e;
 }
 .espera {
   background: #ffedd5;
-  color: #ea580c;
-}
-.details-cell {
-  color: #64748b;
-}
-
-/* ROTAS VERTICAIS ALINHADAS */
-.routes-list-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.route-minimal-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #f8fafc;
-  border-left: 4px solid #730000;
-  padding: 16px;
-  border-radius: 8px;
-}
-.route-link {
-  width: 100%;
-  border: none;
-  text-align: left;
-  cursor: pointer;
-  font: inherit;
-  color: inherit;
-}
-.route-link:hover {
-  background: #eef5f3;
-}
-.route-info-side h4 {
-  margin: 0 0 4px 0;
-  font-size: 15px;
-  font-weight: 700;
-  color: #1e293b;
-}
-.route-info-side p {
-  margin: 0;
-  font-size: 13px;
-  color: #64748b;
-}
-.route-date-side {
-  text-align: right;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  font-size: 13px;
-}
-.r-date {
-  font-weight: 700;
-  color: #730000;
-}
-.r-time {
-  color: #475569;
-}
-
-/* BOTÃO SAIR (ESTILO ORIGINAL MONTSERRAT) */
-.btn-logout {
-  width: 100%;
-  padding: 16px;
-  margin-top: 50px;
-  background: #ff383c;
-  color: #fff;
-  border: none;
-  border-radius: 12px;
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 600;
-  font-size: 16px;
-  cursor: pointer;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    background 0.2s ease;
-}
-.btn-logout:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 56, 60, 0.4);
-  background: #e0292d;
-}
-
-/* MODAIS NO MODELO EXATO */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-.modal-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 40px;
-  max-width: 440px;
-  width: 90%;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-  font-family: 'Montserrat', sans-serif;
-  text-align: left;
-}
-.modal-card h3 {
-  font-size: 26px;
-  margin: 0 0 20px 0;
-  font-weight: 700;
-  color: #1e293b;
-}
-.modal-form-body {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 24px;
-}
-.modal-form-body label {
-  font-weight: 700;
-  color: #475569;
-  font-size: 14px;
-  margin-top: 6px;
-}
-.modal-card .display-box {
-  background: #fff;
-  border: 1.5px solid #cbd5e1;
-  color: #475569;
-}
-.modal-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.modal-btn {
-  padding: 12px 24px;
-  border-radius: 10px;
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 700;
-  font-size: 14px;
-  border: none;
-  cursor: pointer;
-}
-.modal-btn.cancel {
-  background: transparent;
-  color: #1e293b;
-}
-.modal-btn.confirm {
-  background: #cfe8df;
-  color: #0b2b2b;
-}
-.confirmation-card {
-  text-align: center;
-}
-.confirmation-card p {
-  color: #64748b;
-  margin-bottom: 24px;
-}
-.confirmation-card .modal-actions {
-  justify-content: center;
-  gap: 16px;
-}
-.confirmation-card .modal-btn.cancel {
-  background: #f1f5f9;
-  color: #475569;
-}
-.confirmation-card .modal-btn.confirm {
-  background: #ff383c;
-  color: #fff;
-}
-
-@media (max-width: 768px) {
-  .details-grid {
-    grid-template-columns: 1fr;
-  }
-  .full-width {
-    grid-column: span 1;
-  }
-  .navbar,
-  .content-wrapper {
-    padding: 20px;
-  }
+  color: #9a3412;
 }
 </style>

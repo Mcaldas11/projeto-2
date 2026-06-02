@@ -17,7 +17,7 @@
         />
         <span class="icon menu-trigger" @click="toggleMenu">☰</span>
 
-        <AdminSidebarMenu v-model="showMenu" />
+        <ResponsavelSidebarMenu v-model="showMenu" />
 
         <div v-if="showNotif" class="notifications" ref="notifPanel">
           <h4>Notificações</h4>
@@ -102,7 +102,7 @@ import { useRoute } from 'vue-router'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import Footer from '@/components/footer.vue'
-import AdminSidebarMenu from '@/components/AdminSidebarMenu.vue'
+import ResponsavelSidebarMenu from '@/components/ResponsavelSidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import adminFooterLogo from '@/assets/logo_footer.png'
