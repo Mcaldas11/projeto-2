@@ -1,4 +1,3 @@
-<!-- falta arrumar o genero -->
 <template>
   <div class="page-container">
     <!-- NAVBAR ALINHADA (SEM BOTÃO LIGADO A OCORRÊNCIAS) -->
@@ -71,15 +70,6 @@
       <!-- Detalhes e Informações Técnicas do Responsável -->
       <section class="profile-details">
         <div class="details-grid">
-          <div class="detail-field">
-            <label>Género</label>
-            <select v-model="worker.genero" class="display-box select-box">
-              <option value="Masculino">Masculino</option>
-              <option value="Feminino">Feminino</option>
-              <option value="Outro">Outro</option>
-            </select>
-          </div>
-
           <div class="detail-field">
             <label>Freguesia</label>
             <div class="display-box disabled-box">{{ worker.freguesia }}</div>
@@ -272,7 +262,6 @@ const createWorkerProfile = (profile = null) => {
     nome: firstName || profile?.firstName || '',
     apelido: lastName || profile?.lastName || '',
     email: profile?.emailTrabalhador || profile?.email || '',
-    genero: profile?.genero || '',
     equipa: '',
     freguesia: '',
     credenciais: '',
@@ -339,7 +328,6 @@ async function loadResponsibleProfile() {
       nome: firstName || storedProfile?.firstName || '',
       apelido: lastName || storedProfile?.lastName || '',
       email: profile.emailTrabalhador || storedProfile?.email || '',
-      genero: profile.genero || '',
       equipa: equipa?.especializacao || '',
       freguesia: municipio?.nome || '',
       credenciais: '',

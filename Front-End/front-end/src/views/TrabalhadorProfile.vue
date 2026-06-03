@@ -70,15 +70,6 @@
       <section class="profile-details">
         <div class="details-grid">
           <div class="detail-field">
-            <label>Género</label>
-            <select v-model="worker.genero" class="display-box select-box">
-              <option value="Masculino">Masculino</option>
-              <option value="Feminino">Feminino</option>
-              <option value="Outro">Outro</option>
-            </select>
-          </div>
-
-          <div class="detail-field">
             <label>Equipa Designada</label>
             <div class="display-box disabled-box">{{ worker.equipa }}</div>
           </div>
@@ -271,7 +262,6 @@ const worker = ref({
   nome: storedProfile?.firstName || '',
   apelido: storedProfile?.lastName || '',
   email: storedProfile?.email || '',
-  genero: '',
   equipa: '',
   idEquipa: storedProfile?.idEquipa || null,
   freguesia: '',

@@ -65,16 +65,6 @@
       <section class="profile-details">
         <div class="details-grid">
           <div class="detail-field">
-            <label>Género</label>
-            <div>
-              <select name="genero" class="display-box select-box">
-                <option value="Masculino">Masculino</option>
-                <option value="Feminino">Feminino</option>
-                <option value="Não Binario">Não Binario</option>
-              </select>
-            </div>
-          </div>
-          <div class="detail-field">
             <label>Freguesia</label>
             <div>
               <select name="freguesia" class="display-box select-box" v-model="selectedFregId">
