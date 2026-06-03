@@ -263,7 +263,8 @@ function getWorkerById(id) {
 const filteredTeams = computed(() => {
   const respFregId = selectedFreguesiaId.value
   if (respFregId) {
-    return teams.value.filter((team) => Number(team.freguesiaId) === Number(respFregId))
+    // Deriva o ID da freguesia a partir do ID da equipa (ex: 251 -> 25)
+    return teams.value.filter((team) => Math.floor(Number(team.id) / 10) === Number(respFregId))
   }
   return []
 })
@@ -357,7 +358,10 @@ async function loadInitialTeamsAndWorkers() {
     // Resolve o nome da freguesia para exibição baseando-se no ID carregado
     const respFregId = selectedFreguesiaId.value
     if (respFregId) {
-      const teamMatch = teams.value.find((t) => Number(t.freguesiaId) === Number(respFregId))
+      // Deriva o ID da freguesia para encontrar correspondência de nome
+      const teamMatch = teams.value.find(
+        (t) => Math.floor(Number(t.id) / 10) === Number(respFregId),
+      )
       const workerMatch = workers.value.find((w) => Number(w.idFreguesia) === Number(respFregId))
       selectedFreguesia.value = teamMatch?.freguesia || workerMatch?.freguesia || ''
     }

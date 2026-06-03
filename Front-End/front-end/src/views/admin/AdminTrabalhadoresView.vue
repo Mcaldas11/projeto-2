@@ -181,7 +181,7 @@ const adminFooterColumns = [
     { label: 'Ocorrências', to: '/admin' },
     { label: 'Rotas', to: '/admin/rotas' },
     { label: 'Equipas', to: '/admin/equipas' },
-    { label: 'Funcionarios', to: '/admin/trabalhadores' },  
+    { label: 'Funcionarios', to: '/admin/trabalhadores' },
   ],
 ]
 
@@ -206,7 +206,7 @@ const toggleMenu = (e) => {
   showNotif.value = false
 }
 /* const removeNotif = (i) => notifications.value.splice(i, 1) */
- 
+
 function handleDocClick(e) {
   if (
     showNotif.value &&
@@ -242,9 +242,7 @@ const availableTeams = computed(() => {
   if (!editWorkerData.value) return []
   const workerFreg = editWorkerData.value.idFreguesia
   if (!workerFreg) return []
-  return allTeams.value.filter(
-    (team) => String(team.freguesiaId) === String(workerFreg),
-  )
+  return allTeams.value.filter((team) => String(team.freguesiaId) === String(workerFreg))
 })
 
 // Pagination
@@ -478,7 +476,6 @@ watch(selectedFreguesia, () => {
   font-size: 36px;
   font-weight: 800;
   margin: 0 0 30px 0;
-  font-style: italic;
 }
 
 .title-filter {

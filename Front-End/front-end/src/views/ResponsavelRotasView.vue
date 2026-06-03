@@ -92,7 +92,7 @@
       </section>
     </main>
 
-    <Footer :columns="adminFooterColumns" :logo-src="adminFooterLogo" />
+    <Footer :columns="responsavelFooterColumns" :logo-src="adminFooterLogo" />
   </div>
 </template>
 
@@ -110,13 +110,13 @@ import { listRoutesWithGeometry } from '@/services/routeService'
 import { listOccurrenceMarkers } from '@/services/occurrenceService'
 import { getOccurrenceTypeMeta, normalizeTypeKey } from '@/utils/occurrenceTypes'
 
-const adminFooterColumns = [
+const responsavelFooterColumns = [
   [
-    { label: 'Home', to: '/admin' },
-    { label: 'Ocorrências', to: '/admin' },
-    { label: 'Rotas', to: '/admin/rotas' },
-    { label: 'Equipas', to: '/admin/equipas' },
-    { label: 'Funcionarios', to: '/admin/trabalhadores' },
+    { label: 'Home', to: '/responsavel/perfil' },
+    { label: 'Ocorrências', to: '/ocorrencias' },
+    { label: 'Rotas', to: '/responsavel/rotas' },
+    { label: 'Equipas', to: '/responsavel/equipas' },
+    { label: 'Trabalhadores', to: '/responsavel/trabalhadores' },
   ],
 ]
 
