@@ -33,6 +33,7 @@ router.post(
   authMiddleware,
   requireJsonObject,
   requireFields(requiredFieldsByResource.trabalhadores),
+  validatePassword,
   trabalhadoresControllers.createTrabalhador,
 );
 

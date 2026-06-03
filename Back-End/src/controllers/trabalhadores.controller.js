@@ -308,20 +308,9 @@ export const createTrabalhador = async (req, res, next) => {
     // Validação do formato do telemóvel (9 dígitos)
     const phoneRegex = /^[0-9]{9}$/;
     if (!phoneRegex.test(telemovelTrabalhador)) {
-      return res
-        .status(400)
-        .json({
-          message: "O telemóvel deve ter exatamente 9 dígitos numéricos.",
-        });
-    }
-
-    // Validação do PIN (máximo 5 dígitos conforme pedido)
-    if (String(password).length > 5) {
-      return res
-        .status(400)
-        .json({
-          message: "As credenciais (PIN) não podem ter mais de 5 dígitos.",
-        });
+      return res.status(400).json({
+        message: "O telemóvel deve ter exatamente 9 dígitos numéricos.",
+      });
     }
 
     const hasIdEquipa =

@@ -142,10 +142,14 @@
               placeholder="912345678"
             />
           </div>
-          <div class="form-row pin-display">
-            <label class="modal-label">PIN de Acesso (Gerado)</label>
-            <div class="generated-pin">{{ newWorker.pin }}</div>
-            <small>Guarde este PIN para o trabalhador.</small>
+          <div class="form-row">
+            <label class="modal-label">Palavra-passe</label>
+            <input
+              v-model="newWorker.password"
+              type="password"
+              class="modal-input"
+              placeholder="Mín. 6 chars (ABC, abc, 123, !@#)"
+            />
           </div>
         </div>
 
@@ -283,13 +287,8 @@ const newWorker = ref({
   lastName: '',
   email: '',
   phone: '',
-  pin: '',
+  password: '',
 })
-
-const generatePIN = () => {
-  // Gera um número aleatório de 5 dígitos (10000 a 99999)
-  return Math.floor(10000 + Math.random() * 90000).toString()
-}
 
 const openCreateModal = () => {
   newWorker.value = {
@@ -297,7 +296,7 @@ const openCreateModal = () => {
     lastName: '',
     email: '',
     phone: '',
-    pin: generatePIN(),
+    password: '',
   }
   createError.value = ''
   showCreateModal.value = true
@@ -308,16 +307,35 @@ const closeCreateModal = () => {
 }
 
 const handleCreateWorker = async () => {
-  const { firstName, lastName, email, phone, pin } = newWorker.value
+  const { firstName, lastName, email, phone, password } = newWorker.value
 
   const cleanPhone = String(phone || '').replace(/\s/g, '')
 
-  if (!firstName.trim() || !lastName.trim() || !email.trim() || !cleanPhone) {
+  if (!firstName.trim() || !lastName.trim() || !email.trim() || !cleanPhone || !password) {
     createError.value = 'Todos os campos são obrigatórios.'
     return
   }
   if (!email.toLowerCase().endsWith('@example.pt')) {
     createError.value = 'O email tem de terminar em @example.pt'
+    return
+  }
+
+  // Password complexity validation (same as citizen)
+  const minLength = 6
+  const hasUpperCase = /[A-Z]/.test(password)
+  const hasLowerCase = /[a-z]/.test(password)
+  const hasNumber = /\d/.test(password)
+  const hasSpecialChar = /[\W_]/.test(password)
+
+  const pwErrors = []
+  if (password.length < minLength) pwErrors.push(`pelo menos ${minLength} caracteres`)
+  if (!hasUpperCase) pwErrors.push('uma letra maiúscula')
+  if (!hasLowerCase) pwErrors.push('uma letra minúscula')
+  if (!hasNumber) pwErrors.push('um número')
+  if (!hasSpecialChar) pwErrors.push('um caractere especial')
+
+  if (pwErrors.length > 0) {
+    createError.value = `A palavra-passe deve ter: ${pwErrors.join(', ')}.`
     return
   }
 
@@ -335,11 +353,11 @@ const handleCreateWorker = async () => {
       nomeTrabalhador: `${firstName.trim()} ${lastName.trim()}`,
       emailTrabalhador: email.trim().toLowerCase(),
       telemovelTrabalhador: cleanPhone,
-      password: pin, // O PIN é enviado como a password inicial
+      password: password,
       idFreguesia: responsibleFreguesiaId.value, // Automático
     })
 
-    alert(`Trabalhador criado com sucesso! PIN: ${pin}`)
+    alert(`Trabalhador criado com sucesso!`)
     await loadWorkersFromBackend()
     closeCreateModal()
   } catch (error) {
