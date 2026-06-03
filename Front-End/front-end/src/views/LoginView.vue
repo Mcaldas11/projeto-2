@@ -36,6 +36,7 @@
               v-model="password"
               placeholder="........"
               required
+              @keyup.enter.prevent="handleLogin"
             />
           </div>
 
