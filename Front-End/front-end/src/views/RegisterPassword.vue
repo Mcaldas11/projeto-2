@@ -21,6 +21,15 @@
             <label>Password</label>
             <input type="password" v-model="password" placeholder="Cria a tua password" required />
           </div>
+
+          <div class="password-requirements">
+            <p :class="{ met: hasMinLength }"> Mínimo de 6 caracteres</p>
+            <p :class="{ met: hasUpperCase }"> Uma letra maiúscula</p>
+            <p :class="{ met: hasLowerCase }"> Uma letra minúscula</p>
+            <p :class="{ met: hasNumber }"> Um número</p>
+            <p :class="{ met: hasSpecialChar }"> Um caracter especial</p>
+          </div>
+
           <div class="input-field">
             <label>Confirma a tua password</label>
             <input
@@ -43,7 +52,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 const STORAGE_KEY = 'vc-comunica-register'
@@ -53,6 +62,21 @@ const password = ref('')
 const confirmPassword = ref('')
 const errorMessage = ref('')
 
+const hasMinLength = computed(() => password.value.length >= 6)
+const hasUpperCase = computed(() => /[A-Z]/.test(password.value))
+const hasLowerCase = computed(() => /[a-z]/.test(password.value))
+const hasNumber = computed(() => /\d/.test(password.value))
+const hasSpecialChar = computed(() => /[\W_]/.test(password.value))
+
+const isPasswordValid = computed(
+  () =>
+    hasMinLength.value &&
+    hasUpperCase.value &&
+    hasLowerCase.value &&
+    hasNumber.value &&
+    hasSpecialChar.value,
+)
+
 onMounted(() => {
   if (!sessionStorage.getItem(STORAGE_KEY)) {
     router.replace('/register/email')
@@ -60,6 +84,11 @@ onMounted(() => {
 })
 
 const handleSubmit = () => {
+  if (!isPasswordValid.value) {
+    errorMessage.value = 'A password não cumpre os requisitos de segurança.'
+    return
+  }
+
   if (!password.value || !confirmPassword.value) {
     errorMessage.value = 'Preenche a password e a confirmação.'
     return
@@ -186,6 +215,28 @@ h2 {
   border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
+}
+.btn-primary:hover {
+  background-color: #1e293b;
+}
+.error-message {
+  color: #dc2626;
+  font-size: 0.8rem;
+  margin-bottom: 15px;
+  text-align: left;
+}
+.password-requirements {
+  text-align: left;
+  margin-bottom: 20px;
+  font-size: 0.75rem;
+  color: #999;
+}
+.password-requirements p {
+  margin: 4px 0;
+  transition: color 0.2s;
+}
+.password-requirements p.met {
+  color: #16a34a;
 }
 .login-footer {
   margin-top: 25px;

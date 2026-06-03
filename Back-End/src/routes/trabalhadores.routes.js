@@ -7,6 +7,7 @@ import {
   requireFields,
   requireJsonObject,
   validateIntegerParam,
+  validatePassword,
 } from "../middlewares/validation.middleware.js";
 import { requiredFieldsByResource } from "../utils/required-fields.utils.js";
 import authMiddleware from "../middlewares/auth.middleware.js";
@@ -31,6 +32,7 @@ router.post(
   "/",
   requireJsonObject,
   requireFields(requiredFieldsByResource.trabalhadores),
+  validatePassword,
   trabalhadoresControllers.createTrabalhador,
 );
 

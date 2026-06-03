@@ -45,3 +45,35 @@ export const requireFields = (fields) => (req, res, next) => {
 
   return next();
 };
+
+export const validatePassword = (req, res, next) => {
+  const { password } = req.body;
+
+  if (!password) {
+    return next(validationError({ password: ["Password is required"] }));
+  }
+
+  const minLength = 6;
+  const hasUpperCase = /[A-Z]/.test(password);
+  const hasLowerCase = /[a-z]/.test(password);
+  const hasNumber = /\d/.test(password);
+  const hasSpecialChar = /[\W_]/.test(password);
+
+  const errors = [];
+  if (password.length < minLength)
+    errors.push(`at least ${minLength} characters`);
+  if (!hasUpperCase) errors.push("one uppercase letter");
+  if (!hasLowerCase) errors.push("one lowercase letter");
+  if (!hasNumber) errors.push("one number");
+  if (!hasSpecialChar) errors.push("one special character");
+
+  if (errors.length > 0) {
+    return next(
+      validationError({
+        password: [`Password must have ${errors.join(", ")}`],
+      }),
+    );
+  }
+
+  next();
+};
