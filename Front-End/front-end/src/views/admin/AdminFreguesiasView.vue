@@ -7,18 +7,18 @@
         </router-link>
       </div>
       <div class="nav-right">
-        <img
+        <!-- <img
           :src="notifications.length === 0 ? notifOff : notifOn"
           alt="notifications"
           class="icon notification"
           @click="toggleNotif"
           ref="notifIcon"
-        />
+        /> -->
         <span class="icon menu-trigger" @click="toggleMenu">☰</span>
 
         <AdminSidebarMenu v-model="showMenu" />
 
-        <div v-if="showNotif" class="notifications" ref="notifPanel">
+        <!-- <div v-if="showNotif" class="notifications" ref="notifPanel">
           <h4>Notificações</h4>
           <div class="notif-list">
             <div
@@ -32,7 +32,7 @@
             </div>
             <div v-if="notifications.length === 0" class="notif-empty">Sem notificações</div>
           </div>
-        </div>
+        </div> -->
       </div>
     </nav>
 
@@ -124,8 +124,8 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import Footer from '@/components/footer.vue'
 import AdminSidebarMenu from '@/components/AdminSidebarMenu.vue'
-import notifOn from '@/assets/notificationson.png'
-import notifOff from '@/assets/notificationsoff.png'
+/* import notifOn from '@/assets/notificationson.png'
+import notifOff from '@/assets/notificationsoff.png' */
 import adminFooterLogo from '@/assets/logo_footer.png'
 import { API_BASE_URL } from '@/services/municipalityService'
 
@@ -150,20 +150,20 @@ const showMenu = ref(false)
 const notifPanel = ref(null)
 const notifIcon = ref(null)
 
-const notifications = ref([])
-
-const toggleNotif = (e) => {
+/* const notifications = ref([])
+ */
+/* const toggleNotif = (e) => {
   e.stopPropagation()
   showNotif.value = !showNotif.value
   showMenu.value = false
-}
+} */
 const toggleMenu = (e) => {
   e.stopPropagation()
   showMenu.value = !showMenu.value
   showNotif.value = false
 }
-const removeNotif = (i) => notifications.value.splice(i, 1)
-
+/* const removeNotif = (i) => notifications.value.splice(i, 1)
+ */
 const fetchJson = async (path) => {
   const response = await fetch(`${API_BASE_URL}${path}`)
   if (!response.ok) {
