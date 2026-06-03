@@ -43,6 +43,7 @@ const router = createRouter({
       alias: '/nova-ocorrencia',
     },
     { path: '/ocorrencias', name: 'ocorrencias', component: OcorrenciasView },
+    { path: '/ocorrencias-globais', name: 'ocorrencias-globais', component: OcorrenciasView },
     // '/equipas' removed (EquipasPage was deleted)
     { path: '/conta', name: 'conta', component: ContaView },
     {
