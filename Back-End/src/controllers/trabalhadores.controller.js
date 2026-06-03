@@ -422,15 +422,41 @@ export const updateTrabalhador = async (req, res, next) => {
       return next(notFoundError("trabalhador", id));
     }
 
+    if (!req.userData) {
+      return res
+        .status(401)
+        .json({ message: "Authentication failed! Sessão inválida." });
+    }
+
     const isAdmin = await isRequesterAdmin(req);
+    const isResponsavel = req.userData.userType === "trabalhador_responsavel";
+
+    // Se for responsável, precisamos verificar se ele pertence à mesma freguesia do trabalhador
+    if (isResponsavel && !isAdmin) {
+      const requester = await Trabalhador.findByPk(req.userData.userId);
+      if (
+        !requester ||
+        Number(requester.idFreguesia) !== Number(trabalhador.idFreguesia)
+      ) {
+        return res.status(403).json({
+          message:
+            "Forbidden: Responsável só pode gerir trabalhadores da sua própria freguesia.",
+        });
+      }
+    }
+
+    // Define quem pode gerir equipas: Admin ou o Responsável da freguesia
+    const canManageTeam = isAdmin || isResponsavel;
 
     if (Object.prototype.hasOwnProperty.call(req.body, "idEquipa")) {
       const { idEquipa } = req.body;
 
       if (idEquipa === "" || idEquipa === null) {
-        // clearing team requires admin
-        if (!isAdmin)
-          return res.status(403).json({ message: "Only admin can clear team" });
+        if (!canManageTeam)
+          return res.status(403).json({
+            message:
+              "Não tens permissão para remover este trabalhador da equipa.",
+          });
         req.body.idEquipa = null;
       } else {
         const normalizedIdEquipa = Number(idEquipa);
@@ -459,11 +485,12 @@ export const updateTrabalhador = async (req, res, next) => {
           });
         }
 
-        // only admin can change the active team
-        if (!isAdmin) {
-          return res
-            .status(403)
-            .json({ message: "Only admin can change team" });
+        // Só admin ou responsável da mesma freguesia podem mudar a equipa
+        if (!canManageTeam) {
+          return res.status(403).json({
+            message:
+              "Não tens permissão para alterar a equipa deste trabalhador.",
+          });
         }
 
         req.body.idEquipa = normalizedIdEquipa;

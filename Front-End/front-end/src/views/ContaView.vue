@@ -894,9 +894,6 @@ onMounted(async () => {
   margin-top: 10px;
 }
 
-/* LOGOUT BUTTON */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
-
 .account-actions-row {
   display: flex;
   gap: 14px;

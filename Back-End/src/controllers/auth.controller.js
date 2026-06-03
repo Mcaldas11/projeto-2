@@ -95,7 +95,7 @@ export const unifiedLogin = async (req, res, next) => {
         userType,
       },
       "your_jwt_secret",
-      { expiresIn: "15m" },
+      { expiresIn: "24h" },
     );
 
     res.status(200).json({

@@ -284,10 +284,18 @@ const closeEditModal = () => {
 const saveWorkerTeam = async () => {
   if (!editWorkerData.value) return
 
-  if (editTeamId.value) {
-    const isAllowed = availableTeams.value.some(
-      (team) => String(team.id) === String(editTeamId.value),
-    )
+  const currentTeamId = editWorkerData.value.idEquipa ? String(editWorkerData.value.idEquipa) : ''
+  const newTeamId = editTeamId.value
+
+  // Se não houve alteração na equipa, apenas fecha o modal sem gastar recursos de rede
+  if (currentTeamId === newTeamId) {
+    closeEditModal()
+    return
+  }
+
+  // Validação: se estivermos a atribuir a uma nova equipa, verificar se ela pertence à freguesia permitida
+  if (newTeamId) {
+    const isAllowed = availableTeams.value.some((team) => String(team.id) === String(newTeamId))
     if (!isAllowed) {
       editError.value = 'A equipa selecionada não pertence à freguesia do trabalhador.'
       return
@@ -298,10 +306,13 @@ const saveWorkerTeam = async () => {
   editError.value = ''
 
   try {
-    if (!editTeamId.value) {
-      await unassignWorkerFromTeam(editWorkerData.value.idEquipa || 0, editWorkerData.value.id)
+    if (!newTeamId) {
+      // Opção "Sem equipa" selecionada: envia idEquipa como null para a base de dados
+      const teamToRemoveFrom = editWorkerData.value.idEquipa || 0
+      await unassignWorkerFromTeam(teamToRemoveFrom, editWorkerData.value.id)
     } else {
-      await assignWorkerToTeam(editTeamId.value, editWorkerData.value.id)
+      // Nova equipa selecionada: atualiza o idEquipa na base de dados
+      await assignWorkerToTeam(newTeamId, editWorkerData.value.id)
     }
     await loadWorkersFromBackend()
     closeEditModal()

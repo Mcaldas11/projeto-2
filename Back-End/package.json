@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "node --watch src/server.js",
+    "fix:freguesias": "node src/scripts/fix_trabalhadores_freguesia.mjs",
     "start": "node src/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
