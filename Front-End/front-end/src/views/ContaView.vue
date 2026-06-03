@@ -5,7 +5,9 @@
         <img src="@/assets/logoP.png" alt="VC Comunica Logo" class="logo-img" />
       </div>
       <div class="nav-icons">
-        <router-link v-if="newOccurrenceRoute" :to="newOccurrenceRoute" class="icon add">+</router-link>
+        <router-link v-if="newOccurrenceRoute" :to="newOccurrenceRoute" class="icon add"
+          >+</router-link
+        >
         <!-- <img
           :src="notifications.length === 0 ? notifOff : notifOn"
           alt="notifications"
@@ -77,7 +79,11 @@
             <div>
               <select name="freguesia" class="display-box select-box" v-model="selectedFregId">
                 <option value="" disabled>Seleciona a freguesia</option>
-                <option v-for="freguesia in freguesias" :key="freguesia.idFreguesia" :value="String(freguesia.idFreguesia)">
+                <option
+                  v-for="freguesia in freguesias"
+                  :key="freguesia.idFreguesia"
+                  :value="String(freguesia.idFreguesia)"
+                >
                   {{ freguesia.nome }}
                 </option>
               </select>
@@ -125,8 +131,12 @@
       </section>
 
       <div class="account-actions-row">
-        <button class="btn-logout half-button" @click="showLogoutModal = true">Terminar Sessão</button>
-        <button class="btn-delete-account half-button" @click="showDeleteModal = true">Apagar conta</button>
+        <button class="btn-logout half-button" @click="showLogoutModal = true">
+          Terminar Sessão
+        </button>
+        <button class="btn-delete-account half-button" @click="showDeleteModal = true">
+          Apagar conta
+        </button>
       </div>
     </main>
 
@@ -421,7 +431,7 @@ async function handleSaveEdit() {
     userLastName.value = lastName
     userEmail.value = updatedCidadao.email
     userPhone.value = updatedCidadao.nrTelemovel
-    
+
     // Use the flag to prevent the watcher from triggering another save/confirm
     isInternalChange = true
     selectedFregId.value = String(updatedCidadao.fregCidadao)
