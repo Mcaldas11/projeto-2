@@ -8,7 +8,9 @@
             <img src="@/assets/logo.png" alt="VC Comunica Logo" class="logo-img" />
           </div>
           <div class="nav-icons" ref="navIcons">
-            <router-link v-if="newOccurrenceRoute" :to="newOccurrenceRoute" class="icon add">+</router-link>
+            <router-link v-if="newOccurrenceRoute" :to="newOccurrenceRoute" class="icon add"
+              >+</router-link
+            >
             <!-- <img
               :src="notifications.length === 0 ? notifOff : notifOn"
               alt="notifications"
@@ -60,9 +62,9 @@
             <p class="stat-label">Ocorrências em análise</p>
           </div>
         </div>
-        <div style="margin-top:12px; color:#fff;">
+        <div style="margin-top: 12px; color: #fff">
           <span v-if="loadingStats">A carregar estatísticas...</span>
-          <span v-if="statsError" style="color:#ffb4b4">{{ statsError }}</span>
+          <span v-if="statsError" style="color: #ffb4b4">{{ statsError }}</span>
         </div>
       </div>
     </header>
@@ -70,9 +72,7 @@
     <section class="about-section">
       <div class="about-text">
         <h2 class="section-title">Sobre<br />Nós</h2>
-        <p>
-          A VC Comunica é uma plataforma inovadora, criada para ligar cidadãos e autoridades.
-        </p>
+        <p>A VC Comunica é uma plataforma inovadora, criada para ligar cidadãos e autoridades.</p>
         <p>
           O nosso objectivo é facilitar a comunicação de ocorrências, promover a transparência e
           construir uma cidade mais segura e eficiente para todos.
@@ -92,8 +92,8 @@
           <h3>1. Escolha o tipo de ocorrência</h3>
           <p>
             Escolha a categoria da ocorrência que pretende reportar. Estas podem ser de 5 tipos
-            diferentes: Estradas e passeios, Sinalização de trânsito, Iluminação,
-            Higiene e limpeza e Parques e jardins.
+            diferentes: Estradas e passeios, Sinalização de trânsito, Iluminação, Higiene e limpeza
+            e Parques e jardins.
           </p>
         </div>
         <div class="step">
@@ -623,6 +623,21 @@ function handleDocClick(e) {
 }
 
 onMounted(() => {
+  // Verifica se é uma nova sessão de browser (a sessionStorage morre quando fechas o browser)
+  // Se não existir o item 'session_initialized', significa que o browser foi reaberto.
+  if (!sessionStorage.getItem('session_initialized')) {
+    // Se não tiveres a opção "Lembrar-me" ativa, limpamos os dados persistentes
+    if (localStorage.getItem('rememberMe') !== 'true') {
+      localStorage.removeItem('authToken')
+      localStorage.removeItem('userProfile')
+      localStorage.removeItem('authUserId')
+      localStorage.removeItem('authUserType')
+      localStorage.removeItem('role')
+    }
+    // Marcamos a sessão como inicializada para não deslogar ao fazer refresh
+    sessionStorage.setItem('session_initialized', 'true')
+  }
+
   document.addEventListener('click', handleDocClick)
   void loadStats()
   // Poll every 30s
