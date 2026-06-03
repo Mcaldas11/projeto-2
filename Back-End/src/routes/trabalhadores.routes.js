@@ -30,9 +30,9 @@ const uploadFoto = multer({
 router.get("/", trabalhadoresControllers.getAllTrabalhadores);
 router.post(
   "/",
+  authMiddleware,
   requireJsonObject,
   requireFields(requiredFieldsByResource.trabalhadores),
-  validatePassword,
   trabalhadoresControllers.createTrabalhador,
 );
 

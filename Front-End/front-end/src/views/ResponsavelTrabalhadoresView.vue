@@ -39,6 +39,7 @@
     <main class="main-content">
       <div class="title-filter">
         <h1 class="page-title">Trabalhadores</h1>
+        <button class="btn-create-worker" @click="openCreateModal">+ Adicionar Trabalhador</button>
         <div class="filter-info" v-if="responsibleFreguesiaName">
           <span
             >Freguesia: <strong>{{ responsibleFreguesiaName }}</strong></span
@@ -98,6 +99,69 @@
       </div>
     </main>
 
+    <!-- Create Worker Modal -->
+    <div v-if="showCreateModal" class="modal-overlay" @click.self="closeCreateModal">
+      <div class="modal-card">
+        <h3>Criar novo trabalhador</h3>
+        <p class="modal-subtitle">A conta será associada a: {{ responsibleFreguesiaName }}</p>
+
+        <div class="modal-form">
+          <div class="form-row">
+            <label class="modal-label">Nome</label>
+            <input
+              v-model="newWorker.firstName"
+              type="text"
+              class="modal-input"
+              placeholder="Ex: João"
+            />
+          </div>
+          <div class="form-row">
+            <label class="modal-label">Apelido</label>
+            <input
+              v-model="newWorker.lastName"
+              type="text"
+              class="modal-input"
+              placeholder="Ex: Silva"
+            />
+          </div>
+          <div class="form-row">
+            <label class="modal-label">Email (@example.pt)</label>
+            <input
+              v-model="newWorker.email"
+              type="email"
+              class="modal-input"
+              placeholder="nome@example.pt"
+            />
+          </div>
+          <div class="form-row">
+            <label class="modal-label">Telemóvel</label>
+            <input
+              v-model="newWorker.phone"
+              type="text"
+              class="modal-input"
+              placeholder="912345678"
+            />
+          </div>
+          <div class="form-row pin-display">
+            <label class="modal-label">PIN de Acesso (Gerado)</label>
+            <div class="generated-pin">{{ newWorker.pin }}</div>
+            <small>Guarde este PIN para o trabalhador.</small>
+          </div>
+        </div>
+
+        <p v-if="createError" class="modal-error">{{ createError }}</p>
+
+        <div class="modal-actions">
+          <button class="modal-btn cancel" @click="closeCreateModal" :disabled="isCreating">
+            Cancelar
+          </button>
+          <button class="modal-btn confirm" @click="handleCreateWorker" :disabled="isCreating">
+            {{ isCreating ? 'A criar...' : 'Criar Conta' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Edit Worker Modal -->
     <div v-if="showEditModal" class="modal-overlay" @click.self="closeEditModal">
       <div class="modal-card">
@@ -140,15 +204,16 @@ import ResponsavelSidebarMenu from '@/components/ResponsavelSidebarMenu.vue'
 import notifOff from '@/assets/notificationsoff.png' */
 import avatarImg from '@/assets/avatar.png'
 import adminFooterLogo from '@/assets/logo_footer.png'
-import { listFreguesias } from '@/services/municipalityService'
+import { listFreguesias, API_BASE_URL } from '@/services/municipalityService'
 import { getAuthToken } from '@/utils/auth'
-import { API_BASE_URL } from '@/services/occurrenceService'
+
 import {
   listTeams,
   listWorkers,
   assignWorkerToTeam,
   unassignWorkerFromTeam,
   deleteWorker as removeWorker,
+  createWorker,
 } from '@/services/teamService'
 
 const responsavelFooterColumns = [
@@ -208,6 +273,81 @@ const editWorkerData = ref(null)
 const editTeamId = ref('')
 const editError = ref('')
 const isSaving = ref(false)
+
+// Estado para criação de trabalhador
+const showCreateModal = ref(false)
+const isCreating = ref(false)
+const createError = ref('')
+const newWorker = ref({
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: '',
+  pin: '',
+})
+
+const generatePIN = () => {
+  // Gera um número aleatório de 5 dígitos (10000 a 99999)
+  return Math.floor(10000 + Math.random() * 90000).toString()
+}
+
+const openCreateModal = () => {
+  newWorker.value = {
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    pin: generatePIN(),
+  }
+  createError.value = ''
+  showCreateModal.value = true
+}
+
+const closeCreateModal = () => {
+  showCreateModal.value = false
+}
+
+const handleCreateWorker = async () => {
+  const { firstName, lastName, email, phone, pin } = newWorker.value
+
+  const cleanPhone = String(phone || '').replace(/\s/g, '')
+
+  if (!firstName.trim() || !lastName.trim() || !email.trim() || !cleanPhone) {
+    createError.value = 'Todos os campos são obrigatórios.'
+    return
+  }
+  if (!email.toLowerCase().endsWith('@example.pt')) {
+    createError.value = 'O email tem de terminar em @example.pt'
+    return
+  }
+
+  if (!responsibleFreguesiaId.value) {
+    createError.value =
+      'Erro: Não foi possível identificar a sua freguesia. Tente fazer login novamente.'
+    return
+  }
+
+  isCreating.value = true
+  createError.value = ''
+
+  try {
+    await createWorker({
+      nomeTrabalhador: `${firstName.trim()} ${lastName.trim()}`,
+      emailTrabalhador: email.trim().toLowerCase(),
+      telemovelTrabalhador: cleanPhone,
+      password: pin, // O PIN é enviado como a password inicial
+      idFreguesia: responsibleFreguesiaId.value, // Automático
+    })
+
+    alert(`Trabalhador criado com sucesso! PIN: ${pin}`)
+    await loadWorkersFromBackend()
+    closeCreateModal()
+  } catch (error) {
+    createError.value = error.message || 'Erro ao criar trabalhador.'
+  } finally {
+    isCreating.value = false
+  }
+}
 
 // Detecta se um email pertence a um "responsavel" (mesma heurística do backend)
 const isResponsavelEmail = (email) => {
@@ -388,7 +528,7 @@ async function loadWorkersFromBackend() {
 
     if (responsibleFreguesiaId.value) {
       const freg = loadedFreguesias.find(
-        (f) => Number(f.idMunicipio) === Number(responsibleFreguesiaId.value),
+        (f) => Number(f.idFreguesia || f.idMunicipio) === Number(responsibleFreguesiaId.value),
       )
       responsibleFreguesiaName.value = freg?.nome || ''
     }
@@ -511,6 +651,17 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
+}
+
+.btn-create-worker {
+  background: #22c55e;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
 }
 .filter-select {
   display: flex;
@@ -661,6 +812,32 @@ onMounted(async () => {
   padding: 28px 24px;
   border-radius: 16px;
   box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
+}
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 15px 0;
+}
+.modal-input {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-sizing: border-box;
+}
+.pin-display {
+  background: #f1f5f9;
+  padding: 12px;
+  border-radius: 10px;
+  text-align: center;
+}
+.generated-pin {
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  color: #730000;
+  margin: 5px 0;
 }
 .modal-subtitle {
   color: #64748b;

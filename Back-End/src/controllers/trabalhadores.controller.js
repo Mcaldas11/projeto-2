@@ -277,8 +277,51 @@ export const createTrabalhador = async (req, res, next) => {
       password,
     } = req.body;
 
+    // Validação de Permissões
+    const isAdmin = await isRequesterAdmin(req);
+    const isResponsavel = req.userData?.userType === "trabalhador_responsavel";
+
+    if (!isAdmin && !isResponsavel) {
+      return res
+        .status(403)
+        .json({ message: "Não tens permissão para criar trabalhadores." });
+    }
+
+    const normalizedIdFreguesia = Number(idFreguesia);
+
+    if (isResponsavel && !isAdmin) {
+      const requester = await Trabalhador.findByPk(req.userData.userId);
+      if (
+        !requester ||
+        Number(requester.idFreguesia) !== normalizedIdFreguesia
+      ) {
+        return res.status(403).json({
+          message: "Só podes criar trabalhadores para a tua própria freguesia.",
+        });
+      }
+    }
+
     if (!password) {
       return res.status(400).json({ message: "Password is required" });
+    }
+
+    // Validação do formato do telemóvel (9 dígitos)
+    const phoneRegex = /^[0-9]{9}$/;
+    if (!phoneRegex.test(telemovelTrabalhador)) {
+      return res
+        .status(400)
+        .json({
+          message: "O telemóvel deve ter exatamente 9 dígitos numéricos.",
+        });
+    }
+
+    // Validação do PIN (máximo 5 dígitos conforme pedido)
+    if (String(password).length > 5) {
+      return res
+        .status(400)
+        .json({
+          message: "As credenciais (PIN) não podem ter mais de 5 dígitos.",
+        });
     }
 
     const hasIdEquipa =
@@ -298,7 +341,6 @@ export const createTrabalhador = async (req, res, next) => {
       }
     }
 
-    const normalizedIdFreguesia = Number(idFreguesia);
     if (
       !Number.isInteger(normalizedIdFreguesia) ||
       normalizedIdFreguesia <= 0
@@ -312,6 +354,12 @@ export const createTrabalhador = async (req, res, next) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    console.log(
+      "Tentando criar trabalhador na freguesia:",
+      normalizedIdFreguesia,
+    );
+
     const trabalhador = await Trabalhador.create({
       nomeTrabalhador,
       emailTrabalhador,
@@ -321,19 +369,8 @@ export const createTrabalhador = async (req, res, next) => {
       credenciaisTrabalhadores: hashedPassword,
     });
 
-    const token = jwt.sign(
-      {
-        userId: trabalhador.idTrabalhador,
-        email: trabalhador.emailTrabalhador,
-        userType: "trabalhador",
-      },
-      "your_jwt_secret",
-      { expiresIn: "15m" },
-    );
-
     res.status(201).json({
       message: "Trabalhador created successfully",
-      token,
       userId: trabalhador.idTrabalhador,
       userType: "trabalhador",
     });
@@ -343,12 +380,18 @@ export const createTrabalhador = async (req, res, next) => {
         .status(409)
         .json({ message: "Conflict: Email already in use." });
     }
-    if (handleSequelizeValidation(error, next)) {
-      return;
+
+    if (error.name === "SequelizeValidationError") {
+      return res.status(400).json({
+        message:
+          "Dados inválidos: " + error.errors.map((e) => e.message).join(", "),
+      });
     }
 
     console.error("Create trabalhador failed:", error);
-    return next(error);
+    return res
+      .status(500)
+      .json({ message: "Erro interno ao criar trabalhador." });
   }
 };
 

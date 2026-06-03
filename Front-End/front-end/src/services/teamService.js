@@ -1,7 +1,10 @@
 import avatarImg from '@/assets/avatar.png'
 import { getAuthToken } from '@/utils/auth'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || ''
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.MODE === 'development' ? 'http://127.0.0.1:3000' : '')
 const DEFAULT_MAX_PER_ROUTE = 8
 
 const buildHeaders = (extraHeaders = {}, withAuth = false) => {
@@ -25,7 +28,8 @@ const fetchJson = async (endpoint, options = {}, withAuth = false) => {
 
   if (!response.ok) {
     const payload = await response.json().catch(() => null)
-    throw new Error(payload?.message || `Failed to load ${endpoint}`)
+    const errMsg = payload?.description || payload?.message || `Failed to load ${endpoint}`
+    throw new Error(errMsg)
   }
 
   return response.json()
@@ -167,6 +171,24 @@ async function listWorkers() {
   return normalizedWorkers
 }
 
+async function createWorker(payload) {
+  if (!API_BASE_URL) {
+    throw new Error('Define VITE_API_URL para criar trabalhadores na base de dados.')
+  }
+
+  return fetchJson(
+    '/trabalhadores',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    },
+    true,
+  )
+}
+
 async function assignWorkerToTeam(teamId, workerId) {
   if (!API_BASE_URL) {
     throw new Error('Define VITE_API_URL para alterar equipas na base de dados.')
@@ -225,6 +247,7 @@ export {
   API_BASE_URL,
   listTeams,
   listWorkers,
+  createWorker,
   assignWorkerToTeam,
   unassignWorkerFromTeam,
   deleteWorker,
