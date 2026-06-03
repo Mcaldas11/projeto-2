@@ -36,12 +36,15 @@ async function listOccurrences(onlyMine = false) {
 
   const userType = getAuthUserType()
   const isCitizen = userType === 'cidadao'
-  const isAdminUser = userType === 'trabalhador_admin' || userType === 'responsavel'
-  const isWorker = userType.startsWith('trabalhador') && !isAdminUser
+  const isResponsible = userType === 'trabalhador_responsavel' || userType === 'responsavel'
+  const isAdminUser = userType === 'trabalhador_admin'
+  const isWorker = userType.startsWith('trabalhador') && !isAdminUser && !isResponsible
 
   let endpoint
   if (isCitizen) {
     endpoint = onlyMine ? '/cidadaos/me/ocorrencias' : '/cidadaos/me/freguesia/ocorrencias'
+  } else if (isResponsible) {
+    endpoint = '/trabalhadores/me/freguesia/ocorrencias'
   } else if (isAdminUser) {
     endpoint = '/ocorrencias'
   } else if (isWorker) {

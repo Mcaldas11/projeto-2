@@ -441,7 +441,11 @@ async function loadOccurrences() {
   let data = []
 
   try {
-    if (/^trabalhador/.test(String(role)) || role === 'trabalhador') {
+    const isResponsible = role === 'trabalhador_responsavel' || role === 'responsavel'
+
+    if (isResponsible) {
+      data = await listOccurrences()
+    } else if (/^trabalhador/.test(String(role)) || role === 'trabalhador') {
       // Logic for workers (assuming they still want specific filtering or access)
       try {
         const all = await listAllOccurrences()

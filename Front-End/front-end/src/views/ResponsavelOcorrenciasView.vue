@@ -410,8 +410,13 @@ async function loadOccurrences() {
   let data = []
 
   try {
-    if (/^trabalhador/.test(String(role)) || role === 'trabalhador') {
-      // Logic for workers (assuming they still want specific filtering or access)
+    const isResponsible = role === 'trabalhador_responsavel' || role === 'responsavel'
+    
+    if (isResponsible) {
+      // For responsibles, we use the new endpoint that returns everything in their parish
+      data = await listOccurrences()
+    } else if (/^trabalhador/.test(String(role)) || role === 'trabalhador') {
+      // Logic for generic workers (still filtering by status as per current implementation)
       try {
         const all = await listAllOccurrences()
         data = (all || []).filter((o) => {
@@ -444,7 +449,8 @@ async function loadOccurrences() {
     data.map((occurrence) => enrichOccurrence(occurrence)),
   )
 
-  // Filtra as ocorrências para mostrar apenas as da freguesia do responsável
+  // O filtro final de freguesia garante que apenas as da freguesia do responsável aparecem
+  // (Embora o backend já o faça, mantemos aqui por segurança ou caso o role seja diferente)
   if (responsibleFreguesiaId.value !== null) {
     ocorrencias.value = enrichedOccurrences.filter(
       (occ) => Number(occ.idFreguesia) === Number(responsibleFreguesiaId.value),

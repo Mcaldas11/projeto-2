@@ -242,6 +242,35 @@ export const getOcorrenciasFreguesiaForCidadao = async (req, res, next) => {
   }
 };
 
+export const getOcorrenciasFreguesiaForTrabalhador = async (req, res, next) => {
+  try {
+    if (!req.userData || !normalizeWorkerType(req.userData.userType)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const userId = req.userData.userId;
+    const trabalhador = await Trabalhador.findByPk(userId);
+    if (!trabalhador || !trabalhador.idFreguesia) {
+      return res.json([]);
+    }
+
+    const ocorrencias = await Ocorrencia.findAll({
+      where: { idFreguesia: trabalhador.idFreguesia },
+    });
+    const data = ocorrencias.map((ocorrencia) => {
+      const fotos = normalizeFotosField(ocorrencia.foto).map((foto) => foto.url);
+      return {
+        ...ocorrencia.toJSON(),
+        foto: buildFotosComIndice(fotos),
+      };
+    });
+
+    res.json(data);
+  } catch (error) {
+    next(genericError("Error fetching ocorrencias for trabalhador parish"));
+  }
+};
+
 export const getOcorrenciasResolvidasForTrabalhador = async (req, res, next) => {
   try {
     if (!req.userData || !normalizeWorkerType(req.userData.userType)) {
