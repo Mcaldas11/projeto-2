@@ -199,7 +199,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import Footer from '@/components/footer.vue'
 import SidebarMenu from '@/components/SidebarMenu.vue'
@@ -223,6 +223,72 @@ const userEmail = ref(storedProfile?.email || '')
 const userPhone = ref(storedProfile?.nrTelemovel || '')
 const profilePhoto = ref(storedProfile?.fotoPerfil || '')
 const selectedFregId = ref(storedProfile?.fregCidadao || storedProfile?.idFreguesia || '')
+
+const userOccurrences = ref([])
+
+// Flag to prevent watcher from triggering when we manually revert the value
+let isInternalChange = false
+
+// Auto-save parish when it changes
+watch(selectedFregId, async (newVal, oldVal) => {
+  if (isInternalChange) {
+    isInternalChange = false
+    return
+  }
+
+  // Only proceed if the value actually changed
+  if (newVal === oldVal) return
+
+  const confirmed = confirm(
+    'Tem a certeza que deseja mudar a sua freguesia? Esta ação irá filtrar as ocorrências visíveis para a nova freguesia.',
+  )
+
+  if (!confirmed) {
+    isInternalChange = true
+    selectedFregId.value = oldVal
+    return
+  }
+
+  const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken')
+  if (!API_BASE_URL || !token) return
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/cidadaos/me`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        idFreguesia: Number(newVal),
+      }),
+    })
+
+    if (response.ok) {
+      const updatedCidadao = await response.json()
+      // Update localStorage
+      const profile = JSON.parse(localStorage.getItem('userProfile') || '{}')
+      profile.fregCidadao = updatedCidadao.fregCidadao
+      localStorage.setItem('userProfile', JSON.stringify(profile))
+
+      // Refresh occurrences list to show reports from the new parish
+      try {
+        const loadedOccurrences = await listOccurrences(true)
+        userOccurrences.value = loadedOccurrences
+      } catch (err) {
+        console.error('Falha ao atualizar a lista de ocorrências:', err)
+      }
+    } else {
+      throw new Error('Falha ao atualizar a freguesia no servidor.')
+    }
+  } catch (error) {
+    console.error('Falha ao atualizar a freguesia:', error)
+    alert('Não foi possível atualizar a freguesia. Por favor, tente novamente.')
+    // Revert to old value on error
+    isInternalChange = true
+    selectedFregId.value = oldVal
+  }
+})
 
 const showEditModal = ref(false)
 const editFirstName = ref('')
@@ -355,6 +421,9 @@ async function handleSaveEdit() {
     userLastName.value = lastName
     userEmail.value = updatedCidadao.email
     userPhone.value = updatedCidadao.nrTelemovel
+    
+    // Use the flag to prevent the watcher from triggering another save/confirm
+    isInternalChange = true
     selectedFregId.value = String(updatedCidadao.fregCidadao)
 
     localStorage.setItem(
@@ -429,8 +498,6 @@ function handleLogout() {
   showLogoutModal.value = false
   router.replace({ name: 'login' })
 }
-
-const userOccurrences = ref([])
 
 onMounted(async () => {
   try {

@@ -188,7 +188,17 @@ export const getOcorrenciasForCidadao = async (req, res, next) => {
     }
 
     const userId = req.userData.userId;
-    const ocorrencias = await Ocorrencia.findAll({ where: { idCidadao: userId } });
+    const cidadao = await Cidadao.findByPk(userId);
+    if (!cidadao) {
+      return next(notFoundError("cidadao", userId));
+    }
+
+    const ocorrencias = await Ocorrencia.findAll({
+      where: {
+        idCidadao: userId,
+        idFreguesia: cidadao.fregCidadao,
+      },
+    });
     const data = ocorrencias.map((ocorrencia) => {
       const fotos = normalizeFotosField(ocorrencia.foto).map((foto) => foto.url);
       return {
