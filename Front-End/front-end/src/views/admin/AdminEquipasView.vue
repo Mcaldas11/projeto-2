@@ -92,15 +92,6 @@
                   <span class="stat-number">{{ team.stats.naoResolvidas }}</span>
                 </div>
               </div>
-
-              <div class="max-routes">
-                <span class="max-label">Nº máximo de ocorrências por rota</span>
-                <div class="counter-control">
-                  <button class="counter-btn minus" @click="decrementMax(team)">−</button>
-                  <span class="counter-value">{{ team.maxPerRoute }}</span>
-                  <button class="counter-btn plus" @click="incrementMax(team)">+</button>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -317,13 +308,6 @@ onMounted(async () => {
   document.addEventListener('click', handleDocClick)
 })
 onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
-
-const decrementMax = (team) => {
-  if (team.maxPerRoute > 1) team.maxPerRoute--
-}
-const incrementMax = (team) => {
-  team.maxPerRoute++
-}
 </script>
 
 <style scoped>

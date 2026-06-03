@@ -68,10 +68,35 @@
                   <button
                     class="btn-delete-member"
                     title="Remover"
-                    @click="handleRemoveMember(team.id, member.id)"
+                    @click="
+                      openConfirmRemove(
+                        team.id,
+                        member.id,
+                        getWorkerById(member.id)?.name || member.name,
+                      )
+                    "
                   >
                     🗑
                   </button>
+                </div>
+              </div>
+            </div>
+            <div
+              v-if="showConfirmRemoveModal"
+              class="modal-overlay"
+              @click.self="showConfirmRemoveModal = false"
+            >
+              <div class="modal-card confirmation-card">
+                <h3>Confirmar remoção</h3>
+                <p>Tens a certeza que queres eliminar este trabalhador da equipa?</p>
+                <div v-if="confirmRemoveMemberName" style="margin-bottom: 24px">
+                  <strong>{{ confirmRemoveMemberName }}</strong>
+                </div>
+                <div class="modal-actions">
+                  <button class="modal-btn cancel" @click="showConfirmRemoveModal = false">
+                    Cancelar
+                  </button>
+                  <button class="modal-btn confirm" @click="confirmRemoval">Sim, eliminar</button>
                 </div>
               </div>
             </div>
@@ -90,15 +115,6 @@
                 <div class="stat-card stat-pink">
                   <span class="stat-label">Ocorrências Não Resolvidas</span>
                   <span class="stat-number">{{ team.stats.naoResolvidas }}</span>
-                </div>
-              </div>
-
-              <div class="max-routes">
-                <span class="max-label">Nº máximo de ocorrências por rota</span>
-                <div class="counter-control">
-                  <button class="counter-btn minus" @click="decrementMax(team)">−</button>
-                  <span class="counter-value">{{ team.maxPerRoute }}</span>
-                  <button class="counter-btn plus" @click="incrementMax(team)">+</button>
                 </div>
               </div>
             </div>
@@ -123,7 +139,7 @@
         <div v-if="workerNotice" class="worker-notice">{{ workerNotice }}</div>
 
         <div class="worker-modal-list">
-          <div v-for="worker in visibleWorkers" :key="worker.id" class="worker-card">
+          <div v-for="worker in workerModalList" :key="worker.id" class="worker-card">
             <img :src="worker.avatar" alt="worker avatar" class="worker-avatar" />
             <div class="worker-card-body">
               <strong>{{ worker.name }}</strong>
@@ -152,13 +168,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import Footer from '@/components/footer.vue'
 import ResponsavelSidebarMenu from '@/components/ResponsavelSidebarMenu.vue'
 import notifOn from '@/assets/notificationson.png'
 import notifOff from '@/assets/notificationsoff.png'
 import adminFooterLogo from '@/assets/logo_footer.png'
-import { FREGUESIAS } from '@/utils/freguesias'
 import { getAuthToken } from '@/utils/auth'
 import {
   assignWorkerToTeam,
@@ -245,11 +260,6 @@ function getWorkerById(id) {
   return workers.value.find((w) => String(w.id) === String(id)) || null
 }
 
-const availableFreguesias = computed(() => {
-  if (selectedFreguesia.value) return [selectedFreguesia.value]
-  return []
-})
-
 const filteredTeams = computed(() => {
   const respFregId = selectedFreguesiaId.value
   if (respFregId) {
@@ -292,6 +302,7 @@ const canAddWorker = (worker) => {
 function closeWorkerModal() {
   showWorkerModal.value = false
   workerNotice.value = ''
+  workerModalOnlyAvailable.value = false
 }
 
 async function handleAddWorker(worker) {
@@ -399,15 +410,60 @@ onBeforeUnmount(() => {
   if (storagePollInterval) clearInterval(storagePollInterval)
 })
 
-const decrementMax = (team) => {
-  if (team.maxPerRoute > 1) team.maxPerRoute--
+const resolveFreguesiaFromProfile = () => {}
+
+// Confirmation modal state and worker-modal helpers
+const showConfirmRemoveModal = ref(false)
+const confirmRemoveTeamId = ref(null)
+const confirmRemoveMemberId = ref(null)
+const confirmRemoveMemberName = ref('')
+const workerModalOnlyAvailable = ref(false)
+
+const workerModalList = computed(() => {
+  const respFregId = selectedFreguesiaId.value
+  let list = workers.value
+
+  if (workerModalOnlyAvailable.value) {
+    // When showing workers after removal, filter for those with no freguesia and no team
+    list = list.filter(
+      (worker) => worker.idFreguesia === null && !workerAssignments.value.has(String(worker.id)),
+    )
+  } else {
+    // Default behavior: filter by responsible's freguesia and show only available workers
+    if (!respFregId) return [] // If no responsible parish is selected, return empty
+    list = list.filter((worker) => Number(worker.idFreguesia) === Number(respFregId))
+    list = list.filter((worker) => !workerAssignments.value.has(String(worker.id)))
+  }
+  return list
+})
+function openConfirmRemove(teamId, memberId, memberName) {
+  confirmRemoveTeamId.value = teamId
+  confirmRemoveMemberId.value = memberId
+  confirmRemoveMemberName.value = memberName || ''
+  showConfirmRemoveModal.value = true
 }
-const incrementMax = (team) => {
-  team.maxPerRoute++
+
+async function confirmRemoval() {
+  showConfirmRemoveModal.value = false
+  try {
+    await handleRemoveMember(confirmRemoveTeamId.value, confirmRemoveMemberId.value)
+    // after removal, open add-worker modal showing only available workers for this team
+    activeTeamId.value = confirmRemoveTeamId.value
+    workerModalOnlyAvailable.value = true
+    showWorkerModal.value = true
+  } catch (err) {
+    workerNotice.value = err?.message || 'Não foi possível remover o trabalhador.'
+  } finally {
+    confirmRemoveTeamId.value = null
+    confirmRemoveMemberId.value = null
+    confirmRemoveMemberName.value = ''
+  }
 }
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap');
+
 .page-container {
   font-family: Arial, sans-serif;
   color: #1a1a1a;
@@ -889,6 +945,56 @@ const incrementMax = (team) => {
   font-size: 0.8rem;
   color: #888;
   margin-top: 10px;
+}
+
+.modal-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 40px;
+  max-width: 440px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  font-family: 'Montserrat', sans-serif;
+  text-align: left;
+}
+.modal-card h3 {
+  font-size: 26px;
+  margin: 0 0 20px 0;
+  font-weight: 700;
+  color: #1e293b;
+}
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-btn {
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+}
+.confirmation-card {
+  text-align: center;
+}
+.confirmation-card p {
+  color: #64748b;
+  margin-bottom: 24px;
+}
+.confirmation-card .modal-actions {
+  justify-content: center;
+  gap: 16px;
+}
+.confirmation-card .modal-btn.cancel {
+  background: #f1f5f9;
+  color: #475569;
+}
+.confirmation-card .modal-btn.confirm {
+  background: #ff383c;
+  color: #fff;
 }
 
 @media (max-width: 1024px) {
