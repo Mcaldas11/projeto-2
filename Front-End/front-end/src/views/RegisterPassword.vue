@@ -19,16 +19,40 @@
         <form @submit.prevent="handleSubmit">
           <div class="input-field">
             <label>Password</label>
-            <input type="password" v-model="password" placeholder="Cria a tua password" required />
+            <input
+              type="password"
+              v-model="password"
+              placeholder="Cria a tua password"
+              required
+              @focus="showRequirements = true"
+            />
           </div>
 
-          <div class="password-requirements">
-            <p :class="{ met: hasMinLength }"> Mínimo de 6 caracteres</p>
-            <p :class="{ met: hasUpperCase }"> Uma letra maiúscula</p>
-            <p :class="{ met: hasLowerCase }"> Uma letra minúscula</p>
-            <p :class="{ met: hasNumber }"> Um número</p>
-            <p :class="{ met: hasSpecialChar }"> Um caracter especial</p>
-          </div>
+          <transition name="fade">
+            <div v-if="showRequirements" class="password-requirements">
+              <p class="requirements-header">Password deve conter:</p>
+              <p :class="{ met: hasMinLength }">
+                <img v-if="hasMinLength" src="@/assets/tick.svg" alt="tick" class="tick-icon" />
+                Mínimo de 6 caracteres
+              </p>
+              <p :class="{ met: hasUpperCase }">
+                <img v-if="hasUpperCase" src="@/assets/tick.svg" alt="tick" class="tick-icon" />
+                Uma letra maiúscula
+              </p>
+              <p :class="{ met: hasLowerCase }">
+                <img v-if="hasLowerCase" src="@/assets/tick.svg" alt="tick" class="tick-icon" />
+                Uma letra minúscula
+              </p>
+              <p :class="{ met: hasNumber }">
+                <img v-if="hasNumber" src="@/assets/tick.svg" alt="tick" class="tick-icon" />
+                Um número
+              </p>
+              <p :class="{ met: hasSpecialChar }">
+                <img v-if="hasSpecialChar" src="@/assets/tick.svg" alt="tick" class="tick-icon" />
+                Um caracter especial
+              </p>
+            </div>
+          </transition>
 
           <div class="input-field">
             <label>Confirma a tua password</label>
@@ -61,6 +85,7 @@ const router = useRouter()
 const password = ref('')
 const confirmPassword = ref('')
 const errorMessage = ref('')
+const showRequirements = ref(false)
 
 const hasMinLength = computed(() => password.value.length >= 6)
 const hasUpperCase = computed(() => /[A-Z]/.test(password.value))
@@ -231,13 +256,40 @@ h2 {
   font-size: 0.75rem;
   color: #999;
 }
+.requirements-header {
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 8px !important;
+}
 .password-requirements p {
   margin: 4px 0;
-  transition: color 0.2s;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0.8;
+}
+.tick-icon {
+  width: 14px;
+  height: 14px;
 }
 .password-requirements p.met {
   color: #16a34a;
+  font-weight: bold;
+  opacity: 1;
 }
+
+/* Transição de fade */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
 .login-footer {
   margin-top: 25px;
   font-size: 0.8rem;
@@ -250,6 +302,6 @@ h2 {
 }
 
 form {
-  padding-bottom: 180px;
+  padding-bottom: 20px;
 }
 </style>

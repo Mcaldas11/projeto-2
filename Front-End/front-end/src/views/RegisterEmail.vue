@@ -229,6 +229,6 @@ h2 {
 }
 
 form {
-  padding-bottom: 70px;
+  padding-bottom: 20px;
 }
 </style>
