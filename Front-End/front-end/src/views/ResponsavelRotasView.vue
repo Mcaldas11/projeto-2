@@ -8,18 +8,18 @@
         </router-link>
       </div>
       <div class="nav-right">
-        <img
+        <!-- <img
           :src="notifications.length === 0 ? notifOff : notifOn"
           alt="notifications"
           class="icon notification"
           @click="toggleNotif"
           ref="notifIcon"
-        />
+        /> -->
         <span class="icon menu-trigger" @click="toggleMenu">☰</span>
 
         <ResponsavelSidebarMenu v-model="showMenu" />
 
-        <div v-if="showNotif" class="notifications" ref="notifPanel">
+        <!-- <div v-if="showNotif" class="notifications" ref="notifPanel">
           <h4>Notificações</h4>
           <div class="notif-list">
             <div
@@ -33,7 +33,7 @@
             </div>
             <div v-if="notifications.length === 0" class="notif-empty">Sem notificações</div>
           </div>
-        </div>
+        </div> -->
       </div>
     </nav>
 
@@ -103,8 +103,8 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import Footer from '@/components/footer.vue'
 import ResponsavelSidebarMenu from '@/components/ResponsavelSidebarMenu.vue'
-import notifOn from '@/assets/notificationson.png'
-import notifOff from '@/assets/notificationsoff.png'
+// import notifOn from '@/assets/notificationson.png'
+// import notifOff from '@/assets/notificationsoff.png'
 import adminFooterLogo from '@/assets/logo_footer.png'
 import { listRoutesWithGeometry } from '@/services/routeService'
 import { listOccurrenceMarkers } from '@/services/occurrenceService'
@@ -120,10 +120,10 @@ const adminFooterColumns = [
   ],
 ]
 
-const showNotif = ref(false)
+// const showNotif = ref(false)
 const showMenu = ref(false)
-const notifPanel = ref(null)
-const notifIcon = ref(null)
+// const notifPanel = ref(null)
+// const notifIcon = ref(null)
 const mapElement = ref(null)
 const mapInstance = ref(null)
 const routeLayer = ref(null)
@@ -174,7 +174,7 @@ const activeOccurrenceTypes = computed(() => {
   return sorted
 })
 
-const notifications = ref([])
+// const notifications = ref([])
 const selectedOccurrenceType = ref(null)
 
 function toggleOccurrenceFilter(key) {
@@ -182,17 +182,17 @@ function toggleOccurrenceFilter(key) {
   drawOccurrences()
 }
 
-const toggleNotif = (e) => {
-  e.stopPropagation()
-  showNotif.value = !showNotif.value
-  showMenu.value = false
-}
+// const toggleNotif = (e) => {
+//   e.stopPropagation()
+//   showNotif.value = !showNotif.value
+//   showMenu.value = false
+// }
 const toggleMenu = (e) => {
   e.stopPropagation()
   showMenu.value = !showMenu.value
-  showNotif.value = false
+  // showNotif.value = false
 }
-const removeNotif = (i) => notifications.value.splice(i, 1)
+// const removeNotif = (i) => notifications.value.splice(i, 1)
 
 function formatRoutePoints(route) {
   return (route.geometry?.length ? route.geometry : route.waypoints || []).map((point) => [
@@ -374,20 +374,20 @@ async function loadRoutes() {
   drawRoutes()
 }
 
-function handleDocClick(e) {
-  if (
-    showNotif.value &&
-    notifPanel.value &&
-    !notifPanel.value.contains(e.target) &&
-    notifIcon.value &&
-    !notifIcon.value.contains(e.target)
-  ) {
-    showNotif.value = false
-  }
-}
+// function handleDocClick(e) {
+//   if (
+//     showNotif.value &&
+//     notifPanel.value &&
+//     !notifPanel.value.contains(e.target) &&
+//     notifIcon.value &&
+//     !notifIcon.value.contains(e.target)
+//   ) {
+//     showNotif.value = false
+//   }
+// }
 
 onMounted(async () => {
-  document.addEventListener('click', handleDocClick)
+  // document.addEventListener('click', handleDocClick)
   try {
     await initMap()
   } catch {
@@ -407,7 +407,7 @@ watch(occurrenceMarkers, () => {
 })
 
 onBeforeUnmount(() => {
-  document.removeEventListener('click', handleDocClick)
+  // document.removeEventListener('click', handleDocClick)
   if (mapInstance.value) {
     mapInstance.value.remove()
     mapInstance.value = null

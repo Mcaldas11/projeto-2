@@ -5,17 +5,17 @@
         <img src="@/assets/logoP.png" alt="VC Comunica Logo" class="logo-img" />
       </div>
       <div class="nav-icons">
-        <img
+        <!-- <img
           :src="notifications.length === 0 ? notifOff : notifOn"
           class="icon notification"
           @click="toggleNotif($event)"
           ref="notifIcon"
-        />
+        /> -->
         <span class="icon menu-trigger" @click="toggleMenu($event)" ref="menuIcon">☰</span>
 
         <SidebarMenu v-model="showMenu" />
 
-        <div v-if="showNotif" class="notifications-panel" ref="notifPanel">
+        <!-- <div v-if="showNotif" class="notifications-panel" ref="notifPanel">
           <h4>Notificações</h4>
           <div class="notif-list">
             <div
@@ -29,7 +29,7 @@
             </div>
             <div v-if="notifications.length === 0" class="notif-empty">Sem notificações</div>
           </div>
-        </div>
+        </div> -->
       </div>
     </nav>
 
@@ -167,8 +167,8 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import Footer from '@/components/footer.vue'
 import SidebarMenu from '@/components/SidebarMenu.vue'
-import notifOn from '@/assets/notificationson.png'
-import notifOff from '@/assets/notificationsoff.png'
+// import notifOn from '@/assets/notificationson.png'
+// import notifOff from '@/assets/notificationsoff.png'
 import defaultAvatar from '@/assets/avatar.png'
 import workerFooterLogo from '@/assets/logoP.png'
 import { API_BASE_URL, listWorkerHomeOccurrences } from '@/services/occurrenceService'
@@ -190,7 +190,7 @@ const workerFooterColumns = [
 
 const showNotif = ref(false)
 const showMenu = ref(false)
-const notifications = ref([])
+// const notifications = ref([])
 
 const tasks = ref([])
 const teamResources = ref([])
@@ -314,28 +314,28 @@ async function initMap() {
 }
 
 // Refs para fechar ao clicar fora
-const notifPanel = ref(null)
-const notifIcon = ref(null)
+// const notifPanel = ref(null)
+// const notifIcon = ref(null)
 const menuPanel = ref(null)
 const menuIcon = ref(null)
 
-const toggleNotif = (e) => {
-  showNotif.value = !showNotif.value
-  e.stopPropagation()
-}
+// const toggleNotif = (e) => {
+//   showNotif.value = !showNotif.value
+//   e.stopPropagation()
+// }
 const toggleMenu = (e) => {
   showMenu.value = !showMenu.value
   e.stopPropagation()
 }
-const removeNotif = (i) => notifications.value.splice(i, 1)
+// const removeNotif = (i) => notifications.value.splice(i, 1)
 
 function handleDocClick(e) {
-  if (
-    showNotif.value &&
-    !notifPanel.value?.contains(e.target) &&
-    !notifIcon.value?.contains(e.target)
-  )
-    showNotif.value = false
+  // if (
+  //   showNotif.value &&
+  //   !notifPanel.value?.contains(e.target) &&
+  //   !notifIcon.value?.contains(e.target)
+  // )
+  //   showNotif.value = false
   if (showMenu.value && !menuPanel.value?.contains(e.target) && !menuIcon.value?.contains(e.target))
     showMenu.value = false
 }

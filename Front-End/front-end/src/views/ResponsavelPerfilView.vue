@@ -10,16 +10,16 @@
       </div>
       <div class="nav-icons">
         <!-- Notificações e Menu Hambúrguer juntos no lado direito -->
-        <img
+        <!-- <img
           :src="notifications.length === 0 ? notifOff : notifOn"
           alt="notifications"
           class="icon notification"
           @click="toggleNotif"
-        />
+        /> -->
         <span class="icon menu-hamburger" @click="toggleMenu">☰</span>
         <ResponsavelSidebarMenu v-model="showMenu" />
 
-        <div v-if="showNotif" class="notifications">
+        <!-- <div v-if="showNotif" class="notifications">
           <h4>Notificações</h4>
           <div class="notif-list">
             <div
@@ -33,7 +33,7 @@
             </div>
             <div v-if="notifications.length === 0" class="notif-empty">Sem notificações</div>
           </div>
-        </div>
+        </div> -->
       </div>
     </nav>
 
@@ -186,8 +186,8 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import Footer from '@/components/footer.vue'
-import notifOn from '@/assets/notificationson.png'
-import notifOff from '@/assets/notificationsoff.png'
+// import notifOn from '@/assets/notificationson.png'
+// import notifOff from '@/assets/notificationsoff.png'
 import avatarImg from '@/assets/avatar.png'
 import { getAuthToken, getAuthUserId } from '@/utils/auth'
 import ResponsavelSidebarMenu from '@/components/ResponsavelSidebarMenu.vue'
@@ -282,19 +282,19 @@ const createWorkerProfile = (profile = null) => {
 }
 
 // Sistema de Notificações e Menu
-const showNotif = ref(false)
+// const showNotif = ref(false)
 const showMenu = ref(false)
-const notifications = ref([])
+// const notifications = ref([])
 
-const toggleNotif = () => {
-  showNotif.value = !showNotif.value
-  showMenu.value = false
-}
+// const toggleNotif = () => {
+//   showNotif.value = !showNotif.value
+//   showMenu.value = false
+// }
 const toggleMenu = () => {
   showMenu.value = !showMenu.value
-  showNotif.value = false
+  // showNotif.value = false
 }
-const removeNotif = (i) => notifications.value.splice(i, 1)
+// const removeNotif = (i) => notifications.value.splice(i, 1)
 
 const storedProfile = JSON.parse(localStorage.getItem('userProfile') || 'null')
 const worker = ref(createWorkerProfile(storedProfile))

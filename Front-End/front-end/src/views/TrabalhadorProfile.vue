@@ -7,17 +7,17 @@
       </div>
       <div class="nav-icons">
         <!-- Notificações e Menu Hambúrguer juntos no lado direito -->
-        <img
+        <!-- <img
           :src="notifications.length === 0 ? notifOff : notifOn"
           alt="notifications"
           class="icon notification"
           @click="toggleNotif"
-        />
+        /> -->
         <span class="icon menu-hamburger" @click="toggleMenu">☰</span>
 
         <SidebarMenu v-model="showMenu" />
 
-        <div v-if="showNotif" class="notifications">
+        <!-- <div v-if="showNotif" class="notifications">
           <h4>Notificações</h4>
           <div class="notif-list">
             <div
@@ -31,7 +31,7 @@
             </div>
             <div v-if="notifications.length === 0" class="notif-empty">Sem notificações</div>
           </div>
-        </div>
+        </div> -->
       </div>
     </nav>
 
@@ -159,7 +159,7 @@
                 <span class="r-time">⏰ {{ route.hora }}</span>
               </div>
             </div>
-            <div v-if="rotas.length === 0" class="notif-empty">Nenhuma rota planeada.</div>
+            <div v-if="rotas.length === 0" class="empty-routes">Nenhuma rota planeada.</div>
           </div>
         </div>
       </section>
@@ -227,8 +227,8 @@ import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import Footer from '@/components/footer.vue'
 import SidebarMenu from '@/components/SidebarMenu.vue'
-import notifOn from '@/assets/notificationson.png'
-import notifOff from '@/assets/notificationsoff.png'
+// import notifOn from '@/assets/notificationson.png'
+// import notifOff from '@/assets/notificationsoff.png'
 import avatarImg from '@/assets/avatar.png'
 import { getAuthToken, getAuthUserId } from '@/utils/auth'
 import { listFreguesias } from '@/services/municipalityService'
@@ -252,17 +252,17 @@ const router = useRouter()
 // Sistema de Notificações e Menu
 const showNotif = ref(false)
 const showMenu = ref(false)
-const notifications = ref([])
+// const notifications = ref([])
 
-const toggleNotif = () => {
-  showNotif.value = !showNotif.value
-  showMenu.value = false
-}
+// const toggleNotif = () => {
+//   showNotif.value = !showNotif.value
+//   showMenu.value = false
+// }
 const toggleMenu = () => {
   showMenu.value = !showMenu.value
   showNotif.value = false
 }
-const removeNotif = (i) => notifications.value.splice(i, 1)
+// const removeNotif = (i) => notifications.value.splice(i, 1)
 
 // Estado reativo do Perfil Técnico do Trabalhador
 const isCredRevealed = ref(false)
@@ -684,7 +684,8 @@ onMounted(async () => {
   font-weight: 700;
   margin-bottom: 2px;
 }
-.notif-empty {
+.notif-empty,
+.empty-routes {
   color: #94a3b8;
   text-align: center;
   font-size: 13px;

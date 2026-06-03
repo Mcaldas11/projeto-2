@@ -8,18 +8,18 @@
       </div>
 
       <div class="nav-icons" ref="navIcons">
-        <img
+        <!-- <img
           :src="notifications.length === 0 ? notifOff : notifOn"
           alt="notifications"
           class="icon notification"
           @click="toggleNotif"
           ref="notifIcon"
-        />
+        /> -->
         <span class="icon" ref="menuIcon" @click="toggleMenu">☰</span>
 
         <ResponsavelSidebarMenu v-model="showMenu" />
 
-        <div v-if="showNotif" class="notifications" ref="notifPanel">
+        <!-- <div v-if="showNotif" class="notifications" ref="notifPanel">
           <h4>Notificações</h4>
           <div class="notif-list">
             <div
@@ -33,7 +33,7 @@
             </div>
             <div v-if="notifications.length === 0" class="notif-empty">Sem notificações</div>
           </div>
-        </div>
+        </div> -->
       </div>
     </nav>
 
@@ -169,8 +169,8 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import Footer from '@/components/footer.vue'
 import ResponsavelSidebarMenu from '@/components/ResponsavelSidebarMenu.vue'
-import notifOn from '@/assets/notificationson.png'
-import notifOff from '@/assets/notificationsoff.png'
+// import notifOn from '@/assets/notificationson.png'
+// import notifOff from '@/assets/notificationsoff.png'
 import {
   listOccurrences,
   listAllOccurrences,
@@ -183,12 +183,12 @@ import { resolveOccurrenceCoordinates } from '@/utils/occurrenceStorage'
 import { getNewOccurrenceRoute } from '@/utils/auth'
 
 const viewMode = ref('lista')
-const showNotif = ref(false)
+// const showNotif = ref(false)
 const showMenu = ref(false)
-const notifications = ref([])
+// const notifications = ref([])
 
-const notifPanel = ref(null)
-const notifIcon = ref(null)
+// const notifPanel = ref(null)
+// const notifIcon = ref(null)
 const menuPanel = ref(null)
 const menuIcon = ref(null)
 const mapElement = ref(null)
@@ -200,19 +200,19 @@ let mapInstance = null
 let markerLayer = null
 const geocodeCache = new Map()
 
-const toggleNotif = (e) => {
-  e.stopPropagation()
-  showNotif.value = !showNotif.value
-  showMenu.value = false
-}
+// const toggleNotif = (e) => {
+//   e.stopPropagation()
+//   showNotif.value = !showNotif.value
+//   showMenu.value = false
+// }
 
 const toggleMenu = (e) => {
   e.stopPropagation()
   showMenu.value = !showMenu.value
-  showNotif.value = false
+  // showNotif.value = false
 }
 
-const removeNotif = (i) => notifications.value.splice(i, 1)
+// const removeNotif = (i) => notifications.value.splice(i, 1)
 
 const ocorrencias = ref([])
 const ocorrenciasError = ref('')
@@ -478,14 +478,14 @@ watch(viewMode, async (mode) => {
 })
 
 function handleDocClick(e) {
-  if (
-    showNotif.value &&
-    notifPanel.value &&
-    !notifPanel.value.contains(e.target) &&
-    !notifIcon.value.contains(e.target)
-  ) {
-    showNotif.value = false
-  }
+  // if (
+  //   showNotif.value &&
+  //   notifPanel.value &&
+  //   !notifPanel.value.contains(e.target) &&
+  //   !notifIcon.value.contains(e.target)
+  // ) {
+  //   showNotif.value = false
+  // }
   if (
     showMenu.value &&
     menuPanel.value &&
