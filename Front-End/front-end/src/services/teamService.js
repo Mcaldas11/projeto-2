@@ -171,6 +171,11 @@ async function listWorkers() {
   return normalizedWorkers
 }
 
+async function listResources() {
+  if (!API_BASE_URL) throw new Error('Define VITE_API_URL para carregar os recursos.')
+  return fetchJson('/recursos')
+}
+
 async function createWorker(payload) {
   if (!API_BASE_URL) {
     throw new Error('Define VITE_API_URL para criar trabalhadores na base de dados.')
@@ -243,6 +248,24 @@ async function deleteWorker(workerId) {
   )
 }
 
+async function updateResource(resourceId, payload) {
+  if (!API_BASE_URL) {
+    throw new Error('Define VITE_API_URL para atualizar recursos na base de dados.')
+  }
+
+  return fetchJson(
+    `/recursos/${resourceId}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    },
+    true,
+  )
+}
+
 export {
   API_BASE_URL,
   listTeams,
@@ -251,4 +274,6 @@ export {
   assignWorkerToTeam,
   unassignWorkerFromTeam,
   deleteWorker,
+  listResources,
+  updateResource,
 }

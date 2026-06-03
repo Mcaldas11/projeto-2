@@ -1,25 +1,24 @@
-<!-- base errada -->
 <template>
   <div class="page-container">
-    <!-- NAVBAR ALINHADA (SEM BOTÃO LIGADO A OCORRÊNCIAS) -->
     <nav class="navbar">
       <div class="logo-area">
         <router-link to="/responsavel/perfil">
           <img src="@/assets/logoP.png" alt="VC Comunica Logo" class="logo-img" />
         </router-link>
       </div>
-      <div class="nav-icons">
-        <!-- Notificações e Menu Hambúrguer juntos no lado direito -->
+      <div class="nav-right">
         <!-- <img
           :src="notifications.length === 0 ? notifOff : notifOn"
           alt="notifications"
           class="icon notification"
           @click="toggleNotif"
+          ref="notifIcon"
         /> -->
-        <span class="icon menu-hamburger" @click="toggleMenu">☰</span>
+        <span class="icon menu-trigger" @click="toggleMenu">☰</span>
+
         <ResponsavelSidebarMenu v-model="showMenu" />
 
-        <!-- <div v-if="showNotif" class="notifications">
+        <!-- <div v-if="showNotif" class="notifications" ref="notifPanel">
           <h4>Notificações</h4>
           <div class="notif-list">
             <div
@@ -37,920 +36,624 @@
       </div>
     </nav>
 
-    <!-- CONTEÚDO PRINCIPAL NO NOVO DESIGN -->
-    <main class="content-wrapper">
-      <h1 class="page-title">Perfil do Responsável</h1>
-
-      <!-- Cabeçalho do Perfil (Estilo Identidade Visual Nova) -->
-      <section class="profile-header">
-        <div class="user-info">
-          <div class="avatar-container clickable" @click="triggerPhotoUpload">
-            <img v-if="worker.avatar" :src="worker.avatar" alt="Avatar" class="profile-avatar" />
-            <div v-else class="profile-avatar-placeholder">
-              {{ worker.nome[0] }}{{ worker.apelido[0] }}
-            </div>
-            <div class="avatar-overlay">
-              <span class="camera-icon">📷</span>
-            </div>
-            <input
-              type="file"
-              ref="photoInput"
-              style="display: none"
-              accept="image/*"
-              @change="handlePhotoChange"
-            />
-          </div>
-          <div class="user-text">
-            <h2>{{ worker.nome }} {{ worker.apelido }}</h2>
-            <p>{{ worker.email }}</p>
-          </div>
+    <main class="main-content">
+      <div class="title-filter">
+        <h1 class="page-title">Recursos</h1>
+        <div class="filter-info" v-if="responsibleFreguesiaName">
+          <span
+            >Freguesia: <strong>{{ responsibleFreguesiaName }}</strong></span
+          >
         </div>
-        <button @click="openEditModal" class="btn-edit">Editar</button>
-      </section>
+      </div>
 
-      <!-- Detalhes e Informações Técnicas do Responsável -->
-      <section class="profile-details">
-        <div class="details-grid">
-          <div class="detail-field">
-            <label>Freguesia</label>
-            <div class="display-box disabled-box">{{ worker.freguesia }}</div>
-          </div>
-        </div>
-      </section>
+      <div v-if="loadError" class="load-error">{{ loadError }}</div>
 
-      <!-- SECÇÃO INFERIOR: APENAS OCORRÊNCIAS DA FREGUESIA E ROTAS AGENDADAS -->
-      <section class="worker-dashboard-bottom">
-        <!-- Listagem de Ocorrências com base na Tabela do Novo Design -->
-        <div class="dashboard-block user-occurrences">
-          <h3>Ocorrências em {{ worker.freguesia }}</h3>
-          <div class="table-container">
-            <table class="occ-table">
-              <thead>
-                <tr>
-                  <th>Situação</th>
-                  <th>Tipo de Problema</th>
-                  <th>Localização</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="occ in ocorrencias" :key="occ.id">
-                  <td>
-                    <span :class="['status-badge', occ.statusClass]">{{ occ.status }}</span>
-                  </td>
-                  <td>{{ occ.tipo }}</td>
-                  <td class="details-cell">{{ occ.local }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+      <div v-else-if="isLoading" class="load-state"></div>
 
-        <!-- Listagem de Rotas & Agendamentos -->
-        <div class="dashboard-block worker-routes">
-          <h3>Rotas & Agendamentos Semanais</h3>
-          <div class="routes-list-wrapper">
-            <button
-              v-for="route in rotas"
-              :key="route.id"
-              type="button"
-              class="route-minimal-card route-link"
-              @click="openRoute(route)"
-            >
-              <div class="route-info-side">
-                <h4>{{ route.nome }}</h4>
-                <p>{{ route.descricao }}</p>
-              </div>
-              <div class="route-date-side">
-                <span class="r-date">{{ route.data }}</span>
-                <span class="r-time">⏰ {{ route.hora }}</span>
-              </div>
-            </button>
-            <div v-if="rotas.length === 0" class="notif-empty">Nenhuma rota planeada.</div>
-          </div>
-        </div>
-      </section>
-
-      <button class="btn-logout" @click="showLogoutModal = true">Terminar Sessão</button>
+      <div v-else class="table-container">
+        <table class="workers-table">
+          <thead>
+            <tr>
+              <th>Recurso</th>
+              <th>Estado</th>
+              <th>Equipa</th>
+              <th>Localização</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="resource in filteredResources" :key="resource.idRecurso">
+              <td class="user-cell">
+                {{ resource.tipo }}
+              </td>
+              <td class="desc-cell">
+                <span :class="['team-tag', getStatusColor(resource.estado)]">{{
+                  resource.estado
+                }}</span>
+              </td>
+              <td class="teams-cell">
+                <span class="team-tag tag-blue">{{ resource.teamName }}</span>
+              </td>
+              <td class="desc-cell">{{ resource.localizacao }}</td>
+              <td class="actions-cell">
+                <img
+                  src="@/assets/edit_btn_icon.svg"
+                  alt="edit"
+                  class="btn-icon"
+                  title="Editar Estado"
+                  @click="openEditModal(resource)"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </main>
 
-    <!-- MODAL: EDITAR PERFIL (MATRICULADO NO SEU DESIGN NOVO) -->
-    <div v-if="showEditModal" class="modal-overlay" @click.self="showEditModal = false">
+    <!-- Edit Resource Modal -->
+    <div v-if="showEditModal" class="modal-overlay" @click.self="closeEditModal">
       <div class="modal-card">
-        <h3>Editar Perfil</h3>
-        <div class="modal-form-body">
-          <label>Nome:</label>
-          <input v-model="editFirstName" class="display-box" />
+        <h3>Editar estado do recurso</h3>
+        <p class="modal-subtitle">
+          {{ editResourceData?.tipo }} · {{ editResourceData?.teamName }}
+        </p>
 
-          <label>Apelido:</label>
-          <input v-model="editLastName" class="display-box" />
-
-          <label>Email:</label>
-          <input v-model="editEmail" class="display-box" />
-
-          <label>Telemóvel:</label>
-          <input v-model="editPhone" class="display-box" />
+        <div class="modal-form">
+          <div class="form-row">
+            <label class="modal-label">Estado</label>
+            <select v-model="selectedStatus" class="modal-select">
+              <option value="Operacional">Operacional</option>
+              <option value="Disponível">Disponível</option>
+              <option value="Em uso">Em uso</option>
+              <option value="Manutenção">Manutenção</option>
+              <option value="Avariado">Avariado</option>
+            </select>
+          </div>
         </div>
+
+        <p v-if="editError" class="modal-error">{{ editError }}</p>
+
         <div class="modal-actions">
-          <button class="modal-btn cancel" @click="showEditModal = false">VOLTAR</button>
-          <button class="modal-btn confirm" @click="handleSaveEdit">SALVAR</button>
+          <button class="modal-btn cancel" @click="closeEditModal" :disabled="isSaving">
+            Cancelar
+          </button>
+          <button class="modal-btn confirm" @click="handleUpdateStatus" :disabled="isSaving">
+            {{ isSaving ? 'A guardar...' : 'Guardar' }}
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- MODAL: TERMINAR SESSÃO -->
-    <div v-if="showLogoutModal" class="modal-overlay" @click.self="showLogoutModal = false">
-      <div class="modal-card confirmation-card">
-        <h3>Terminar Sessão</h3>
-        <p>Tens a certeza que queres terminar sessão do painel técnico?</p>
-        <div class="modal-actions">
-          <button class="modal-btn cancel" @click="showLogoutModal = false">Cancelar</button>
-          <button class="modal-btn confirm" @click="handleLogout">Sim, sair</button>
-        </div>
-      </div>
-    </div>
-
-    <Footer :columns="responsavelFooterColumns" />
+    <Footer :columns="responsavelFooterColumns" :logo-src="adminFooterLogo" />
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import Footer from '@/components/footer.vue'
-// import notifOn from '@/assets/notificationson.png'
-// import notifOff from '@/assets/notificationsoff.png'
-import avatarImg from '@/assets/avatar.png'
-import { getAuthToken, getAuthUserId } from '@/utils/auth'
 import ResponsavelSidebarMenu from '@/components/ResponsavelSidebarMenu.vue'
+/* import notifOn from '@/assets/notificationson.png'
+import notifOff from '@/assets/notificationsoff.png' */
+import adminFooterLogo from '@/assets/logo_footer.png'
+import { listFreguesias, API_BASE_URL } from '@/services/municipalityService'
+import { getAuthToken } from '@/utils/auth'
+import { listTeams, listResources, updateResource } from '@/services/teamService'
 
 const responsavelFooterColumns = [
   [
     { label: 'Home', to: '/responsavel/perfil' },
     { label: 'Ocorrências', to: '/ocorrencias' },
     { label: 'Rotas', to: '/responsavel/rotas' },
+    { label: 'Equipas', to: '/responsavel/equipas' },
+    { label: 'Funcionários', to: '/responsavel/trabalhadores' },
   ],
-  [{ label: 'Perfil', to: '/responsavel/perfil' }],
 ]
 
-const router = useRouter()
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
-
-const photoInput = ref(null)
-
-const triggerPhotoUpload = () => {
-  photoInput.value?.click()
-}
-
-async function handlePhotoChange(event) {
-  const file = event.target.files?.[0]
-  if (!file) return
-
-  const trabalhadorId = getAuthUserId()
-  const token = getAuthToken()
-
-  if (!API_BASE_URL || !trabalhadorId || !token) {
-    alert('Não foi possível atualizar a foto. Erro de autenticação.')
-    return
-  }
-
-  const formData = new FormData()
-  formData.append('file', file)
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/trabalhadores/${trabalhadorId}/foto`, {
-      method: 'PATCH',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.message || 'Falha ao atualizar foto no servidor.')
-    }
-
-    const data = await response.json()
-    if (data.success && data.fotoPerfil) {
-      worker.value.avatar = data.fotoPerfil
-      // Update localStorage
-      const profile = JSON.parse(localStorage.getItem('userProfile') || '{}')
-      profile.fotoPerfil = data.fotoPerfil
-      localStorage.setItem('userProfile', JSON.stringify(profile))
-    }
-  } catch (error) {
-    alert(error.message || 'Não foi possível atualizar a foto.')
-  }
-}
-
-const splitName = (fullName = '') => {
-  const parts = String(fullName).trim().split(/\s+/).filter(Boolean)
-
-  if (parts.length === 0) {
-    return { firstName: '', lastName: '' }
-  }
-
-  return {
-    firstName: parts[0],
-    lastName: parts.slice(1).join(' '),
-  }
-}
-
-const createWorkerProfile = (profile = null) => {
-  const { firstName, lastName } = splitName(profile?.nomeTrabalhador || profile?.name || '')
-
-  return {
-    nome: firstName || profile?.firstName || '',
-    apelido: lastName || profile?.lastName || '',
-    email: profile?.emailTrabalhador || profile?.email || '',
-    equipa: '',
-    freguesia: '',
-    credenciais: '',
-    avatar: profile?.fotoPerfil || avatarImg,
-    ratingMedia: '',
-  }
-}
-
-// Sistema de Notificações e Menu
-// const showNotif = ref(false)
+const showNotif = ref(false)
 const showMenu = ref(false)
-// const notifications = ref([])
+const notifPanel = ref(null)
+const notifIcon = ref(null)
+const isLoading = ref(true)
+const loadError = ref('')
+const responsibleFreguesiaId = ref(null)
+const responsibleWorkerId = ref(null)
+const responsibleFreguesiaName = ref('')
 
-// const toggleNotif = () => {
-//   showNotif.value = !showNotif.value
-//   showMenu.value = false
-// }
-const toggleMenu = () => {
+/* const notifications = ref([])
+
+const toggleNotif = (e) => {
+  e.stopPropagation()
+  showNotif.value = !showNotif.value
+  showMenu.value = false
+} */
+const toggleMenu = (e) => {
+  e.stopPropagation()
   showMenu.value = !showMenu.value
-  // showNotif.value = false
+  showNotif.value = false
 }
-// const removeNotif = (i) => notifications.value.splice(i, 1)
+/* const removeNotif = (i) => notifications.value.splice(i, 1) */
 
-const storedProfile = JSON.parse(localStorage.getItem('userProfile') || 'null')
-const worker = ref(createWorkerProfile(storedProfile))
-
-async function loadResponsibleProfile() {
-  if (!API_BASE_URL) {
-    return
-  }
-
-  const token = getAuthToken()
-  if (!token) {
-    return
-  }
-
-  try {
-    const profileResponse = await fetch(`${API_BASE_URL}/trabalhadores/me`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-
-    if (!profileResponse.ok) {
-      return
-    }
-
-    const profile = await profileResponse.json()
-    const { firstName, lastName } = splitName(profile.nomeTrabalhador || '')
-
-    const [equipaResponse, municipioResponse] = await Promise.all([
-      profile.idEquipa
-        ? fetch(`${API_BASE_URL}/equipas/${profile.idEquipa}`)
-        : Promise.resolve(null),
-      profile.idFreguesia
-        ? fetch(`${API_BASE_URL}/municipios/${profile.idFreguesia}`)
-        : Promise.resolve(null),
-    ])
-
-    const equipa = equipaResponse?.ok ? await equipaResponse.json() : null
-    const municipio = municipioResponse?.ok ? await municipioResponse.json() : null
-
-    worker.value = {
-      nome: firstName || storedProfile?.firstName || '',
-      apelido: lastName || storedProfile?.lastName || '',
-      email: profile.emailTrabalhador || storedProfile?.email || '',
-      equipa: equipa?.especializacao || '',
-      freguesia: municipio?.nome || '',
-      credenciais: '',
-      avatar: profile.fotoPerfil || storedProfile?.fotoPerfil || avatarImg,
-      ratingMedia: '',
-    }
-
-    localStorage.setItem(
-      'userProfile',
-      JSON.stringify({
-        firstName: worker.value.nome,
-        lastName: worker.value.apelido,
-        email: worker.value.email,
-        fotoPerfil: worker.value.avatar,
-      }),
-    )
-  } catch {
-    worker.value = createWorkerProfile(storedProfile)
+function handleDocClick(e) {
+  if (
+    showNotif.value &&
+    notifPanel.value &&
+    !notifPanel.value.contains(e.target) &&
+    notifIcon.value &&
+    !notifIcon.value.contains(e.target)
+  ) {
+    showNotif.value = false
   }
 }
 
-// Modais de Edição de Dados
+onMounted(() => document.addEventListener('click', handleDocClick))
+onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
+
+const allResources = ref([])
+const allTeams = ref([])
 const showEditModal = ref(false)
-const editFirstName = ref('')
-const editLastName = ref('')
-const editEmail = ref('')
-const isSavingProfile = ref(false)
+const editResourceData = ref(null)
+const selectedStatus = ref('')
+const editError = ref('')
+const isSaving = ref(false)
 
-const openEditModal = () => {
-  editFirstName.value = worker.value.nome
-  editLastName.value = worker.value.apelido
-  editEmail.value = worker.value.email
+const filteredResources = computed(() => {
+  if (responsibleFreguesiaId.value === null) return []
+  return allResources.value.filter(
+    (r) => Number(r.freguesiaId) === Number(responsibleFreguesiaId.value),
+  )
+})
+
+const openEditModal = (resource) => {
+  editResourceData.value = { ...resource }
+  selectedStatus.value = resource.estado
+  editError.value = ''
   showEditModal.value = true
 }
 
-async function handleSaveEdit() {
-  if (isSavingProfile.value) {
-    return
+const closeEditModal = () => {
+  showEditModal.value = false
+  editResourceData.value = null
+}
+
+const handleUpdateStatus = async () => {
+  isSaving.value = true
+  editError.value = ''
+  try {
+    // O backend exige todos os campos obrigatórios (tipo, estado, localizacao, equipaResponsavel)
+    const payload = {
+      tipo: editResourceData.value.tipo,
+      estado: selectedStatus.value,
+      localizacao: editResourceData.value.localizacao,
+      equipaResponsavel: editResourceData.value.equipaResponsavel,
+    }
+    await updateResource(editResourceData.value.idRecurso, payload)
+    await loadResourcesFromBackend()
+    closeEditModal()
+  } catch (error) {
+    editError.value = error.message || 'Erro ao atualizar o estado do recurso.'
+  } finally {
+    isSaving.value = false
   }
+}
 
-  if (!editFirstName.value.trim() || !editLastName.value.trim()) {
-    alert('Nome e apelido não podem ficar vazios.')
-    return
-  }
+const getStatusColor = (status) => {
+  if (/operacional|disponivel/i.test(status)) return 'tag-green'
+  if (/manutenção|manutencao|em uso/i.test(status)) return 'tag-orange'
+  return 'tag-purple'
+}
 
-  isSavingProfile.value = true
-
+async function loadResponsibleParish() {
   const token = getAuthToken()
-  if (!API_BASE_URL || !token) {
-    alert('Não foi possível guardar o perfil.')
-    isSavingProfile.value = false
-    return
-  }
+  if (!token || !API_BASE_URL) return
 
   try {
     const response = await fetch(`${API_BASE_URL}/trabalhadores/me`, {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        firstName: editFirstName.value.trim(),
-        lastName: editLastName.value.trim(),
-        email: editEmail.value.trim(),
-      }),
+      headers: { Authorization: `Bearer ${token}` },
     })
-
-    const payload = await response.json().catch(() => ({}))
-
-    if (!response.ok) {
-      throw new Error(payload?.message || 'Não foi possível guardar o perfil.')
+    if (response.ok) {
+      const data = await response.json()
+      responsibleFreguesiaId.value = data.idFreguesia
+      responsibleWorkerId.value = data.idTrabalhador
     }
-
-    const { firstName, lastName } = splitName(payload?.nomeTrabalhador || '')
-
-    worker.value.nome = firstName || editFirstName.value.trim()
-    worker.value.apelido = lastName || editLastName.value.trim()
-    worker.value.email = payload?.emailTrabalhador || editEmail.value.trim()
-
-    localStorage.setItem(
-      'userProfile',
-      JSON.stringify({
-        firstName: worker.value.nome,
-        lastName: worker.value.apelido,
-        email: worker.value.email,
-        fotoPerfil: worker.value.avatar,
-      }),
-    )
-
-    showEditModal.value = false
-  } catch (error) {
-    alert(error.message || 'Não foi possível guardar o perfil.')
-  } finally {
-    isSavingProfile.value = false
+  } catch (err) {
+    console.error('Erro ao carregar freguesia do responsável:', err)
   }
 }
 
-// Ocorrências vinculadas à freguesia do funcionário
-const ocorrencias = ref([])
+async function loadResourcesFromBackend() {
+  isLoading.value = true
+  loadError.value = ''
 
-// Rotas exclusivas do Trabalhador
-const rotas = ref([])
+  try {
+    await loadResponsibleParish()
 
-const openRoute = (route) => {
-  router.push({
-    name: 'responsavel-rotas',
-    query: { routeId: String(route.id) },
-  })
+    const [loadedTeams, loadedResources, loadedFreguesias] = await Promise.all([
+      listTeams(),
+      listResources(),
+      listFreguesias(),
+    ])
+
+    if (responsibleFreguesiaId.value) {
+      const freg = loadedFreguesias.find(
+        (f) => Number(f.idFreguesia || f.idMunicipio) === Number(responsibleFreguesiaId.value),
+      )
+      responsibleFreguesiaName.value = freg?.nome || ''
+    }
+
+    allTeams.value = loadedTeams
+
+    const teamMap = new Map(loadedTeams.map((t) => [String(t.id), t]))
+
+    allResources.value = loadedResources.map((r) => {
+      const team = teamMap.get(String(r.equipaResponsavel))
+      return {
+        ...r,
+        teamName: team?.name || 'Sem equipa',
+        freguesiaId: team?.freguesiaId || null,
+      }
+    })
+  } catch (error) {
+    loadError.value = error?.message || 'Não foi possível carregar os recursos.'
+  } finally {
+    isLoading.value = false
+  }
 }
 
-// Logout do Operador
-const showLogoutModal = ref(false)
-function handleLogout() {
-  localStorage.removeItem('role')
-  localStorage.removeItem('authToken')
-  localStorage.removeItem('authUserType')
-  localStorage.removeItem('authUserId')
-  localStorage.removeItem('rememberMe')
-  localStorage.removeItem('userProfile')
-  sessionStorage.removeItem('authToken')
-  sessionStorage.removeItem('authUserType')
-  sessionStorage.removeItem('authUserId')
-  sessionStorage.removeItem('vc-comunica-register')
-  showLogoutModal.value = false
-  router.replace({ name: 'login' })
-}
-
-onMounted(() => {
-  loadResponsibleProfile()
+onMounted(async () => {
+  await loadResourcesFromBackend()
 })
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap');
-
 .page-container {
-  font-family: 'Montserrat', sans-serif;
+  font-family: Arial, sans-serif;
   color: #1a1a1a;
-  line-height: 1.5;
-  background-color: #fff;
+  background: #fff;
 }
 
-/* NAVBAR EQUILIBRADA COM ÍCONES À DIREITA */
+/* NAVBAR */
 .navbar {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   padding: 20px 80px;
-  border-bottom: 1px solid #f1f5f9;
+  align-items: center;
+  background: white;
+  border-bottom: 1px solid #f0f0f0;
 }
 .logo-img {
   height: 40px;
 }
-.nav-icons {
+.nav-right {
   display: flex;
+  gap: 15px;
   align-items: center;
-  gap: 24px;
   position: relative;
+}
+.admin-label {
+  font-weight: 700;
+  font-size: 16px;
+  color: #1a1a1a;
 }
 .icon {
   cursor: pointer;
-  user-select: none;
+  font-size: 1.2rem;
 }
 .icon.notification {
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   object-fit: contain;
+  cursor: pointer;
 }
-.menu-hamburger {
-  font-size: 24px;
-  color: #1e293b;
+.menu-trigger {
+  font-size: 1.4rem;
 }
 
-/* NOTIFICAÇÕES */
+/* MENU & NOTIFICATIONS */
 .notifications {
   position: absolute;
-  top: 40px;
+  top: 44px;
   right: 0;
-  width: 320px;
-  background: #ffffff;
-  color: #0b2b2b;
+  background: #fff;
   border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  z-index: 100;
+  padding: 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  z-index: 70;
+}
+.notifications {
+  width: 320px;
 }
 .notifications h4 {
-  margin: 0 0 12px 0;
-  font-size: 16px;
-  font-weight: 800;
+  margin: 0 0 10px 0;
+  font-size: 18px;
 }
 .notif-list {
   display: flex;
   flex-direction: column;
+  gap: 8px;
 }
 .notif-item {
   background: #dff3ec;
   padding: 12px;
   border-radius: 8px;
-  margin-bottom: 8px;
-  font-size: 13px;
+  cursor: pointer;
 }
 .notif-title {
   font-weight: 700;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
-.notif-empty {
-  color: #94a3b8;
-  text-align: center;
-  font-size: 13px;
-  padding: 10px 0;
-}
-
-/* CONTEÚDO EMBALADO NO MODELO */
-.content-wrapper {
-  max-width: 1000px;
-  margin: 40px auto;
-  padding: 0 40px;
-}
-.page-title {
-  font-size: 42px;
-  font-weight: 900;
-  color: #1e293b;
-  margin-bottom: 40px;
-}
-
-/* HEADER COM AVATAR */
-.profile-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 40px;
-  background: #f8fafc;
-  padding: 24px;
-  border-radius: 16px;
-}
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-.profile-avatar,
-.profile-avatar-placeholder {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-.avatar-container {
-  position: relative;
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  overflow: hidden;
-}
-.avatar-container.clickable {
-  cursor: pointer;
-}
-.avatar-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-.avatar-container:hover .avatar-overlay {
-  opacity: 1;
-}
-.camera-icon {
-  color: #fff;
-  font-size: 20px;
-}
-.profile-avatar-placeholder {
-  background: #cfe8df;
-  color: #0b2b2b;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 24px;
-}
-.user-text h2 {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 800;
-  color: #1e293b;
-}
-.user-text p {
-  margin: 4px 0 0 0;
-  color: #64748b;
-}
-.btn-edit {
-  background: #d1dfdb;
-  color: #1e293b;
-  border: none;
-  padding: 10px 24px;
-  border-radius: 8px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.btn-edit:hover {
-  background: #c3d3cf;
-}
-
-/* FORMULÁRIO / GRID DE CAMPOS */
-.details-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px 40px;
-  margin-bottom: 50px;
-}
-.detail-field label {
-  display: block;
-  font-weight: 800;
-  color: #475569;
-  margin-bottom: 8px;
+.notif-body {
+  color: rgba(0, 0, 0, 0.7);
   font-size: 14px;
 }
-.display-box {
-  background: #f8fafc;
-  width: 100%;
-  padding: 14px;
-  border-radius: 10px;
-  border: 1px solid #f1f5f9;
-  color: #1e293b;
-  font-weight: 600;
-  box-sizing: border-box;
-  font-size: 15px;
-}
-.select-box {
-  appearance: none;
-  background: #f8fafc
-    url("data:image/svg+xml;utf8,<svg fill='%2394a3b8' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>")
-    no-repeat right 12px center;
-  cursor: pointer;
-}
-.disabled-box {
-  background: #f1f5f9;
-  color: #64748b;
-}
-.rating-box {
-  color: #1e293b;
-  font-weight: 700;
-}
-.full-width {
-  grid-column: span 2;
+.notif-empty {
+  color: #666;
+  font-size: 14px;
+  text-align: center;
+  padding: 12px;
 }
 
-/* SPOILER CREDENCIAIS MANTIDO E ADAPTADO */
-.spoiler-credential {
-  background: #1e293b;
-  border-radius: 10px;
-  padding: 14px;
-  cursor: pointer;
-  position: relative;
-  min-height: 48px;
+/* MAIN CONTENT */
+.main-content {
+  padding: 40px 80px;
+  min-height: 70vh;
+}
+.page-title {
+  font-size: 36px;
+  font-weight: 800;
+  margin: 0 0 30px 0;
+}
+
+.title-filter {
   display: flex;
   align-items: center;
-  box-sizing: border-box;
-}
-.spoiler-credential .cred-text {
-  color: transparent;
-  font-family: monospace;
-  font-size: 15px;
-  user-select: none;
-}
-.spoiler-credential .spoiler-label {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  color: #f8fafc;
-  font-size: 13px;
-  font-weight: 600;
-}
-.spoiler-credential.revealed {
-  background: #f8fafc;
-  border: 1.5px dashed #730000;
-}
-.spoiler-credential.revealed .cred-text {
-  color: #730000;
-  font-weight: bold;
-  user-select: text;
+  justify-content: space-between;
+  gap: 20px;
 }
 
-/* LAYOUT INFERIOR: APENAS OCORRÊNCIAS E ROTAS */
-.worker-dashboard-bottom {
-  display: flex;
-  flex-direction: column;
-  gap: 40px;
-  margin-top: 20px;
-}
-.dashboard-block h3 {
-  font-size: 20px;
+.btn-create-worker {
+  background: #22c55e;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
   font-weight: 800;
-  color: #1e293b;
-  margin-bottom: 16px;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
 }
+.filter-select {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.filter-select select {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+/* TABLE */
 .table-container {
   border: 1px solid #f1f5f9;
   border-radius: 15px;
   overflow: hidden;
 }
-.occ-table {
+.workers-table {
   width: 100%;
   border-collapse: collapse;
+}
+.workers-table th {
   text-align: left;
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+  color: #64748b;
   font-size: 14px;
+  font-weight: 600;
 }
-.occ-table th {
-  padding: 15px;
-  background: #f8fafc;
-  color: #94a3b8;
-  font-weight: 700;
-  border-bottom: 1px solid #f1f5f9;
+.workers-table td {
+  padding: 15px 20px;
+  border-bottom: 1px solid #f8fafc;
+  font-size: 14px;
+  vertical-align: middle;
 }
-.occ-table td {
-  padding: 15px;
-  border-bottom: 1px solid #f1f5f9;
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+}
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.desc-cell {
+  color: #64748b;
 }
 
-/* BADGES DE ESTADO EXCLUSIVOS */
-.status-badge {
+/* TEAM TAGS */
+.teams-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.team-tag {
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 12px;
-  font-weight: 800;
-  display: inline-block;
+  font-weight: 600;
+  white-space: nowrap;
 }
-.em-resolucao {
-  background: #fef9c3;
-  color: #ca8a04;
+.tag-blue {
+  background: #dbeafe;
+  color: #1e40af;
 }
-.espera {
+.tag-green {
+  background: #dcfce7;
+  color: #166534;
+}
+.tag-purple {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+.tag-orange {
   background: #ffedd5;
-  color: #ea580c;
-}
-.details-cell {
-  color: #64748b;
+  color: #9a3412;
 }
 
-/* ROTAS VERTICAIS ALINHADAS */
-.routes-list-wrapper {
+/* ACTIONS */
+.actions-cell {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  gap: 8px;
+  justify-content: flex-end;
 }
-.route-minimal-card {
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px;
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
+.btn-icon:hover {
+  opacity: 1;
+}
+
+/* FOOTER */
+.main-footer {
+  padding: 60px 80px;
+  background-color: #f5f1e9;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  background: #f8fafc;
-  border-left: 4px solid #730000;
-  padding: 16px;
-  border-radius: 8px;
+  align-items: flex-end;
+  margin-top: 80px;
 }
-.route-link {
-  width: 100%;
-  border: none;
-  text-align: left;
-  cursor: pointer;
-  font: inherit;
-  color: inherit;
+.footer-links {
+  display: flex;
+  gap: 60px;
 }
-.route-link:hover {
-  background: #eef5f3;
-}
-.route-info-side h4 {
-  margin: 0 0 4px 0;
-  font-size: 15px;
-  font-weight: 700;
-  color: #1e293b;
-}
-.route-info-side p {
-  margin: 0;
-  font-size: 13px;
-  color: #64748b;
-}
-.route-date-side {
-  text-align: right;
+.col {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  font-size: 13px;
+  gap: 10px;
 }
-.r-date {
-  font-weight: 700;
-  color: #730000;
-}
-.r-time {
-  color: #475569;
-}
-
-/* BOTÃO SAIR (ESTILO ORIGINAL MONTSERRAT) */
-.btn-logout {
-  width: 100%;
-  padding: 16px;
-  margin-top: 50px;
-  background: #ff383c;
-  color: #fff;
-  border: none;
-  border-radius: 12px;
-  font-family: 'Montserrat', sans-serif;
+.col a {
+  text-decoration: none;
+  color: #2d5a27;
   font-weight: 600;
-  font-size: 16px;
-  cursor: pointer;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    background 0.2s ease;
 }
-.btn-logout:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 56, 60, 0.4);
-  background: #e0292d;
+.logo-img-small {
+  height: 80px;
+}
+.copyright {
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 10px;
 }
 
-/* MODAIS NO MODELO EXATO */
+/* MODAL */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 200;
 }
 .modal-card {
   background: #fff;
-  border-radius: 12px;
-  padding: 40px;
-  max-width: 440px;
-  width: 90%;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-  font-family: 'Montserrat', sans-serif;
-  text-align: left;
+  width: 420px;
+  max-width: calc(100% - 32px);
+  padding: 28px 24px;
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
 }
-.modal-card h3 {
-  font-size: 26px;
-  margin: 0 0 20px 0;
-  font-weight: 700;
-  color: #1e293b;
-}
-.modal-form-body {
+.modal-form {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 24px;
+  gap: 12px;
+  margin: 15px 0;
 }
-.modal-form-body label {
+.modal-input {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-sizing: border-box;
+}
+.pin-display {
+  background: #f1f5f9;
+  padding: 12px;
+  border-radius: 10px;
+  text-align: center;
+}
+.generated-pin {
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  color: #730000;
+  margin: 5px 0;
+}
+.modal-subtitle {
+  color: #64748b;
+  margin: 6px 0 16px;
+}
+.modal-label {
+  display: block;
+  font-size: 13px;
   font-weight: 700;
-  color: #475569;
-  font-size: 14px;
-  margin-top: 6px;
+  color: #1e293b;
+  margin-bottom: 8px;
 }
-.modal-card .display-box {
-  background: #fff;
-  border: 1.5px solid #cbd5e1;
-  color: #475569;
+.modal-select {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+.modal-hint {
+  color: #94a3b8;
+  font-size: 13px;
+  margin-top: 8px;
+}
+.modal-error {
+  color: #b91c1c;
+  font-size: 13px;
+  margin-top: 8px;
 }
 .modal-actions {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
 }
 .modal-btn {
-  padding: 12px 24px;
-  border-radius: 10px;
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 700;
-  font-size: 14px;
   border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-weight: 700;
   cursor: pointer;
 }
 .modal-btn.cancel {
-  background: transparent;
+  background: #e2e8f0;
   color: #1e293b;
 }
 .modal-btn.confirm {
-  background: #cfe8df;
-  color: #0b2b2b;
-}
-.confirmation-card {
-  text-align: center;
-}
-.confirmation-card p {
-  color: #64748b;
-  margin-bottom: 24px;
-}
-.confirmation-card .modal-actions {
-  justify-content: center;
-  gap: 16px;
-}
-.confirmation-card .modal-btn.cancel {
-  background: #f1f5f9;
-  color: #475569;
-}
-.confirmation-card .modal-btn.confirm {
-  background: #ff383c;
+  background: #730000;
   color: #fff;
 }
+.modal-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 
-@media (max-width: 768px) {
-  .details-grid {
-    grid-template-columns: 1fr;
-  }
-  .full-width {
-    grid-column: span 1;
-  }
+@media (max-width: 1024px) {
   .navbar,
-  .content-wrapper {
+  .main-content,
+  .main-footer {
     padding: 20px;
   }
 }
