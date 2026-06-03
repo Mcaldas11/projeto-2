@@ -93,7 +93,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="occ in ocorrencias" :key="occ.id">
+            <tr v-for="occ in paginatedOcorrencias" :key="occ.id">
               <td class="user-cell">
                 <img :src="occ.userImg" class="avatar" />
                 {{ occ.nome }}
@@ -104,13 +104,43 @@
               <td>{{ occ.tipo }}</td>
               <td class="details-cell">{{ occ.detalhes }}</td>
               <td>
-                <router-link :to="`/ocorrencia/${occ.id}`">
-                  <img src="@/assets/detalhes.png" alt="Detalhes" class="info-btn" />
+                <router-link :to="`/ocorrencia/${occ.id}`" class="details-link-btn">
+                  Ver detalhes
                 </router-link>
               </td>
             </tr>
           </tbody>
         </table>
+
+        <!-- Pagination Controls -->
+        <div v-if="totalPages > 1" class="pagination">
+          <button 
+            :disabled="currentPage === 1" 
+            @click="currentPage--"
+            class="page-btn"
+          >
+            &laquo; Anterior
+          </button>
+          
+          <div class="page-numbers">
+            <button 
+              v-for="page in totalPages" 
+              :key="page"
+              :class="['page-number', { active: currentPage === page }]"
+              @click="currentPage = page"
+            >
+              {{ page }}
+            </button>
+          </div>
+
+          <button 
+            :disabled="currentPage === totalPages" 
+            @click="currentPage++"
+            class="page-btn"
+          >
+            Próximo &raquo;
+          </button>
+        </div>
       </section>
 
       <section v-else class="map-view">
@@ -219,6 +249,18 @@ const toggleMenu = (e) => {
 const ocorrencias = ref([])
 const ocorrenciasError = ref('')
 const fetchInfo = ref({ allCount: null, byStateCount: null, fallbackCount: null, errors: [] })
+
+// Pagination
+const currentPage = ref(1)
+const itemsPerPage = 10
+
+const totalPages = computed(() => Math.ceil(ocorrencias.value.length / itemsPerPage))
+
+const paginatedOcorrencias = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  const end = start + itemsPerPage
+  return ocorrencias.value.slice(start, end)
+})
 
 const selectedOccurrenceMeta = computed(() => getOccurrenceTypeMeta(selectedOccurrence.value?.tipo))
 
@@ -454,6 +496,7 @@ function selectOccurrence(marker) {
 }
 
 watch(viewMode, async (mode) => {
+  currentPage.value = 1 // Reset pagination when switching views
   if (mode === 'mapa') {
     await nextTick()
     initializeMap()
@@ -670,10 +713,78 @@ onBeforeUnmount(() => {
   margin-right: 10px;
   vertical-align: middle;
 }
-.info-btn {
-  width: 30px;
-  height: 30px;
+
+.details-link-btn {
+  display: inline-block;
+  background-color: #b1ffb1;
+  color: #0b2b2b;
+  padding: 8px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.85rem;
+  transition: background-color 0.2s;
+}
+
+.details-link-btn:hover {
+  background-color: #98fb98;
+}
+
+/* PAGINATION */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin-top: 30px;
+}
+
+.page-numbers {
+  display: flex;
+  gap: 8px;
+}
+
+.page-btn {
+  background: white;
+  border: 1px solid #e2e8f0;
+  padding: 6px 12px;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: 600;
+  color: #64748b;
+  transition: all 0.2s;
+}
+
+.page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-number {
+  background: white;
+  border: 1px solid #e2e8f0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #64748b;
+  transition: all 0.2s;
+}
+
+.page-number.active {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.page-btn:hover:not(:disabled),
+.page-number:hover:not(.active) {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
 }
 
 /* MAPA */
