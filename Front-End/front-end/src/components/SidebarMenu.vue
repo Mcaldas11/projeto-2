@@ -13,6 +13,15 @@
             <span class="sidebar-label">Ocorrências</span>
             <img src="@/assets/ocorrencias.png" alt="ocorrencias" class="sidebar-icon" />
           </router-link>
+          <router-link
+            v-if="isCitizen"
+            to="/ocorrencias-globais"
+            class="sidebar-item"
+            @click="closeMenu"
+          >
+            <span class="sidebar-label">Ocorrências Globais</span>
+            <img src="@/assets/estradas.svg" alt="ocorrencias-globais" class="sidebar-icon" />
+          </router-link>
         </div>
         <div class="sidebar-bottom">
           <router-link :to="accountRoute" class="sidebar-item" @click="closeMenu">
@@ -40,6 +49,7 @@ defineProps({
 const emit = defineEmits(['update:modelValue'])
 const router = useRouter()
 const accountRoute = computed(() => getAccountRoute())
+const isCitizen = computed(() => localStorage.getItem('role') === 'cidadao')
 
 function closeMenu() {
   emit('update:modelValue', false)

@@ -43,7 +43,7 @@
         <div class="icon-main-bg">
           <img src="@/assets/ocorrencias.png" alt="Ocorrências" class="icon-main-img" />
         </div>
-        <h1>Ocorrências</h1>
+        <h1>{{ isGlobalView ? 'Ocorrências Globais' : 'Ocorrências' }}</h1>
       </div>
 
       <div class="view-toggle">
@@ -436,12 +436,20 @@ function destroyMap() {
   }
 }
 
+const isGlobalView = computed(() => route.path === '/ocorrencias-globais')
+
 async function loadOccurrences() {
   const role = getAuthUserType() || ''
   let data = []
 
   try {
-    if (/^trabalhador/.test(String(role)) || role === 'trabalhador') {
+    const isResponsible = role === 'trabalhador_responsavel' || role === 'responsavel'
+
+    if (isGlobalView.value) {
+      data = await listAllOccurrences()
+    } else if (isResponsible) {
+      data = await listOccurrences()
+    } else if (/^trabalhador/.test(String(role)) || role === 'trabalhador') {
       // Logic for workers (assuming they still want specific filtering or access)
       try {
         const all = await listAllOccurrences()
@@ -494,6 +502,14 @@ async function loadOccurrences() {
 function selectOccurrence(marker) {
   selectedOccurrence.value = marker
 }
+
+// Watch for route changes to switch between global and local views
+watch(
+  () => route.path,
+  () => {
+    loadOccurrences()
+  },
+)
 
 watch(viewMode, async (mode) => {
   currentPage.value = 1 // Reset pagination when switching views

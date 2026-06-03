@@ -50,6 +50,11 @@ router.get(
   ocorrenciasControllers.getOcorrenciasPendentesForTrabalhador,
 );
 router.get(
+  "/me/freguesia/ocorrencias",
+  authMiddleware,
+  ocorrenciasControllers.getOcorrenciasFreguesiaForTrabalhador,
+);
+router.get(
   "/me/ocorrencias/resolvidas",
   authMiddleware,
   ocorrenciasControllers.getOcorrenciasResolvidasForTrabalhador,

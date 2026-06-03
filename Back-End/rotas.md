@@ -107,6 +107,30 @@ Body:
 ]
 ```
 
+### `GET /cidadaos/me/freguesia/ocorrencias`
+`Authorization: Bearer <TOKEN>`
+
+Lista todas as ocorrências na freguesia do cidadão autenticado.
+
+```json
+[
+  {
+    "idOcorrencia": 2,
+    "descricao": "Buraco na estrada",
+    "estado": "À espera da equipa",
+    "idCidadao": 1,
+    "idFreguesia": 2
+  },
+  {
+    "idOcorrencia": 5,
+    "descricao": "Candeeiro fundido",
+    "estado": "À espera da equipa",
+    "idCidadao": 10,
+    "idFreguesia": 2
+  }
+]
+```
+
 ### `POST /cidadaos/me/ocorrencias`
 ```json
 {
@@ -238,6 +262,23 @@ Lista as ocorrências da equipa do trabalhador que já têm `dataResolucao` pree
     "idFreguesia": 2,
     "idEquipa": 5,
     "dataResolucao": "2026-05-28T12:00:00.000Z"
+  }
+]
+```
+
+### `GET /trabalhadores/me/freguesia/ocorrencias`
+`Authorization: Bearer <TOKEN>`
+
+Lista todas as ocorrências na freguesia do trabalhador (responsável) autenticado.
+
+```json
+[
+  {
+    "idOcorrencia": 1,
+    "descricao": "Fuga de água",
+    "estado": "Em resolução",
+    "idCidadao": 3,
+    "idFreguesia": 3
   }
 ]
 ```
