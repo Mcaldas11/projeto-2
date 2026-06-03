@@ -46,6 +46,11 @@ router.get(
   authMiddleware,
   ocorrenciasControllers.getOcorrenciasForCidadao,
 );
+router.get(
+  "/me/freguesia/ocorrencias",
+  authMiddleware,
+  ocorrenciasControllers.getOcorrenciasFreguesiaForCidadao,
+);
 router.post(
   "/me/ocorrencias",
   authMiddleware,

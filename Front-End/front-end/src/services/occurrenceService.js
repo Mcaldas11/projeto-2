@@ -27,7 +27,7 @@ function mapOccurrencePayload(payload = {}) {
   return basePayload
 }
 
-async function listOccurrences() {
+async function listOccurrences(onlyMine = false) {
   const token = getAuthToken()
   if (!token) {
     // If not logged in, show all occurrences
@@ -38,13 +38,17 @@ async function listOccurrences() {
   const isCitizen = userType === 'cidadao'
   const isAdminUser = userType === 'trabalhador_admin' || userType === 'responsavel'
   const isWorker = userType.startsWith('trabalhador') && !isAdminUser
-  const endpoint = isCitizen
-    ? '/cidadaos/me/ocorrencias'
-    : isAdminUser
-      ? '/ocorrencias'
-      : isWorker
-        ? '/trabalhadores/me/ocorrencias'
-        : '/ocorrencias'
+
+  let endpoint
+  if (isCitizen) {
+    endpoint = onlyMine ? '/cidadaos/me/ocorrencias' : '/cidadaos/me/freguesia/ocorrencias'
+  } else if (isAdminUser) {
+    endpoint = '/ocorrencias'
+  } else if (isWorker) {
+    endpoint = '/trabalhadores/me/ocorrencias'
+  } else {
+    endpoint = '/ocorrencias'
+  }
 
   // Allow using same-origin API when VITE_API_URL is not set (use relative paths)
   const base = API_BASE_URL || ''

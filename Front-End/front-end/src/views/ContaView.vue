@@ -435,7 +435,7 @@ const userOccurrences = ref([])
 onMounted(async () => {
   try {
     const [loadedOccurrences, loadedFreguesias] = await Promise.all([
-      listOccurrences(),
+      listOccurrences(true),
       listFreguesias(),
     ])
     userOccurrences.value = loadedOccurrences
