@@ -39,6 +39,7 @@
     <main class="main-content">
       <div class="title-filter">
         <h1 class="page-title">Recursos</h1>
+        <button class="btn-create-worker" @click="openCreateModal">+ Adicionar Recurso</button>
         <div class="filter-info" v-if="responsibleFreguesiaName">
           <span
             >Freguesia: <strong>{{ responsibleFreguesiaName }}</strong></span
@@ -58,6 +59,7 @@
               <th>Estado</th>
               <th>Equipa</th>
               <th>Localização</th>
+              <th>Especificações</th>
               <th></th>
             </tr>
           </thead>
@@ -75,6 +77,7 @@
                 <span class="team-tag tag-blue">{{ resource.teamName }}</span>
               </td>
               <td class="desc-cell">{{ resource.localizacao }}</td>
+              <td class="desc-cell">{{ resource.especificacoes || '-' }}</td>
               <td class="actions-cell">
                 <img
                   src="@/assets/edit_btn_icon.svg"
@@ -90,10 +93,79 @@
       </div>
     </main>
 
+    <!-- Create Resource Modal -->
+    <div v-if="showCreateModal" class="modal-overlay" @click.self="closeCreateModal">
+      <div class="modal-card">
+        <h3>Adicionar novo recurso</h3>
+        <p class="modal-subtitle">
+          O recurso será alocado à freguesia: {{ responsibleFreguesiaName }}
+        </p>
+
+        <div class="modal-form">
+          <div class="form-row">
+            <label class="modal-label">Nome/Tipo do Recurso</label>
+            <input
+              v-model="newResource.tipo"
+              type="text"
+              class="modal-input"
+              placeholder="Ex: Carrinha de transporte"
+            />
+          </div>
+          <div class="form-row">
+            <label class="modal-label">Estado Inicial</label>
+            <select v-model="newResource.estado" class="modal-select">
+              <option value="Operacional">Operacional</option>
+              <option value="Disponível">Disponível</option>
+              <option value="Manutenção">Manutenção</option>
+              <option value="Avariado">Avariado</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label class="modal-label">Equipa Responsável</label>
+            <select v-model="newResource.equipaResponsavel" class="modal-select">
+              <option value="">Selecione uma equipa</option>
+              <option v-for="team in availableTeams" :key="team.id" :value="team.id">
+                {{ team.name }}
+              </option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label class="modal-label">Localização (Opcional)</label>
+            <input
+              v-model="newResource.localizacao"
+              type="text"
+              class="modal-input"
+              :placeholder="responsibleFreguesiaName"
+            />
+          </div>
+          <div class="form-row">
+            <label class="modal-label">Especificações (Opcional)</label>
+            <textarea
+              v-model="newResource.especificacoes"
+              class="modal-input"
+              placeholder="Ex: Matrícula, capacidade, detalhes técnicos..."
+              rows="3"
+            ></textarea>
+          </div>
+        </div>
+
+        <p v-if="createError" class="modal-error">{{ createError }}</p>
+
+        <div class="modal-actions">
+          <button class="modal-btn cancel" @click="closeCreateModal" :disabled="isCreating">
+            Cancelar
+          </button>
+          <button class="modal-btn confirm" @click="handleCreateResource" :disabled="isCreating">
+            {{ isCreating ? 'A criar...' : 'Adicionar Recurso' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Edit Resource Modal -->
     <div v-if="showEditModal" class="modal-overlay" @click.self="closeEditModal">
       <div class="modal-card">
-        <h3>Editar estado do recurso</h3>
+        <h3>Editar recurso</h3>
         <p class="modal-subtitle">
           {{ editResourceData?.tipo }} · {{ editResourceData?.teamName }}
         </p>
@@ -108,6 +180,14 @@
               <option value="Manutenção">Manutenção</option>
               <option value="Avariado">Avariado</option>
             </select>
+          </div>
+          <div class="form-row">
+            <label class="modal-label">Especificações</label>
+            <textarea
+              v-model="editResourceData.especificacoes"
+              class="modal-input"
+              rows="3"
+            ></textarea>
           </div>
         </div>
 
@@ -137,7 +217,7 @@ import notifOff from '@/assets/notificationsoff.png' */
 import adminFooterLogo from '@/assets/logo_footer.png'
 import { listFreguesias, API_BASE_URL } from '@/services/municipalityService'
 import { getAuthToken } from '@/utils/auth'
-import { listTeams, listResources, updateResource } from '@/services/teamService'
+import { listTeams, listResources, updateResource, createResource } from '@/services/teamService'
 
 const responsavelFooterColumns = [
   [
@@ -196,12 +276,66 @@ const selectedStatus = ref('')
 const editError = ref('')
 const isSaving = ref(false)
 
+// Estado para criação de recurso
+const showCreateModal = ref(false)
+const isCreating = ref(false)
+const createError = ref('')
+const newResource = ref({
+  tipo: '',
+  estado: 'Operacional',
+  equipaResponsavel: '',
+  localizacao: '',
+  especificacoes: '',
+})
+
 const filteredResources = computed(() => {
   if (responsibleFreguesiaId.value === null) return []
   return allResources.value.filter(
     (r) => Number(r.freguesiaId) === Number(responsibleFreguesiaId.value),
   )
 })
+
+const availableTeams = computed(() => {
+  if (responsibleFreguesiaId.value === null) return []
+  return allTeams.value.filter(
+    (team) => Number(team.freguesiaId) === Number(responsibleFreguesiaId.value),
+  )
+})
+
+const openCreateModal = () => {
+  newResource.value = {
+    tipo: '',
+    estado: 'Operacional',
+    equipaResponsavel: '',
+    localizacao: responsibleFreguesiaName.value,
+    especificacoes: '',
+  }
+  createError.value = ''
+  showCreateModal.value = true
+}
+
+const closeCreateModal = () => {
+  showCreateModal.value = false
+}
+
+const handleCreateResource = async () => {
+  if (!newResource.value.tipo || !newResource.value.equipaResponsavel) {
+    createError.value = 'O tipo e a equipa são obrigatórios.'
+    return
+  }
+
+  isCreating.value = true
+  createError.value = ''
+  try {
+    await createResource(newResource.value)
+    await loadResourcesFromBackend()
+    closeCreateModal()
+  } catch (error) {
+    createError.value = error.message || 'Erro ao criar recurso.'
+  } finally {
+    isCreating.value = false
+  }
+}
 
 const openEditModal = (resource) => {
   editResourceData.value = { ...resource }
@@ -225,6 +359,7 @@ const handleUpdateStatus = async () => {
       estado: selectedStatus.value,
       localizacao: editResourceData.value.localizacao,
       equipaResponsavel: editResourceData.value.equipaResponsavel,
+      especificacoes: editResourceData.value.especificacoes,
     }
     await updateResource(editResourceData.value.idRecurso, payload)
     await loadResourcesFromBackend()

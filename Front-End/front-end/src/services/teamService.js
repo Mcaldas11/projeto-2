@@ -266,6 +266,24 @@ async function updateResource(resourceId, payload) {
   )
 }
 
+async function createResource(payload) {
+  if (!API_BASE_URL) {
+    throw new Error('Define VITE_API_URL para criar recursos na base de dados.')
+  }
+
+  return fetchJson(
+    '/recursos',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    },
+    true,
+  )
+}
+
 export {
   API_BASE_URL,
   listTeams,
@@ -276,4 +294,5 @@ export {
   deleteWorker,
   listResources,
   updateResource,
+  createResource,
 }
