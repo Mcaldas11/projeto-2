@@ -8,7 +8,9 @@
       </router-link>
 
       <div class="nav-icons" ref="navIcons">
-        <router-link v-if="newOccurrenceRoute" :to="newOccurrenceRoute" class="icon add">+</router-link>
+        <router-link v-if="newOccurrenceRoute" :to="newOccurrenceRoute" class="icon add"
+          >+</router-link
+        >
         <!-- <img
           :src="notifications.length === 0 ? notifOff : notifOn"
           alt="notifications"
@@ -64,7 +66,12 @@
         </div>
       </div>
 
-      <section v-if="viewMode === 'lista'" class="list-view">
+      <div v-if="isLoadingOccurrences" class="loading-state">
+        <div class="spinner"></div>
+        <span>A carregar ocorrências...</span>
+      </div>
+
+      <section v-else-if="viewMode === 'lista'" class="list-view">
         <div
           v-if="ocorrenciasError"
           class="error-banner"
@@ -114,17 +121,13 @@
 
         <!-- Pagination Controls -->
         <div v-if="totalPages > 1" class="pagination">
-          <button 
-            :disabled="currentPage === 1" 
-            @click="currentPage--"
-            class="page-btn"
-          >
+          <button :disabled="currentPage === 1" @click="currentPage--" class="page-btn">
             &laquo; Anterior
           </button>
-          
+
           <div class="page-numbers">
-            <button 
-              v-for="page in totalPages" 
+            <button
+              v-for="page in totalPages"
               :key="page"
               :class="['page-number', { active: currentPage === page }]"
               @click="currentPage = page"
@@ -133,11 +136,7 @@
             </button>
           </div>
 
-          <button 
-            :disabled="currentPage === totalPages" 
-            @click="currentPage++"
-            class="page-btn"
-          >
+          <button :disabled="currentPage === totalPages" @click="currentPage++" class="page-btn">
             Próximo &raquo;
           </button>
         </div>
@@ -190,7 +189,7 @@
       </section>
     </main>
 
-    <Footer />
+    <FooterHome />
   </div>
 </template>
 
@@ -199,7 +198,7 @@ import { computed, nextTick, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import Footer from '@/components/footer.vue'
+import FooterHome from '@/components/FooterHome.vue'
 import SidebarMenu from '@/components/SidebarMenu.vue'
 // import notifOn from '@/assets/notificationson.png'
 // import notifOff from '@/assets/notificationsoff.png'
@@ -247,6 +246,7 @@ const toggleMenu = (e) => {
 // const removeNotif = (i) => notifications.value.splice(i, 1)
 
 const ocorrencias = ref([])
+const isLoadingOccurrences = ref(false)
 const ocorrenciasError = ref('')
 const fetchInfo = ref({ allCount: null, byStateCount: null, fallbackCount: null, errors: [] })
 
@@ -401,7 +401,11 @@ function renderMarkers() {
   })
 
   // Se houver uma ocorrência selecionada, vamos centrar nela em vez de fazer fitBounds em todas
-  if (selectedOccurrence.value && selectedOccurrence.value.latitude && selectedOccurrence.value.longitude) {
+  if (
+    selectedOccurrence.value &&
+    selectedOccurrence.value.latitude &&
+    selectedOccurrence.value.longitude
+  ) {
     mapInstance.setView([selectedOccurrence.value.latitude, selectedOccurrence.value.longitude], 16)
   } else {
     fitMarkers()
@@ -439,6 +443,8 @@ function destroyMap() {
 const isGlobalView = computed(() => route.path === '/ocorrencias-globais')
 
 async function loadOccurrences() {
+  isLoadingOccurrences.value = true
+  ocorrenciasError.value = ''
   const role = getAuthUserType() || ''
   let data = []
 
@@ -495,6 +501,7 @@ async function loadOccurrences() {
       enrichedOccurrences.find((occurrence) => occurrence.id === selectedOccurrence.value.id) ||
       null
   }
+  isLoadingOccurrences.value = false
 
   renderMarkers()
 }
@@ -505,7 +512,7 @@ function selectOccurrence(marker) {
 
 // Watch for route changes to switch between global and local views
 watch(
-  () => route.path,
+  () => [route.path, route.query.id],
   () => {
     loadOccurrences()
   },
@@ -791,6 +798,35 @@ onBeforeUnmount(() => {
   transition: all 0.2s;
 }
 
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 0;
+  gap: 15px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f1f5f9;
+  border-top: 4px solid #730000;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 .page-number.active {
   background: #3b82f6;
   color: white;
@@ -932,6 +968,7 @@ onBeforeUnmount(() => {
   border-radius: 20px;
   font-size: 0.8rem;
   font-weight: bold;
+  margin-left: 10px; /* Adiciona o espaço entre o texto e o badge */
 }
 .resolvido {
   background: #dcfce7;

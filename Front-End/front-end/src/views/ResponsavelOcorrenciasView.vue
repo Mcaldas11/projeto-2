@@ -411,7 +411,7 @@ async function loadOccurrences() {
 
   try {
     const isResponsible = role === 'trabalhador_responsavel' || role === 'responsavel'
-    
+
     if (isResponsible) {
       // For responsibles, we use the new endpoint that returns everything in their parish
       data = await listOccurrences()
@@ -819,6 +819,7 @@ onBeforeUnmount(() => {
   border-radius: 20px;
   font-size: 0.8rem;
   font-weight: bold;
+  margin-left: 10px; /* Adiciona o espaço entre o texto e o badge */
 }
 .resolvido {
   background: #dcfce7;

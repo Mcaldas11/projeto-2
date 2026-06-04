@@ -5,7 +5,9 @@
         <img src="@/assets/logoP.png" alt="VC Comunica Logo" class="logo-img" />
       </div>
       <div class="nav-icons" ref="navIcons">
-        <router-link v-if="newOccurrenceRoute" :to="newOccurrenceRoute" class="icon add">+</router-link>
+        <router-link v-if="newOccurrenceRoute" :to="newOccurrenceRoute" class="icon add"
+          >+</router-link
+        >
         <!-- <img
           :src="notifications.length === 0 ? notifOff : notifOn"
           alt="notifications"
@@ -87,17 +89,19 @@
               </p>
               <p>
                 <strong>Localização:</strong><br />{{ occurrenceLocation }}<br />
-                <button @click="viewOnMap" class="map-link-btn">
-                 Ver no mapa
-                </button>
+                <button @click="viewOnMap" class="map-link-btn">Ver no mapa</button>
               </p>
               <p><strong>Descrição:</strong><br />{{ occurrenceDescription }}</p>
 
               <p v-if="selectedOccurrence.dataAgendada">
-                <strong>Data agendada:</strong><br />{{ formatDateTime(selectedOccurrence.dataAgendada) }}
+                <strong>Data agendada:</strong><br />{{
+                  formatDateTime(selectedOccurrence.dataAgendada)
+                }}
               </p>
               <p v-if="selectedOccurrence.dataResolucao">
-                <strong>Data de resolução:</strong><br />{{ formatDateTime(selectedOccurrence.dataResolucao) }}
+                <strong>Data de resolução:</strong><br />{{
+                  formatDateTime(selectedOccurrence.dataResolucao)
+                }}
               </p>
               <p v-if="selectedOccurrence.feedback">
                 <strong>Feedback do trabalhador:</strong><br />{{ selectedOccurrence.feedback }}
@@ -130,11 +134,19 @@
                   </label>
                   <label>
                     Data agendada
-                    <input v-model="resolveForm.dataAgendada" type="datetime-local" class="resolve-input" />
+                    <input
+                      v-model="resolveForm.dataAgendada"
+                      type="datetime-local"
+                      class="resolve-input"
+                    />
                   </label>
                   <label>
                     Data de resolução
-                    <input v-model="resolveForm.dataResolucao" type="datetime-local" class="resolve-input" />
+                    <input
+                      v-model="resolveForm.dataResolucao"
+                      type="datetime-local"
+                      class="resolve-input"
+                    />
                   </label>
                 </div>
 
@@ -148,7 +160,11 @@
                 </label>
 
                 <div class="resolve-actions">
-                  <button class="report-btn" :disabled="isSavingResolution" @click="submitResolution">
+                  <button
+                    class="report-btn"
+                    :disabled="isSavingResolution"
+                    @click="submitResolution"
+                  >
                     {{ isSavingResolution ? 'A guardar...' : 'Guardar resolução' }}
                   </button>
                   <p v-if="resolveNotice" class="resolve-notice">{{ resolveNotice }}</p>
@@ -173,20 +189,39 @@
                 Submetido em: {{ formatDateTime(avaliacaoExistente.dataMensagem) }}
               </span>
             </div>
-            <p class="eval-text"><strong>O seu comentário:</strong> {{ avaliacaoExistente.texto }}</p>
-            <div class="eval-footer-actions" style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
-              <p class="success-msg" style="font-weight: bold; margin: 0;">✔ Avaliação guardada com sucesso!</p>
-              <button class="report-btn report-btn-secondary" @click="jaAvaliado = false">Editar Avaliação</button>
+            <p class="eval-text">
+              <strong>O seu comentário:</strong> {{ avaliacaoExistente.texto }}
+            </p>
+            <div
+              class="eval-footer-actions"
+              style="
+                margin-top: 15px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <p class="success-msg" style="font-weight: bold; margin: 0">
+                ✔ Avaliação guardada com sucesso!
+              </p>
+              <button class="report-btn report-btn-secondary" @click="jaAvaliado = false">
+                Editar Avaliação
+              </button>
             </div>
           </div>
 
           <div v-else class="evaluation-form-box">
-            <p class="instruction-text">A ocorrência encontra-se concluída. Por favor, deixe o seu comentário e classificação:</p>
-            
+            <p class="instruction-text">
+              A ocorrência encontra-se concluída. Por favor, deixe o seu comentário e classificação:
+            </p>
+
             <div class="form-row">
               <div class="form-group rating-group">
                 <label>Classificação (0 a 5):</label>
-                <select v-model.number="citizenForm.classificacao" class="resolve-input select-rating">
+                <select
+                  v-model.number="citizenForm.classificacao"
+                  class="resolve-input select-rating"
+                >
                   <option :value="0">0 - Muito Mau</option>
                   <option :value="1">1 - Mau</option>
                   <option :value="2">2 - Satisfatório</option>
@@ -207,8 +242,18 @@
             </div>
 
             <div class="resolve-actions">
-              <button class="report-btn submit-eval-btn" :disabled="isSavingEvaluation" @click="submitCitizenEvaluation">
-                {{ isSavingEvaluation ? 'A guardar no backend...' : (avaliacaoExistente ? 'Atualizar Avaliação' : 'Submeter Avaliação') }}
+              <button
+                class="report-btn submit-eval-btn"
+                :disabled="isSavingEvaluation"
+                @click="submitCitizenEvaluation"
+              >
+                {{
+                  isSavingEvaluation
+                    ? 'A guardar no backend...'
+                    : avaliacaoExistente
+                      ? 'Atualizar Avaliação'
+                      : 'Submeter Avaliação'
+                }}
               </button>
               <p v-if="evaluationNotice" class="resolve-notice error-msg">
                 {{ evaluationNotice }}
@@ -228,7 +273,10 @@
               <p><strong>Trabalhadores alocados:</strong></p>
               <div v-if="selectedOccurrence.idEquipa && teamWorkers.length" class="workers-grid">
                 <div v-for="worker in teamWorkers" :key="worker.idTrabalhador" class="worker-card">
-                  <img :src="worker.fotoPerfil || defaultWorkerAvatar" :alt="worker.nomeTrabalhador" />
+                  <img
+                    :src="worker.fotoPerfil || defaultWorkerAvatar"
+                    :alt="worker.nomeTrabalhador"
+                  />
                   <span>{{ worker.nomeTrabalhador }}</span>
                 </div>
               </div>
@@ -240,7 +288,9 @@
             <div class="tech-info">
               <p><strong>Especialização:</strong> {{ specializationLabel }}</p>
               <p><strong>Freguesia:</strong> {{ occurrenceMunicipality }}</p>
-              <p v-if="selectedOccurrence.idEquipa"><strong>Equipa:</strong> {{ assignedTeamLabel }}</p>
+              <p v-if="selectedOccurrence.idEquipa">
+                <strong>Equipa:</strong> {{ assignedTeamLabel }}
+              </p>
             </div>
           </div>
         </section>
@@ -311,7 +361,7 @@ const jaAvaliado = ref(false)
 const avaliacaoExistente = ref(null)
 const citizenForm = ref({
   texto: '',
-  classificacao: 5 // Valor por defeito
+  classificacao: 5, // Valor por defeito
 })
 
 // Só permite avaliar se o estado for Resolvido ou Não resolvido E se for cidadão
@@ -326,15 +376,15 @@ function viewOnMap() {
     path: '/ocorrencias',
     query: {
       id: selectedOccurrence.value.id,
-      mode: 'mapa'
-    }
+      mode: 'mapa',
+    },
   })
 }
 
 async function loadOccurrence() {
   selectedOccurrence.value = await getOccurrence(route.params.id)
   resolveNotice.value = ''
-  
+
   // Limpa o formulário e garante que mostra a caixa de escrita
   citizenForm.value = { texto: '', classificacao: 5 }
   jaAvaliado.value = false
@@ -380,7 +430,7 @@ async function loadOccurrence() {
 // ─── FUNÇÃO QUE GRAVA EXATAMENTE COMO NO TEU MODELO SEQUELIZE ───
 async function submitCitizenEvaluation() {
   if (!selectedOccurrence.value) return
-  
+
   if (!citizenForm.value.texto.trim()) {
     evaluationNotice.value = 'Aviso: Tem de escrever um comentário.'
     return
@@ -396,7 +446,7 @@ async function submitCitizenEvaluation() {
       dataMensagem: new Date().toISOString(),
       classificacao: Number(citizenForm.value.classificacao),
       idCidadao: Number(currentUserId) || 1,
-      idOcorrencia: Number(selectedOccurrence.value.id)
+      idOcorrencia: Number(selectedOccurrence.value.id),
     }
 
     let resultado
@@ -407,13 +457,12 @@ async function submitCitizenEvaluation() {
       // Se não existe, criamos
       resultado = await createMensagem(payload)
     }
-    
+
     // Se a API não devolver o objeto criado, usamos o payload local para visualização
     avaliacaoExistente.value = resultado || payload
-    
+
     // Agora sim, trancamos o formulário em modo leitura
     jaAvaliado.value = true
-
   } catch (error) {
     evaluationNotice.value = error?.message || 'Erro ao comunicar com a base de dados.'
   } finally {
@@ -428,9 +477,15 @@ const occurrenceTitle = computed(() => {
 
 const occurrenceTypeMeta = computed(() => getOccurrenceTypeMeta(selectedOccurrence.value?.tipo))
 const occurrenceStatus = computed(() => selectedOccurrence.value?.situacao || 'Desconhecido')
-const occurrenceLocation = computed(() => selectedOccurrence.value?.location || 'Local não disponível')
-const occurrenceDescription = computed(() => selectedOccurrence.value?.detalhes || 'Sem descrição disponível.')
-const occurrenceMunicipality = computed(() => selectedOccurrence.value?.municipio || selectedOccurrence.value?.freguesia || '')
+const occurrenceLocation = computed(
+  () => selectedOccurrence.value?.location || 'Local não disponível',
+)
+const occurrenceDescription = computed(
+  () => selectedOccurrence.value?.detalhes || 'Sem descrição disponível.',
+)
+const occurrenceMunicipality = computed(
+  () => selectedOccurrence.value?.municipio || selectedOccurrence.value?.freguesia || '',
+)
 const specializationLabel = computed(() => {
   if (assignedTeamLabel.value) return assignedTeamLabel.value
   return 'A aguardar atribuição'
@@ -487,11 +542,12 @@ watch(
       activeImage.value = null
       return
     }
-    const photos = Array.isArray(occurrence.photos) && occurrence.photos.length
-      ? occurrence.photos
-      : occurrence.image
-        ? [occurrence.image]
-        : []
+    const photos =
+      Array.isArray(occurrence.photos) && occurrence.photos.length
+        ? occurrence.photos
+        : occurrence.image
+          ? [occurrence.image]
+          : []
     gallery.value = photos
     activeImage.value = photos[0] || null
   },
@@ -546,7 +602,9 @@ const toggleMenu = (e) => {
 
 watch(
   () => route.params.id,
-  async () => { await loadOccurrence() },
+  async () => {
+    await loadOccurrence()
+  },
   { immediate: true },
 )
 
@@ -554,7 +612,12 @@ function handleDocClick(e) {
   // if (showNotif.value && notifPanel.value && !notifPanel.value.contains(e.target) && !notifIcon.value.contains(e.target)) {
   //   showNotif.value = false
   // }
-  if (showMenu.value && menuPanel.value && !menuPanel.value.contains(e.target) && !menuIcon.value.contains(e.target)) {
+  if (
+    showMenu.value &&
+    menuPanel.value &&
+    !menuPanel.value.contains(e.target) &&
+    !menuIcon.value.contains(e.target)
+  ) {
     showMenu.value = false
   }
 }
@@ -647,8 +710,13 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   padding: 8px;
   width: 100%;
 }
-.menu-label { font-size: 13px; }
-.menu-icon { width: 14px; height: 14px; }
+.menu-label {
+  font-size: 13px;
+}
+.menu-icon {
+  width: 14px;
+  height: 14px;
+}
 .notif-item {
   background: #dff3ec;
   padding: 12px;
@@ -656,7 +724,9 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   cursor: pointer;
   margin-bottom: 8px;
 }
-.notif-title { font-weight: 700; }
+.notif-title {
+  font-weight: 700;
+}
 
 .content-wrapper {
   max-width: 1100px;
@@ -725,12 +795,22 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.08s ease;
+  transition:
+    background 0.15s ease,
+    transform 0.08s ease;
   padding: 0;
 }
-.gallery-nav button:hover { background: #f3f4f6; transform: translateY(-1px); }
-.gallery-nav button:active { transform: translateY(0); }
-.gallery-nav button:disabled { opacity: 0.5; cursor: not-allowed; }
+.gallery-nav button:hover {
+  background: #f3f4f6;
+  transform: translateY(-1px);
+}
+.gallery-nav button:active {
+  transform: translateY(0);
+}
+.gallery-nav button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 .thumbnails img {
   width: 60px;
   height: 45px;
@@ -766,11 +846,24 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   border-radius: 20px;
   font-weight: bold;
   font-size: 13px;
+  margin-left: 10px; /* Adiciona o espaço entre o texto e o badge */
 }
-.resolvido    { background: #dff3ec; color: #059669; }
-.em-resolucao { background: #fef9c3; color: #ca8a04; }
-.espera       { background: #ffedd5; color: #ea580c; }
-.nao-resolvido{ background: #fee2e2; color: #dc2626; }
+.resolvido {
+  background: #dff3ec;
+  color: #059669;
+}
+.em-resolucao {
+  background: #fef9c3;
+  color: #ca8a04;
+}
+.espera {
+  background: #ffedd5;
+  color: #ea580c;
+}
+.nao-resolvido {
+  background: #fee2e2;
+  color: #dc2626;
+}
 
 .user-chip {
   display: flex;
@@ -970,7 +1063,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   min-height: 120px;
 }
 .submit-eval-btn {
-  background: #166534; 
+  background: #166534;
   padding: 12px 24px;
 }
 .submit-eval-btn:hover {
@@ -1054,9 +1147,26 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   align-items: flex-end;
   margin-top: 60px;
 }
-.footer-links { display: flex; gap: 60px; }
-.col { display: flex; flex-direction: column; gap: 10px; }
-.col a { text-decoration: none; color: #2d5a27; font-weight: 600; }
-.logo-img-small { height: 80px; }
-.copyright { font-size: 0.8rem; color: #888; margin-top: 10px; }
+.footer-links {
+  display: flex;
+  gap: 60px;
+}
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.col a {
+  text-decoration: none;
+  color: #2d5a27;
+  font-weight: 600;
+}
+.logo-img-small {
+  height: 80px;
+}
+.copyright {
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 10px;
+}
 </style>
