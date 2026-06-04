@@ -1,4 +1,4 @@
-import { Rota } from "../config/db.config.js";
+import { Rota, Trabalhador } from "../config/db.config.js";
 import {
   genericError,
   notFoundError,
@@ -16,9 +16,36 @@ const handleSequelizeValidation = (error, next) => {
   return false;
 };
 
+const getAdminEmails = () =>
+  (process.env.ADMIN_EMAILS || "admin@vcc.pt,admin.geral@example.pt")
+    .split(",")
+    .map((email) => email.trim())
+    .filter(Boolean);
+
+const isAdminEmail = (email) => getAdminEmails().includes((email || "").trim());
+
+const isRequesterAdmin = async (req) => {
+  if (!req.userData || !req.userData.userType) return false;
+  if (req.userData.userType === "trabalhador_admin") return true;
+  if (!req.userData.userType.startsWith("trabalhador")) return false;
+  const requesterTrab = await Trabalhador.findByPk(req.userData.userId);
+  return Boolean(requesterTrab && isAdminEmail(requesterTrab.emailTrabalhador));
+};
+
 export const getAllRotas = async (req, res, next) => {
   try {
-    const rotas = await Rota.findAll();
+    const isAdmin = await isRequesterAdmin(req);
+    const isResponsavel = req.userData?.userType === "trabalhador_responsavel";
+    
+    let filter = {};
+    if (isResponsavel && !isAdmin) {
+      const requester = await Trabalhador.findByPk(req.userData.userId);
+      if (requester) {
+        filter = { idFreguesia: requester.idFreguesia };
+      }
+    }
+
+    const rotas = await Rota.findAll({ where: filter });
     const data = rotas.map((r) => ({
       ...r.toJSON(),
       waypoints: JSON.parse(r.waypoints || "[]"),
@@ -36,6 +63,16 @@ export const getRotaById = async (req, res, next) => {
     const rota = await Rota.findByPk(id);
     if (!rota) return next(notFoundError("rota", id));
 
+    const isAdmin = await isRequesterAdmin(req);
+    const isResponsavel = req.userData?.userType === "trabalhador_responsavel";
+
+    if (isResponsavel && !isAdmin) {
+      const requester = await Trabalhador.findByPk(req.userData.userId);
+      if (requester && Number(rota.idFreguesia) !== Number(requester.idFreguesia)) {
+        return res.status(403).json({ message: "Forbidden: Not your parish route" });
+      }
+    }
+
     res.json({
       ...rota.toJSON(),
       waypoints: JSON.parse(rota.waypoints || "[]"),
@@ -49,9 +86,26 @@ export const getRotaById = async (req, res, next) => {
 export const createRota = async (req, res, next) => {
   try {
     const { nome, idFreguesia, waypoints, geometry, cor } = req.body;
+    
+    const isAdmin = await isRequesterAdmin(req);
+    const isResponsavel = req.userData?.userType === "trabalhador_responsavel";
+    
+    let targetIdFreguesia = idFreguesia;
+
+    if (isResponsavel && !isAdmin) {
+      const requester = await Trabalhador.findByPk(req.userData.userId);
+      if (!requester) return res.status(403).json({ message: "Requester not found" });
+      // Enforce the requester's parish
+      targetIdFreguesia = requester.idFreguesia;
+    }
+
+    if (!targetIdFreguesia) {
+      return res.status(400).json({ message: "idFreguesia is required" });
+    }
+
     const rota = await Rota.create({
       nome,
-      idFreguesia,
+      idFreguesia: targetIdFreguesia,
       waypoints: JSON.stringify(waypoints || []),
       geometry: JSON.stringify(geometry || []),
       cor,
@@ -73,7 +127,20 @@ export const updateRota = async (req, res, next) => {
     const rota = await Rota.findByPk(id);
     if (!rota) return next(notFoundError("rota", id));
 
+    const isAdmin = await isRequesterAdmin(req);
+    const isResponsavel = req.userData?.userType === "trabalhador_responsavel";
+
+    if (isResponsavel && !isAdmin) {
+      const requester = await Trabalhador.findByPk(req.userData.userId);
+      if (requester && Number(rota.idFreguesia) !== Number(requester.idFreguesia)) {
+        return res.status(403).json({ message: "Forbidden: Cannot update other parish route" });
+      }
+    }
+
     const updates = { ...req.body };
+    // Prevent changing parish if not admin
+    if (!isAdmin) delete updates.idFreguesia;
+
     if (updates.waypoints) updates.waypoints = JSON.stringify(updates.waypoints);
     if (updates.geometry) updates.geometry = JSON.stringify(updates.geometry);
 
@@ -94,6 +161,17 @@ export const deleteRota = async (req, res, next) => {
     const { id } = req.params;
     const rota = await Rota.findByPk(id);
     if (!rota) return next(notFoundError("rota", id));
+
+    const isAdmin = await isRequesterAdmin(req);
+    const isResponsavel = req.userData?.userType === "trabalhador_responsavel";
+
+    if (isResponsavel && !isAdmin) {
+      const requester = await Trabalhador.findByPk(req.userData.userId);
+      if (requester && Number(rota.idFreguesia) !== Number(requester.idFreguesia)) {
+        return res.status(403).json({ message: "Forbidden: Cannot delete other parish route" });
+      }
+    }
+
     await rota.destroy();
     res.status(204).send();
   } catch (error) {

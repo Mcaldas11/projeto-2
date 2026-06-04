@@ -18,7 +18,7 @@
     </nav>
 
     <main class="main-content">
-      <h1 class="page-title">Rotas</h1>
+      <h1 class="page-title">Rotas de {{ userFreguesiaNome || 'Freguesia' }}</h1>
 
       <!-- Rotas Ativas -->
       <section class="rotas-ativas">
@@ -28,7 +28,7 @@
           </div>
 
           <div class="rotas-legend">
-            <h3 class="legend-title legend-title-secondary">Ocorrências Ativas</h3>
+            <h3 class="legend-title legend-title-secondary">Ocorrências Ativas na Freguesia</h3>
             <div class="occ-legend-grid">
               <div
                 v-for="type in activeOccurrenceTypes"
@@ -46,14 +46,17 @@
                 </div>
               </div>
             </div>
+            <p v-if="activeOccurrenceTypes.length === 0" class="no-occs-msg">
+              Não existem ocorrências ativas nesta freguesia.
+            </p>
           </div>
         </div>
       </section>
 
       <!-- Proximas Rotas Otimizadas -->
       <section class="proximas-rotas">
-        <h2 class="section-subtitle">Proximas Rotas Otimizadas</h2>
-        <p class="espera-label">Nº Ocorrências em espera</p>
+        <h2 class="section-subtitle">Rotas da Junta de Freguesia</h2>
+        <p class="espera-label">Rotas guardadas para a equipa técnica</p>
         <div class="category-cards">
           <div
             v-for="route in routes"
@@ -62,8 +65,8 @@
           >
             <div class="card-bar" :style="{ background: route.color || route.cor }"></div>
             <div class="card-content">
-              <strong>{{ route.teamName || route.nome }}</strong>
-              <span>{{ route.waypoints?.length || 0 }} pontos</span>
+              <strong>{{ route.nome }}</strong>
+              <span>{{ route.waypoints?.length || 0 }} pontos de paragem</span>
             </div>
             <img 
               src="@/assets/delete_icon.svg" 
@@ -73,8 +76,12 @@
             />
           </div>
         </div>
-        <button class="btn-gerar-rotas" :disabled="isGenerating" @click="gerarRotas">
-          {{ isGenerating ? 'A gravar...' : 'Gerar Rotas' }}
+        <button 
+          class="btn-gerar-rotas" 
+          :disabled="isGenerating || activeOccurrenceTypes.length === 0" 
+          @click="gerarRotas"
+        >
+          {{ isGenerating ? 'A gravar rota...' : 'Gerar Rotas da Junta' }}
         </button>
       </section>
     </main>
@@ -210,14 +217,13 @@ function drawRoutes() {
       const startPoint = originalPoints[0]
       const endPoint = originalPoints[originalPoints.length - 1]
       
-      // Marker for Parish Hall (Start)
       L.circleMarker(startPoint, {
         radius: 8,
         color: '#16a34a',
         fillColor: '#fff',
         fillOpacity: 1,
         weight: 3,
-      }).addTo(routeLayer.value).bindPopup('Junta de Freguesia (Início)')
+      }).addTo(routeLayer.value).bindPopup(`Junta de Freguesia de ${userFreguesiaNome.value} (Início)`)
 
       L.circleMarker(endPoint, {
         radius: 7,
@@ -281,7 +287,10 @@ async function initMap() {
 async function loadOccurrences() {
   try {
     const markers = await listOccurrenceMarkers()
-    occurrenceMarkers.value = Array.isArray(markers) ? markers : []
+    // Filtro adicional de segurança: garantir que as ocorrências são da freguesia do user
+    occurrenceMarkers.value = Array.isArray(markers) 
+      ? markers.filter(m => Number(m.idFreguesia) === Number(userFreguesiaId.value))
+      : []
     drawOccurrences()
   } catch {
     occurrenceMarkers.value = []
@@ -385,29 +394,24 @@ async function getFreguesiaInfo() {
 const isGenerating = ref(false)
 
 async function gerarRotas() {
-  if (isGenerating.value) return
+  if (isGenerating.value || !userFreguesiaNome.value) return
   isGenerating.value = true
 
   try {
-    // Obter coordenadas da Junta de Freguesia real
     const startCoords = await geocodeParishHall(userFreguesiaNome.value)
     
-    // FILTRO IMPORTANTE: Apenas ocorrências ATIVAS (as que aparecem na legenda/mapa)
-    // E se houver um filtro de tipo selecionado, usa apenas esse
     const pendingOccs = occurrenceMarkers.value.filter((m) => {
       const isActive = ACTIVE_OCCURRENCE_STATES.has(String(m.statusClass || ''))
       const key = String(m.typeKey || normalizeTypeKey(m.tipo || '')).trim()
       
-      // Se houver filtro de tipo ativo, só gera para esse tipo
       if (selectedOccurrenceType.value) {
         return isActive && key === selectedOccurrenceType.value
       }
-      
       return isActive
     })
 
     if (pendingOccs.length === 0) {
-      alert('Não existem ocorrências ativas (vísiveis) para gerar rotas.')
+      alert(`Não existem ocorrências ativas em ${userFreguesiaNome.value} para gerar rotas.`)
       return
     }
 
@@ -428,8 +432,8 @@ async function gerarRotas() {
       ]
 
       const routePayload = {
-        nome: `Rota ${type} - ${new Date().toLocaleDateString()}`,
-        idFreguesia: Number(userFreguesiaId.value || 1),
+        nome: `Rota ${type} - ${userFreguesiaNome.value}`,
+        idFreguesia: Number(userFreguesiaId.value),
         waypoints,
         cor: OCC_PALETTE[colorIdx % OCC_PALETTE.length],
       }
@@ -443,7 +447,7 @@ async function gerarRotas() {
 
     routes.value = [...routes.value, ...newRoutes]
     drawRoutes()
-    alert(`${newRoutes.length} novas rotas geradas e guardadas com sucesso!`)
+    alert(`${newRoutes.length} novas rotas geradas a partir da Junta de ${userFreguesiaNome.value}!`)
   } catch (error) {
     console.error('Erro ao gerar rotas:', error)
     alert('Erro ao gerar rotas.')
@@ -609,6 +613,11 @@ onBeforeUnmount(() => {
   font-size: 14px;
   color: #64748b;
 }
+.no-occs-msg {
+  color: #64748b;
+  font-style: italic;
+  margin-top: 20px;
+}
 
 /* PROXIMAS ROTAS */
 .proximas-rotas {
@@ -685,7 +694,7 @@ onBeforeUnmount(() => {
   cursor: pointer;
   transition: opacity 0.15s;
 }
-.btn-gerar-rotas:hover {
+.btn-gerar-rotas:hover:not(:disabled) {
   opacity: 0.9;
 }
 .btn-gerar-rotas:disabled {
