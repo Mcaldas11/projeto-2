@@ -1,1107 +1,163 @@
-# Back-End API (Rotas e Exemplos)
+# Back-End API - Documentação Completa de Rotas
 
 Base URL: `http://127.0.0.1:3000`
 
-## Auth
+## 🔑 Autenticação e Controlo de Acesso
 
-- `Authorization: Bearer <TOKEN>`
-- `trabalhador_admin` é o userType do admin no login de trabalhador.
-- Rotas de `ocorrencias`, `mensagens`, `cidadaos/:id`, `cidadaos/:id/foto`, `trabalhadores/:id`, `trabalhadores/:id/foto` e `cidadaos/me/ocorrencias` usam auth.
-
-## Formato de erro
-
-```json
-{
-  "description": "Resource not found",
-  "errors": {
-    "ocorrencia": ["Resource ocorrencia with ID 999 not found"]
-  }
-}
-```
-
-```json
-{ "message": "Authentication failed!" }
-```
-
-```json
-{ "message": "Falta o ficheiro" }
-```
-
-## `cidadaos`
-
-### `GET /cidadaos`
-```json
-[
-  {
-    "idCidadao": 1,
-    "nome": "Ana Santos",
-    "fregCidadao": 2,
-    "nrTelemovel": "912345678",
-    "email": "ana@exemplo.pt"
-  }
-]
-```
-
-### `POST /cidadaos`
-Body:
-
-```json
-{
-  "nome": "Ana Santos",
-  "fregCidadao": 2,
-  "nrTelemovel": "912345678",
-  "email": "ana@exemplo.pt",
-  "password": "secret"
-}
-```
-
-```json
-{
-  "message": "Cidadao created successfully",
-  "token": "<jwt>",
-  "userId": 1,
-  "userType": "cidadao"
-}
-```
-
-### `POST /cidadaos/login`
-```json
-{ "email": "ana@exemplo.pt", "password": "secret" }
-```
-
-```json
-{
-  "message": "Login successful",
-  "token": "<jwt>",
-  "userId": 1,
-  "userType": "cidadao"
-}
-```
-
-### `GET /cidadaos/me`
+O sistema utiliza **JWT (JSON Web Token)**. O token deve ser enviado no header de todas as rotas protegidas:
 `Authorization: Bearer <TOKEN>`
 
-```json
-{
-  "idCidadao": 1,
-  "nome": "Ana Santos",
-  "fregCidadao": 2,
-  "nrTelemovel": "912345678",
-  "email": "ana@exemplo.pt",
-  "fotoPerfil": "https://res.cloudinary.com/.../perfil.jpg"
-}
-```
-
-### `GET /cidadaos/me/ocorrencias`
-`Authorization: Bearer <TOKEN>`
-
-```json
-[
-  {
-    "idOcorrencia": 2,
-    "descricao": "Buraco na estrada",
-    "estado": "À espera da equipa",
-    "idCidadao": 1,
-    "idFreguesia": 2
-  }
-]
-```
-
-### `GET /cidadaos/me/freguesia/ocorrencias`
-`Authorization: Bearer <TOKEN>`
-
-Lista todas as ocorrências na freguesia do cidadão autenticado.
-
-```json
-[
-  {
-    "idOcorrencia": 2,
-    "descricao": "Buraco na estrada",
-    "estado": "À espera da equipa",
-    "idCidadao": 1,
-    "idFreguesia": 2
-  },
-  {
-    "idOcorrencia": 5,
-    "descricao": "Candeeiro fundido",
-    "estado": "À espera da equipa",
-    "idCidadao": 10,
-    "idFreguesia": 2
-  }
-]
-```
-
-### `POST /cidadaos/me/ocorrencias`
-```json
-{
-  "descricao": "Buraco na estrada",
-  "localizacao": "Rua das Flores, 123",
-  "dataOcorrencia": "2026-05-27T10:30:00.000Z",
-  "severidade": "Baixa",
-  "tipo_ocorrencia": "Infraestruturas"
-}
-```
-
-```json
-{
-  "idOcorrencia": 2,
-  "descricao": "Buraco na estrada",
-  "estado": "À espera da equipa",
-  "idCidadao": 1,
-  "idFreguesia": 2
-}
-```
-
-### `GET /cidadaos/:id`
-```json
-{
-  "idCidadao": 1,
-  "nome": "Ana Santos",
-  "fregCidadao": 2,
-  "nrTelemovel": "912345678",
-  "email": "ana@exemplo.pt"
-}
-```
-
-### `PUT /cidadaos/:id`
-Body parcial permitido.
-
-```json
-{
-  "nome": "Ana Martins",
-  "nrTelemovel": "911111111"
-}
-```
-
-### `PATCH /cidadaos/:id/foto`
-`multipart/form-data` com `file`.
-
-```json
-{ "success": true, "fotoPerfil": "https://res.cloudinary.com/.../perfil.jpg" }
-```
-
-### `DELETE /cidadaos/:id`
-Status `204`.
-
-## `trabalhadores`
-
-### `GET /trabalhadores`
-```json
-[
-  {
-    "idTrabalhador": 1,
-    "nomeTrabalhador": "Jose Martins",
-    "emailTrabalhador": "jose@exemplo.pt",
-    "telemovelTrabalhador": "913333333",
-    "idEquipa": 2
-  }
-]
-```
-
-### `POST /trabalhadores`
-```json
-{
-  "nomeTrabalhador": "Jose Martins",
-  "emailTrabalhador": "jose@exemplo.pt",
-  "telemovelTrabalhador": "913333333",
-  "idEquipa": 2,
-  "password": "secret"
-}
-```
-
-```json
-{
-  "message": "Trabalhador created successfully",
-  "token": "<jwt>",
-  "userId": 1,
-  "userType": "trabalhador"
-}
-```
-
-### `POST /trabalhadores/login`
-```json
-{ "email": "jose@exemplo.pt", "password": "secret" }
-```
-
-```json
-{
-  "message": "Login realizado com sucesso",
-  "token": "<jwt>",
-  "userId": 1,
-  "userType": "trabalhador_admin"
-}
-```
-
-### `GET /trabalhadores/me`
-`Authorization: Bearer <TOKEN>`
-
-```json
-{
-  "idTrabalhador": 1,
-  "nomeTrabalhador": "Jose Martins",
-  "emailTrabalhador": "jose@exemplo.pt",
-  "telemovelTrabalhador": "913333333",
-  "idEquipa": 2,
-  "idFreguesia": 3,
-  "fotoPerfil": "https://res.cloudinary.com/.../perfil.jpg"
-}
-```
-
-### `GET /trabalhadores/me/ocorrencias`
-`Authorization: Bearer <TOKEN>`
-
-Lista as ocorrências da equipa do trabalhador que já têm `dataResolucao` preenchida.
-
-```json
-[
-  {
-    "idOcorrencia": 10,
-    "descricao": "Buraco na estrada",
-    "estado": "Resolvido",
-    "idCidadao": 1,
-    "idFreguesia": 2,
-    "idEquipa": 5,
-    "dataResolucao": "2026-05-28T12:00:00.000Z"
-  }
-]
-```
-
-### `GET /trabalhadores/me/freguesia/ocorrencias`
-`Authorization: Bearer <TOKEN>`
-
-Lista todas as ocorrências na freguesia do trabalhador (responsável) autenticado.
-
-```json
-[
-  {
-    "idOcorrencia": 1,
-    "descricao": "Fuga de água",
-    "estado": "Em resolução",
-    "idCidadao": 3,
-    "idFreguesia": 3
-  }
-]
-```
-
-### `GET /trabalhadores/:id`
-```json
-{
-  "idTrabalhador": 1,
-  "nomeTrabalhador": "Jose Martins",
-  "emailTrabalhador": "jose@exemplo.pt",
-  "telemovelTrabalhador": "913333333",
-  "idEquipa": 2
-}
-```
-
-### `PUT /trabalhadores/:id`
-Body parcial permitido.
-
-```json
-{
-  "nomeTrabalhador": "Jose Silva",
-  "idEquipa": 3
-}
-```
-
-### `PATCH /trabalhadores/:id/foto`
-`multipart/form-data` com `file`.
-
-```json
-{ "success": true, "fotoPerfil": "https://res.cloudinary.com/.../perfil.jpg" }
-```
-
-- Só o próprio trabalhador ou um admin pode alterar esta foto.
-
-### `DELETE /trabalhadores/:id`
-Status `204`.
-
-- Só o próprio trabalhador ou um admin pode apagar a conta.
-- Contas de admin não podem ser apagadas.
-- A foto de perfil é removida do Cloudinary antes de apagar a conta.
-
-## `ocorrencias`
-
-### `GET /ocorrencias`
-```json
-[
-  {
-    "idOcorrencia": 1,
-    "descricao": "Buraco na estrada",
-    "estado": "À espera da equipa",
-    "idCidadao": 1,
-    "idFreguesia": 2
-  }
-]
-```
-
-### `POST /ocorrencias`
-```json
-{
-  "descricao": "Lixo na rua",
-  "localizacao": "Centro",
-  "dataOcorrencia": "2026-05-28T10:00:00.000Z",
-  "severidade": "Alta",
-  "tipo_ocorrencia": "Higiene",
-  "idCidadao": 1,
-  "idFreguesia": 2
-}
-```
-
-### `GET /ocorrencias/:id`
-```json
-{
-  "idOcorrencia": 1,
-  "descricao": "Buraco na estrada",
-  "estado": "À espera da equipa"
-}
-```
-
-### `POST /ocorrencias/:id/fotos`
-`multipart/form-data` com `files`.
-
-```json
-{ "idOcorrencia": 1, "fotos": ["https://res.cloudinary.com/.../1.jpg"] }
-```
-
-### `DELETE /ocorrencias/:id/fotos`
-```json
-{ "success": true }
-```
-
-### `DELETE /ocorrencias/:id/fotos/:fotoIndex`
-```json
-{ "success": true }
-```
-
-### `PATCH /ocorrencias/:id/fotos/:fotoIndex`
-`multipart/form-data` com `files`.
-
-```json
-{ "success": true }
-```
-
-### `PUT /ocorrencias/:id`
-```json
-{
-  "descricao": "Buraco maior na estrada",
-  "estado": "Em análise"
-}
-```
-
-### `PATCH /ocorrencias/:id/resolve`
-```json
-{
-  "estado": "Resolvido",
-  "idEquipa": 2
-}
-```
-
-### `DELETE /ocorrencias/:id`
-Status `204`.
-
-## `mensagens`
-
-### `GET /mensagens`
-```json
-[
-  {
-    "idMensagem": 1,
-    "assunto": "Pedido de informação",
-    "idCidadao": 1
-  }
-]
-```
-
-### `POST /mensagens`
-```json
-{
-  "assunto": "Pedido de informação",
-  "mensagem": "Preciso de ajuda com a ocorrência",
-  "idCidadao": 1
-}
-```
-
-### `GET /mensagens/:id`
-```json
-{
-  "idMensagem": 1,
-  "assunto": "Pedido de informação",
-  "mensagem": "Preciso de ajuda com a ocorrência"
-}
-```
-
-### `PUT /mensagens/:id`
-```json
-{
-  "assunto": "Atualização",
-  "mensagem": "Já resolvi"
-}
-```
-
-### `DELETE /mensagens/:id`
-Status `204`.
-
-## `municipios`
-
-### `GET /municipios`
-```json
-[
-  { "idMunicipio": 1, "nome": "Vila do Conde" }
-]
-```
-
-### `POST /municipios`
-```json
-{ "nome": "Vila do Conde" }
-```
-
-### `GET /municipios/:id`
-```json
-{ "idMunicipio": 1, "nome": "Vila do Conde" }
-```
-
-### `PUT /municipios/:id`
-```json
-{ "nome": "Póvoa de Varzim" }
-```
-
-### `DELETE /municipios/:id`
-Status `204`.
-
-## `equipas`
-
-### `GET /equipas`
-```json
-[
-  { "idEquipa": 1, "nomeEquipa": "Equipa Norte" }
-]
-```
-
-### `POST /equipas`
-```json
-{ "nomeEquipa": "Equipa Norte" }
-```
-
-### `GET /equipas/:id`
-```json
-{ "idEquipa": 1, "nomeEquipa": "Equipa Norte" }
-```
-
-### `PUT /equipas/:id`
-```json
-{ "nomeEquipa": "Equipa Sul" }
-```
-
-### `DELETE /equipas/:id`
-Status `204`.
-
-## `recursos`
-
-### `GET /recursos`
-```json
-[
-  { "idRecurso": 1, "nomeRecurso": "Camião" }
-]
-```
-
-### `POST /recursos`
-```json
-{ "nomeRecurso": "Camião" }
-```
-
-### `GET /recursos/:id`
-```json
-{ "idRecurso": 1, "nomeRecurso": "Camião" }
-```
-
-### `PUT /recursos/:id`
-```json
-{ "nomeRecurso": "Carrinha" }
-```
-
-### `DELETE /recursos/:id`
-Status `204`.
-
-### POST /municipios
-Body:
-
-```json
-{ "nome": "Vila do Conde" }
-```
-
-Sucesso:
-
-```json
-{ "idMunicipio": 1, "nome": "Vila do Conde" }
-```
-
-Erro (exemplo 400):
-
-```json
-{
-  "description": "Missing required fields",
-  "errors": { "nome": ["nome is required"] }
-}
-```
-
-### GET /municipios/:id
-Sucesso:
-
-```json
-{ "idMunicipio": 1, "nome": "Vila do Conde" }
-```
-
-Erro (exemplo 404):
-
-```json
-{
-  "description": "Resource not found",
-  "errors": { "municipio": ["Resource municipio with ID 999 not found"] }
-}
-```
-
-### PUT /municipios/:id
-Sucesso:
-
-```json
-{ "idMunicipio": 1, "nome": "Vila do Conde" }
-```
-
-Erro (exemplo 400):
-
-```json
-{
-  "description": "Missing required fields",
-  "errors": { "nome": ["nome is required"] }
-}
-```
-
-### DELETE /municipios/:id
-Sucesso: status 204 (sem body)
-
-Erro (exemplo 404):
-
-```json
-{
-  "description": "Resource not found",
-  "errors": { "municipio": ["Resource municipio with ID 999 not found"] }
-}
-```
-
-## Equipas
-
-### GET /equipas
-Sucesso:
-
-```json
-[{ "idEquipa": 1, "especializacao": "Iluminacao", "fregEquipa": 2 }]
-```
-
-Erro (exemplo 500):
-
-```json
-{ "description": "Error fetching equipas" }
-```
-
-### POST /equipas
-Body:
-
-```json
-{ "especializacao": "Iluminacao", "fregEquipa": 2 }
-```
-
-Sucesso:
-
-```json
-{ "idEquipa": 1, "especializacao": "Iluminacao", "fregEquipa": 2 }
-```
-
-Erro (exemplo 400):
-
-```json
-{
-  "description": "Missing required fields",
-  "errors": { "especializacao": ["especializacao is required"] }
-}
-```
-
-### GET /equipas/:id
-Sucesso:
-
-```json
-{ "idEquipa": 1, "especializacao": "Iluminacao", "fregEquipa": 2 }
-```
-
-Erro (exemplo 404):
-
-```json
-{
-  "description": "Resource not found",
-  "errors": { "equipa": ["Resource equipa with ID 999 not found"] }
-}
-```
-
-### PUT /equipas/:id
-Sucesso:
-
-```json
-{ "idEquipa": 1, "especializacao": "Iluminacao", "fregEquipa": 2 }
-```
-
-Erro (exemplo 400):
-
-```json
-{
-  "description": "Missing required fields",
-  "errors": { "fregEquipa": ["fregEquipa is required"] }
-}
-```
-
-### DELETE /equipas/:id
-Sucesso: status 204 (sem body)
-
-Erro (exemplo 404):
-
-```json
-{
-  "description": "Resource not found",
-  "errors": { "equipa": ["Resource equipa with ID 999 not found"] }
-}
-```
-
-## Recursos
-
-### GET /recursos
-Sucesso:
-
-```json
-[
-  {
-    "idRecurso": 1,
-    "tipo": "Camiao",
-    "estado": "Disponivel",
-    "localizacao": "Parque",
-    "equipaResponsavel": 2
-  }
-]
-```
-
-Erro (exemplo 500):
-
-```json
-{ "description": "Error fetching recursos" }
-```
-
-### POST /recursos
-Body:
-
-```json
-{
-  "tipo": "Camiao",
-  "estado": "Disponivel",
-  "localizacao": "Parque",
-  "equipaResponsavel": 2
-}
-```
-
-Sucesso:
-
-```json
-{
-  "idRecurso": 1,
-  "tipo": "Camiao",
-  "estado": "Disponivel",
-  "localizacao": "Parque",
-  "equipaResponsavel": 2
-}
-```
-
-Erro (exemplo 400):
-
-```json
-{
-  "description": "Missing required fields",
-  "errors": { "tipo": ["tipo is required"] }
-}
-```
-
-### GET /recursos/:id
-Sucesso:
-
-```json
-{
-  "idRecurso": 1,
-  "tipo": "Camiao",
-  "estado": "Disponivel",
-  "localizacao": "Parque",
-  "equipaResponsavel": 2
-}
-```
-
-Erro (exemplo 404):
-
-```json
-{
-  "description": "Resource not found",
-  "errors": { "recurso": ["Resource recurso with ID 999 not found"] }
-}
-```
-
-### PUT /recursos/:id
-Sucesso:
-
-```json
-{
-  "idRecurso": 1,
-  "tipo": "Camiao",
-  "estado": "Disponivel",
-  "localizacao": "Parque",
-  "equipaResponsavel": 2
-}
-```
-
-Erro (exemplo 400):
-
-```json
-{
-  "description": "Missing required fields",
-  "errors": { "estado": ["estado is required"] }
-}
-```
-
-### DELETE /recursos/:id
-Sucesso: status 204 (sem body)
-
-Erro (exemplo 404):
-
-```json
-{
-  "description": "Resource not found",
-  "errors": { "recurso": ["Resource recurso with ID 999 not found"] }
-}
-```
-
-## Mensagens
-
-### GET /mensagens
-Sucesso:
-
-```json
-[
-  {
-    "idMensagem": 1,
-    "texto": "Ola",
-    "dataMensagem": "2026-05-27T10:30:00.000Z",
-    "idCidadao": 1,
-    "idOcorrencia": 2
-  }
-]
-```
-
-Erro (exemplo 500):
-
-```json
-{ "description": "Error fetching mensagens" }
-```
-
-### POST /mensagens
-Body:
-
-```json
-{
-  "texto": "Ola",
-  "dataMensagem": "2026-05-27T10:30:00.000Z",
-  "idCidadao": 1,
-  "idOcorrencia": 2
-}
-```
-
-Sucesso:
-
-```json
-{
-  "idMensagem": 1,
-  "texto": "Ola",
-  "dataMensagem": "2026-05-27T10:30:00.000Z",
-  "idCidadao": 1,
-  "idOcorrencia": 2
-}
-```
-
-Erro (exemplo 400):
-
-```json
-{
-  "description": "Missing required fields",
-  "errors": { "texto": ["texto is required"] }
-}
-```
-
-### GET /mensagens/:id
-Sucesso:
-
-```json
-{
-  "idMensagem": 1,
-  "texto": "Ola",
-  "dataMensagem": "2026-05-27T10:30:00.000Z",
-  "idCidadao": 1,
-  "idOcorrencia": 2
-}
-```
-
-Erro (exemplo 404):
-
-```json
-{
-  "description": "Resource not found",
-  "errors": { "mensagem": ["Resource mensagem with ID 999 not found"] }
-}
-```
-
-### PUT /mensagens/:id
-Sucesso:
-
-```json
-{
-  "idMensagem": 1,
-  "texto": "Ola",
-  "dataMensagem": "2026-05-27T10:30:00.000Z",
-  "idCidadao": 1,
-  "idOcorrencia": 2
-}
-```
-
-Erro (exemplo 400):
-
-```json
-{
-  "description": "Missing required fields",
-  "errors": { "texto": ["texto is required"] }
-}
-```
-
-### DELETE /mensagens/:id
-Sucesso: status 204 (sem body)
-
-Erro (exemplo 404):
-
-```json
-{
-  "description": "Resource not found",
-  "errors": { "mensagem": ["Resource mensagem with ID 999 not found"] }
-}
-```
-
-## Ocorrencias (auth required for all)
-
-### GET /ocorrencias
-Sucesso:
-
-```json
-[
-  {
-    "idOcorrencia": 2,
-    "foto": [
-      { "index": 0, "url": "https://res.cloudinary.com/.../img1.jpg" },
-      { "index": 1, "url": "https://res.cloudinary.com/.../img2.jpg" }
-    ],
-    "descricao": "Buraco na estrada",
-    "localizacao": "Rua das Flores, 123",
-    "estado": "À espera da equipa"
-  }
-]
-```
-
-Erro (exemplo 401):
-
-```json
-{ "message": "Authentication failed!" }
-```
-
-### POST /ocorrencias
-Body:
-
-```json
-{
-  "descricao": "Buraco na estrada",
-  "localizacao": "Rua das Flores, 123",
-  "dataOcorrencia": "2026-05-27T10:30:00.000Z",
-  "nomeAutor": "Ana Santos",
-  "nrTelemovelAutor": "912345678",
-  "severidade": "Baixa",
-  "idCidadao": 1,
-  "idFreguesia": 2,
-  "tipo_ocorrencia": "Infraestruturas"
-}
-```
-
-Sucesso:
-
-```json
-{
-  "idOcorrencia": 2,
-  "descricao": "Buraco na estrada",
-  "estado": "À espera da equipa"
-}
-```
-
-Erro (exemplo 401):
-
-```json
-{ "message": "Authentication failed!" }
-```
-
-### GET /ocorrencias/:id
-Sucesso:
-
-```json
-{
-  "idOcorrencia": 2,
-  "foto": [
-    { "index": 0, "url": "https://res.cloudinary.com/.../img1.jpg" }
-  ],
-  "descricao": "Buraco na estrada",
-  "localizacao": "Rua das Flores, 123"
-}
-```
-
-Erro (exemplo 404):
-
-```json
-{
-  "description": "Resource not found",
-  "errors": { "ocorrencia": ["Resource ocorrencia with ID 999 not found"] }
-}
-```
-
-### POST /ocorrencias/:id/fotos (multipart/form-data, files)
-Sucesso:
-
-```json
-{
-  "success": true,
-  "foto": [
-    { "index": 0, "url": "https://res.cloudinary.com/.../img1.jpg" },
-    { "index": 1, "url": "https://res.cloudinary.com/.../img2.jpg" }
-  ]
-}
-```
-
-Erro (exemplo 400):
-
-```json
-{ "message": "Falta o ficheiro" }
-```
-
-### PATCH /ocorrencias/:id/fotos/:fotoIndex (multipart/form-data, files)
-Sucesso:
-
-```json
-{
-  "success": true,
-  "foto": [
-    { "index": 0, "url": "https://res.cloudinary.com/.../img1.jpg" }
-  ]
-}
-```
-
-Erro (exemplo 404):
-
-```json
-{ "message": "Foto nao encontrada" }
-```
-
-### DELETE /ocorrencias/:id/fotos
-Sucesso:
-
-```json
-{ "success": true, "foto": [] }
-```
-
-Erro (exemplo 404):
-
-```json
-{
-  "description": "Resource not found",
-  "errors": { "ocorrencia": ["Resource ocorrencia with ID 999 not found"] }
-}
-```
-
-### DELETE /ocorrencias/:id/fotos/:fotoIndex
-Sucesso:
-
-```json
-{ "success": true, "foto": [] }
-```
-
-Erro (exemplo 400):
-
-```json
-{ "message": "fotoIndex invalido" }
-```
-
-### PUT /ocorrencias/:id
-Sucesso:
-
-```json
-{
-  "idOcorrencia": 2,
-  "descricao": "Buraco na estrada",
-  "estado": "Em resolucao"
-}
-```
-
-Erro (exemplo 400):
-
-```json
-{
-  "description": "Missing required fields",
-  "errors": { "descricao": ["descricao is required"] }
-}
-```
-
-### PATCH /ocorrencias/:id/resolve (auth trabalhador)
-Body (exemplo):
-
-```json
-{ "estado": "Resolvido", "feedback": "Corrigido" }
-```
-
-Sucesso:
-
-```json
-{
-  "idOcorrencia": 2,
-  "estado": "Resolvido",
-  "feedback": "Corrigido"
-}
-```
-
-Erro (exemplo 403):
-
-```json
-{ "message": "Forbidden: only trabalhadores can resolve ocorrencias" }
-```
-
-### DELETE /ocorrencias/:id
-Sucesso: status 204 (sem body)
-
-Erro (exemplo 404):
-
-```json
-{
-  "description": "Resource not found",
-  "errors": { "ocorrencia": ["Resource ocorrencia with ID 999 not found"] }
-}
-```
-
-## Health
-
-### GET /health
-Sucesso:
-
-```json
-{ "status": "ok" }
-```
+### Perfis de Utilizador (`userType`):
+- **`cidadao`**: Reporta e gere as suas próprias ocorrências.
+- **`trabalhador`**: Consulta ocorrências e resolve tarefas da sua equipa.
+- **`trabalhador_responsavel`**: Gere trabalhadores e rotas na sua freguesia.
+- **`trabalhador_admin`**: Controlo total sobre o sistema.
+
+---
+
+## 🔐 Módulo: Auth (Autenticação Unificada)
+
+| Método | Rota | Descrição | Acesso |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/auth/login` | Login universal para todos os tipos de utilizador. | Público |
+
+---
+
+## 👤 Módulo: Cidadãos (`/cidadaos`)
+
+| Método | Rota | Descrição | Acesso |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/cidadaos` | Listar todos os cidadãos (dados públicos). | Público |
+| `POST` | `/cidadaos` | Criar conta de cidadão (Registo). | Público |
+| `POST` | `/cidadaos/login` | Login específico para cidadãos. | Público |
+| `GET` | `/cidadaos/me` | Obter perfil do próprio cidadão autenticado. | Cidadão |
+| `PUT` | `/cidadaos/me` | Atualizar dados do próprio perfil. | Cidadão |
+| `GET` | `/cidadaos/me/ocorrencias` | Listar ocorrências criadas pelo próprio. | Cidadão |
+| `GET` | `/cidadaos/me/freguesia/ocorrencias` | Listar todas as ocorrências na freguesia do cidadão. | Cidadão |
+| `POST` | `/cidadaos/me/ocorrencias` | Criar ocorrência associada automaticamente ao perfil. | Cidadão |
+| `GET` | `/cidadaos/:id` | Ver detalhes de um cidadão específico. | Público |
+| `PUT` | `/cidadaos/:id` | Atualizar dados de um cidadão. | Próprio / Admin |
+| `PATCH` | `/cidadaos/:id/foto` | Atualizar foto de perfil (multipart/form-data: `file`). | Próprio |
+| `DELETE` | `/cidadaos/:id` | Apagar conta (remove fotos e mensagens associadas). | Próprio / Admin |
+
+---
+
+## 👷 Módulo: Trabalhadores (`/trabalhadores`)
+
+| Método | Rota | Descrição | Acesso |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/trabalhadores` | Listar todos os trabalhadores (exceto admins). | Público |
+| `POST` | `/trabalhadores` | Criar novo trabalhador. | **Resp. / Admin** |
+| `POST` | `/trabalhadores/login` | Login específico para trabalhadores. | Público |
+| `GET` | `/trabalhadores/me` | Obter perfil do trabalhador autenticado. | Trabalhador |
+| `PUT` | `/trabalhadores/me` | Atualizar dados do próprio perfil. | Trabalhador |
+| `GET` | `/trabalhadores/me/ocorrencias` | Listar ocorrências **pendentes** na sua freguesia. | Trabalhador |
+| `GET` | `/trabalhadores/me/freguesia/ocorrencias` | Listar **todas** as ocorrências da sua freguesia. | Trabalhador |
+| `GET` | `/trabalhadores/me/ocorrencias/resolvidas` | Ocorrências resolvidas pela sua equipa. | Trabalhador |
+| `GET` | `/trabalhadores/me/ocorrencias/em-resolucao` | Ocorrências que a sua equipa está a tratar. | Trabalhador |
+| `GET` | `/trabalhadores/me/ocorrencias/home` | Feed misto (pendentes + atribuídas à equipa). | Trabalhador |
+| `GET` | `/trabalhadores/:id` | Ver detalhes de um trabalhador. | Público |
+| `PUT` | `/trabalhadores/:id` | Editar trabalhador (Admin ou Resp. da mesma freguesia). | **Resp. / Admin** |
+| `PATCH` | `/trabalhadores/:id/foto` | Atualizar foto de perfil (multipart/form-data: `file`). | Próprio / Admin |
+| `DELETE` | `/trabalhadores/:id` | Remover trabalhador do sistema. | Próprio / Admin |
+
+*Nota: O Responsável só pode criar/editar trabalhadores da sua própria freguesia.*
+
+---
+
+## 📍 Módulo: Ocorrências (`/ocorrencias`)
+
+| Método | Rota | Descrição | Acesso |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/ocorrencias` | Listar todas as ocorrências do sistema. | Público |
+| `GET` | `/ocorrencias/:id` | Ver detalhes de uma ocorrência específica. | Público |
+| `POST` | `/ocorrencias` | Criar ocorrência (sem preenchimento automático). | Autenticado |
+| `POST` | `/ocorrencias/:id/fotos` | Adicionar fotos (até 10, multipart: `files`). | Autenticado |
+| `DELETE` | `/ocorrencias/:id/fotos` | Remover todas as fotos de uma ocorrência. | Autenticado |
+| `DELETE` | `/ocorrencias/:id/fotos/:fotoIndex` | Remover uma foto específica pelo índice. | Autenticado |
+| `PATCH` | `/ocorrencias/:id/fotos/:fotoIndex` | Substituir uma foto específica. | Autenticado |
+| `PUT` | `/ocorrencias/:id` | Atualizar dados da ocorrência. | Autenticado |
+| `PATCH` | `/ocorrencias/:id/resolve` | **Resolver/Assumir** ocorrência (pela equipa). | **Trabalhador** |
+| `DELETE` | `/ocorrencias/:id` | Apagar ocorrência (limpa fotos no Cloudinary). | Autor / Admin |
+
+---
+
+## 🗺️ Módulo: Rotas de Limpeza/Manutenção (`/rotas`)
+
+| Método | Rota | Descrição | Acesso |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/rotas` | Listar rotas (Resp. vê apenas as da sua freguesia). | Autenticado |
+| `GET` | `/rotas/:id` | Ver detalhes de uma rota (waypoints e geometria). | Autenticado |
+| `POST` | `/rotas` | Criar nova rota de manutenção. | **Resp. / Admin** |
+| `PATCH` | `/rotas/:id` | Atualizar rota existente. | **Resp. / Admin** |
+| `DELETE` | `/rotas/:id` | Remover rota do sistema. | **Resp. / Admin** |
+
+---
+
+## 👥 Módulo: Equipas (`/equipas`)
+
+| Método | Rota | Descrição | Acesso |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/equipas` | Listar todas as equipas. | Público |
+| `POST` | `/equipas` | Criar nova equipa. | **Admin / Resp.** |
+| `GET` | `/equipas/:id` | Detalhes de uma equipa. | Público |
+| `PUT` | `/equipas/:id` | Editar informações da equipa. | **Admin / Resp.** |
+| `DELETE` | `/equipas/:id` | Apagar equipa. | **Admin / Resp.** |
+
+---
+
+## 💬 Módulo: Mensagens (`/mensagens`)
+
+| Método | Rota | Descrição | Acesso |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/mensagens` | Listar mensagens (filtros via query: `idOcorrencia`). | Público |
+| `POST` | `/mensagens` | Enviar nova mensagem/comentário. | Autenticado |
+| `GET` | `/mensagens/:id` | Ver mensagem específica. | Público |
+| `PUT` | `/mensagens/:id` | Editar mensagem. | Autor / Admin |
+| `DELETE` | `/mensagens/:id` | Apagar mensagem. | Autor / Admin |
+
+---
+
+## 🏙️ Módulo: Municípios/Freguesias (`/municipios`)
+
+| Método | Rota | Descrição | Acesso |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/municipios` | Listar todas as freguesias. | Público |
+| `POST` | `/municipios` | Adicionar nova freguesia. | **Admin** |
+| `GET` | `/municipios/:id` | Ver detalhes da freguesia. | Público |
+| `PUT` | `/municipios/:id` | Editar nome/dados da freguesia. | **Admin** |
+| `DELETE` | `/municipios/:id` | Remover freguesia. | **Admin** |
+
+---
+
+## 🚜 Módulo: Recursos (`/recursos`)
+
+| Método | Rota | Descrição | Acesso |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/recursos` | Listar recursos (viaturas, ferramentas). | Público |
+| `POST` | `/recursos` | Criar novo recurso. | **Admin / Resp.** |
+| `GET` | `/recursos/:id` | Ver detalhes do recurso. | Público |
+| `PUT` | `/recursos/:id` | Atualizar estado ou localização do recurso. | **Admin / Resp.** |
+| `DELETE` | `/recursos/:id` | Apagar recurso. | **Admin / Resp.** |
+
+---
+
+## 🛠️ Outras Rotas
+
+| Método | Rota | Descrição | Acesso |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/health` | Verificar estado da API (Health Check). | Público |
+
+---
+
+## ⚠️ Erros e Status Codes Comuns
+
+- **200 OK**: Sucesso.
+- **201 Created**: Recurso criado com sucesso.
+- **204 No Content**: Sucesso (sem corpo de resposta, ex: Delete).
+- **400 Bad Request**: Dados inválidos ou falta de campos obrigatórios.
+- **401 Unauthorized**: Falta de token ou token inválido.
+- **403 Forbidden**: Não tem permissões para esta ação (ex: Resp. a tentar apagar admin).
+- **404 Not Found**: Recurso não encontrado.
+- **409 Conflict**: Conflito de dados (ex: Email já em uso).
+- **500 Internal Server Error**: Erro inesperado no servidor.
