@@ -11,6 +11,30 @@ function buildAuthHeaders(extraHeaders = {}) {
   }
 }
 
+async function geocodeParishHall(parishName) {
+  if (!parishName) return null
+  
+  // Search for the parish hall in Vila do Conde area
+  const query = `Junta de Freguesia de ${parishName}, Vila do Conde, Portugal`
+  const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(query)}&email=vccomunica@exemplo.pt`
+
+  try {
+    const response = await fetch(url)
+    const data = await response.json()
+    if (data && data[0]) {
+      return {
+        latitude: Number(data[0].lat),
+        longitude: Number(data[0].lon),
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to geocode parish hall:', parishName, err)
+  }
+  
+  // Fallback to Vila do Conde center if geocoding fails
+  return { latitude: 41.3533, longitude: -8.7423 }
+}
+
 function joinCoordinates(waypoints = []) {
   return waypoints
     .map((wp) => `${wp.longitude},${wp.latitude}`)
@@ -74,6 +98,19 @@ async function createRota(payload) {
   return response.json()
 }
 
+async function deleteRota(routeId) {
+  const response = await fetch(`${API_BASE_URL}/rotas/${routeId}`, {
+    method: 'DELETE',
+    headers: buildAuthHeaders(),
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to delete route in backend')
+  }
+
+  return true
+}
+
 async function listRoutesWithGeometry() {
   const routes = await listRoutes()
   const routed = []
@@ -92,4 +129,4 @@ async function listRoutesWithGeometry() {
   return routed
 }
 
-export { API_BASE_URL, OSRM_BASE_URL, listRoutes, listRoutesWithGeometry, buildRouteGeometry, createRota }
+export { API_BASE_URL, OSRM_BASE_URL, listRoutes, listRoutesWithGeometry, buildRouteGeometry, createRota, deleteRota, geocodeParishHall }

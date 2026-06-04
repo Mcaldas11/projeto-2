@@ -63,9 +63,14 @@
             <div class="card-bar" :style="{ background: route.color || route.cor }"></div>
             <div class="card-content">
               <strong>{{ route.teamName || route.nome }}</strong>
-              <span>{{ route.waypoints.length }} pontos</span>
+              <span>{{ route.waypoints?.length || 0 }} pontos</span>
             </div>
-            <span class="info-icon" title="Mais informações">ⓘ</span>
+            <img 
+              src="@/assets/delete_icon.svg" 
+              class="delete-route-icon" 
+              title="Apagar rota"
+              @click.stop="apagarRota(route.idRota || route.id)" 
+            />
           </div>
         </div>
         <button class="btn-gerar-rotas" :disabled="isGenerating" @click="gerarRotas">
@@ -86,7 +91,7 @@ import 'leaflet/dist/leaflet.css'
 import Footer from '@/components/footer.vue'
 import ResponsavelSidebarMenu from '@/components/ResponsavelSidebarMenu.vue'
 import adminFooterLogo from '@/assets/logo_footer.png'
-import { listRoutesWithGeometry, buildRouteGeometry, createRota } from '@/services/routeService'
+import { listRoutesWithGeometry, buildRouteGeometry, createRota, deleteRota, geocodeParishHall } from '@/services/routeService'
 import { listOccurrenceMarkers } from '@/services/occurrenceService'
 import { getOccurrenceTypeMeta, normalizeTypeKey } from '@/utils/occurrenceTypes'
 import { getAuthUserId } from '@/utils/auth'
@@ -110,6 +115,7 @@ const occurrenceLayer = ref(null)
 const occurrenceMarkers = ref([])
 const routes = ref([])
 const userFreguesiaId = ref(null)
+const userFreguesiaNome = ref('')
 const currentRoute = useRoute()
 const selectedRouteId = computed(() =>
   Number(currentRoute.query.routeId || currentRoute.query.selectedRoute || 0),
@@ -146,7 +152,6 @@ const activeOccurrenceTypes = computed(() => {
     .sort((left, right) => right.count - left.count)
     .slice(0, 6)
 
-  // Assign colors by index
   sorted.forEach((type, i) => {
     type.color = OCC_PALETTE[i % OCC_PALETTE.length]
   })
@@ -168,7 +173,6 @@ const toggleMenu = (e) => {
 }
 
 function formatRoutePoints(route) {
-  // Garantir que usamos a geometria detalhada (caminho das ruas) se existir
   const points = route.geometry && route.geometry.length > 0 
     ? route.geometry 
     : (route.waypoints || [])
@@ -201,18 +205,20 @@ function drawRoutes() {
     polyline.addTo(routeLayer.value)
     bounds.push(...points)
 
-    // Desenhar marcadores de início e fim apenas para as waypoints originais
     const originalPoints = (route.waypoints || []).map(wp => [wp.latitude, wp.longitude])
     if (originalPoints.length >= 2) {
       const startPoint = originalPoints[0]
       const endPoint = originalPoints[originalPoints.length - 1]
+      
+      // Marker for Parish Hall (Start)
       L.circleMarker(startPoint, {
-        radius: 6,
-        color: route.color || route.cor || '#3b82f6',
+        radius: 8,
+        color: '#16a34a',
         fillColor: '#fff',
         fillOpacity: 1,
         weight: 3,
-      }).addTo(routeLayer.value)
+      }).addTo(routeLayer.value).bindPopup('Junta de Freguesia (Início)')
+
       L.circleMarker(endPoint, {
         radius: 7,
         color: route.color || route.cor || '#3b82f6',
@@ -356,17 +362,23 @@ async function loadRoutes() {
   drawRoutes()
 }
 
-async function getFreguesiaCoords() {
+async function getFreguesiaInfo() {
   try {
     const userId = getAuthUserId()
     const response = await fetch(`${API_BASE_URL}/trabalhadores/${userId}`)
-    if (!response.ok) return { latitude: 41.3649, longitude: -8.7389 }
+    if (!response.ok) return
     const user = await response.json()
     userFreguesiaId.value = user?.idFreguesia
-    if (!user?.idFreguesia) return { latitude: 41.3649, longitude: -8.7389 }
-    return { latitude: 41.3649, longitude: -8.7389 }
-  } catch {
-    return { latitude: 41.3649, longitude: -8.7389 }
+    
+    if (user?.idFreguesia) {
+      const munResp = await fetch(`${API_BASE_URL}/municipios/${user.idFreguesia}`)
+      if (munResp.ok) {
+        const mun = await munResp.json()
+        userFreguesiaNome.value = mun.nome
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to fetch user parish info', err)
   }
 }
 
@@ -377,13 +389,25 @@ async function gerarRotas() {
   isGenerating.value = true
 
   try {
-    const startCoords = await getFreguesiaCoords()
-    const pendingOccs = occurrenceMarkers.value.filter(
-      (m) => String(m.statusClass) === 'espera' || String(m.statusClass) === 'em-resolucao',
-    )
+    // Obter coordenadas da Junta de Freguesia real
+    const startCoords = await geocodeParishHall(userFreguesiaNome.value)
+    
+    // FILTRO IMPORTANTE: Apenas ocorrências ATIVAS (as que aparecem na legenda/mapa)
+    // E se houver um filtro de tipo selecionado, usa apenas esse
+    const pendingOccs = occurrenceMarkers.value.filter((m) => {
+      const isActive = ACTIVE_OCCURRENCE_STATES.has(String(m.statusClass || ''))
+      const key = String(m.typeKey || normalizeTypeKey(m.tipo || '')).trim()
+      
+      // Se houver filtro de tipo ativo, só gera para esse tipo
+      if (selectedOccurrenceType.value) {
+        return isActive && key === selectedOccurrenceType.value
+      }
+      
+      return isActive
+    })
 
     if (pendingOccs.length === 0) {
-      alert('Não existem ocorrências pendentes para gerar rotas.')
+      alert('Não existem ocorrências ativas (vísiveis) para gerar rotas.')
       return
     }
 
@@ -410,7 +434,6 @@ async function gerarRotas() {
         cor: OCC_PALETTE[colorIdx % OCC_PALETTE.length],
       }
 
-      // Obter o caminho detalhado pelas estradas via OSRM
       routePayload.geometry = await buildRouteGeometry({ waypoints })
       
       const savedRoute = await createRota(routePayload)
@@ -429,6 +452,19 @@ async function gerarRotas() {
   }
 }
 
+async function apagarRota(id) {
+  if (!confirm('Tens a certeza que pretendes apagar esta rota?')) return
+
+  try {
+    await deleteRota(id)
+    routes.value = routes.value.filter(r => (r.idRota || r.id) !== id)
+    drawRoutes()
+  } catch (error) {
+    console.error('Erro ao apagar rota:', error)
+    alert('Não foi possível apagar a rota.')
+  }
+}
+
 onMounted(async () => {
   try {
     await initMap()
@@ -436,6 +472,7 @@ onMounted(async () => {
     // ignore
   }
 
+  await getFreguesiaInfo()
   loadRoutes().catch(() => {})
   loadOccurrences().catch(() => {})
 })
@@ -601,6 +638,7 @@ onBeforeUnmount(() => {
   background: #fff;
   border: 1px solid #f1f5f9;
   border-radius: 12px;
+  position: relative;
 }
 .category-card.selected {
   border-color: #730000;
@@ -625,10 +663,16 @@ onBeforeUnmount(() => {
   font-size: 13px;
   color: #64748b;
 }
-.info-icon {
-  font-size: 18px;
-  color: #94a3b8;
+.delete-route-icon {
+  width: 18px;
+  height: 18px;
   cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.delete-route-icon:hover {
+  opacity: 1;
+  transform: scale(1.1);
 }
 .btn-gerar-rotas {
   background: #22c55e;
