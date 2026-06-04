@@ -1,48 +1,51 @@
+import { getAuthToken } from '@/utils/auth'
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || ''
 const OSRM_BASE_URL = import.meta.env.VITE_OSRM_BASE_URL || 'https://router.project-osrm.org'
 
+function buildAuthHeaders(extraHeaders = {}) {
+  const token = getAuthToken()
+  return {
+    ...extraHeaders,
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  }
+}
+
 function joinCoordinates(waypoints = []) {
-  return waypoints.map((point) => `${point.longitude},${point.latitude}`).join(';')
+  return waypoints
+    .map((wp) => `${wp.longitude},${wp.latitude}`)
+    .join(';')
 }
 
 async function buildRouteGeometry(route) {
-  if (!route?.waypoints?.length) return []
+  const waypoints = Array.isArray(route.waypoints) ? route.waypoints : []
+  if (waypoints.length < 2) return []
 
-  if (!API_BASE_URL && OSRM_BASE_URL) {
-    const coordinates = joinCoordinates(route.waypoints)
-    if (route.waypoints.length < 2) {
-      return route.waypoints
-    }
+  const coords = joinCoordinates(waypoints)
+  const url = `${OSRM_BASE_URL}/route/v1/driving/${coords}?overview=full&geometries=geojson`
 
-    const response = await fetch(
-      `${OSRM_BASE_URL}/route/v1/driving/${coordinates}?overview=full&geometries=geojson&steps=false`,
-    )
+  try {
+    const res = await fetch(url)
+    const data = await res.json()
+    if (data.code !== 'Ok' || !data.routes?.[0]) return []
 
-    if (!response.ok) {
-      return route.waypoints
-    }
-
-    const payload = await response.json()
-    const geometry = payload?.routes?.[0]?.geometry?.coordinates || []
-    if (!Array.isArray(geometry) || geometry.length === 0) {
-      return route.waypoints
-    }
-
-    return geometry.map(([longitude, latitude]) => ({ latitude, longitude }))
+    return data.routes[0].geometry.coordinates.map(([lng, lat]) => ({
+      latitude: lat,
+      longitude: lng,
+    }))
+  } catch (err) {
+    console.error('OSRM buildRouteGeometry failed:', err)
+    return []
   }
-
-  return route.waypoints
 }
 
 async function listRoutes() {
-  if (!API_BASE_URL) {
-    throw new Error('Define VITE_API_URL para carregar as rotas da base de dados.')
-  }
-
   try {
-    const response = await fetch(`${API_BASE_URL}/routes`)
+    const response = await fetch(`${API_BASE_URL}/rotas`, {
+      headers: buildAuthHeaders(),
+    })
     if (!response.ok) {
-      console.warn('Endpoint /routes not found or failed. Returning empty array.')
+      console.warn('Endpoint /rotas not found or failed. Returning empty array.')
       return []
     }
 
@@ -54,18 +57,39 @@ async function listRoutes() {
   }
 }
 
+async function createRota(payload) {
+  const response = await fetch(`${API_BASE_URL}/rotas`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...buildAuthHeaders(),
+    },
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to create route in backend')
+  }
+
+  return response.json()
+}
+
 async function listRoutesWithGeometry() {
   const routes = await listRoutes()
   const routed = []
 
   for (const route of routes) {
-    routed.push({
-      ...route,
-      geometry: await buildRouteGeometry(route),
-    })
+    if (route.geometry && route.geometry.length > 0) {
+      routed.push(route)
+    } else {
+      routed.push({
+        ...route,
+        geometry: await buildRouteGeometry(route),
+      })
+    }
   }
 
   return routed
 }
 
-export { API_BASE_URL, OSRM_BASE_URL, listRoutes, listRoutesWithGeometry, buildRouteGeometry }
+export { API_BASE_URL, OSRM_BASE_URL, listRoutes, listRoutesWithGeometry, buildRouteGeometry, createRota }

@@ -7,6 +7,7 @@ import TrabalhadorModel from "../models/trabalhador.model.js";
 import RecursoModel from "../models/recurso.model.js";
 import OcorrenciaModel from "../models/ocorrencia.model.js";
 import MensagemModel from "../models/mensagem.model.js";
+import RotaModel from "../models/rota.model.js";
 
 const Cidadao = CidadaoModel(sequelize);
 const Municipio = MunicipioModel(sequelize);
@@ -15,6 +16,7 @@ const Trabalhador = TrabalhadorModel(sequelize);
 const Recurso = RecursoModel(sequelize);
 const Ocorrencia = OcorrenciaModel(sequelize);
 const Mensagem = MensagemModel(sequelize);
+const Rota = RotaModel(sequelize);
 
 Municipio.hasMany(Cidadao, { foreignKey: "fregCidadao", as: "cidadaos" });
 Cidadao.belongsTo(Municipio, { foreignKey: "fregCidadao", as: "municipio" });
@@ -55,6 +57,9 @@ Mensagem.belongsTo(Ocorrencia, {
   as: "ocorrencia",
 });
 
+Municipio.hasMany(Rota, { foreignKey: "idFreguesia", as: "rotas" });
+Rota.belongsTo(Municipio, { foreignKey: "idFreguesia", as: "municipio" });
+
 const testConnection = async () => {
   await sequelize.authenticate();
 };
@@ -71,23 +76,6 @@ const syncDatabase = async () => {
   return true;
 };
 
-/* delete data from the table (municipio) before seeding to avoid duplicates and maintain data integrity */
-/*try {
-  if (sequelize.getDialect() === "mysql") {
-    await sequelize.query("SET FOREIGN_KEY_CHECKS = 0");
-    await sequelize.query("TRUNCATE TABLE `ocorrencia`");
-    await sequelize.query("SET FOREIGN_KEY_CHECKS = 1");
-  } else {
-    await Ocorrencia.destroy({ truncate: true });
-  }
-} catch (err) {
-  console.error(err);
-  if (sequelize.getDialect() === "mysql") {
-    await sequelize.query("SET FOREIGN_KEY_CHECKS = 1");
-  }
-  process.exit(1);
-}*/
-
 export {
   sequelize,
   testConnection,
@@ -99,4 +87,5 @@ export {
   Recurso,
   Ocorrencia,
   Mensagem,
+  Rota,
 };
