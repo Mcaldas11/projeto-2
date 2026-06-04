@@ -20,6 +20,19 @@
     <main class="main-content">
       <h1 class="page-title">Rotas Globais</h1>
 
+      <!-- Indicators Grid -->
+      <section class="indicators-grid">
+        <div class="indicator-card">
+          <div class="indicator-icon-bg progress">
+            <img src="@/assets/ocorrencias.png" class="indicator-icon" />
+          </div>
+          <div class="indicator-info">
+            <span class="indicator-value">{{ routes.length }}</span>
+            <span class="indicator-label">Rotas Ativas</span>
+          </div>
+        </div>
+      </section>
+
       <!-- Rotas Ativas -->
       <section class="rotas-ativas">
         <div class="rotas-grid">
@@ -29,7 +42,7 @@
 
           <div class="rotas-legend">
 
-            <h3 class="legend-title legend-title-secondary">Ocorrências Ativas no Município</h3>
+            <h3 class="legend-title legend-title-secondary">Ocorrências Ativas nas Rotas</h3>
             <div class="occ-legend-grid">
               <div
                 v-for="type in activeOccurrenceTypes"
@@ -44,6 +57,9 @@
                 </div>
               </div>
             </div>
+            <p v-if="activeOccurrenceTypes.length === 0" class="no-occs-msg">
+              Nenhuma ocorrência incluída nas rotas atuais.
+            </p>
           </div>
         </div>
       </section>
@@ -119,13 +135,31 @@ const selectedRouteId = computed(() =>
 const ACTIVE_OCCURRENCE_STATES = new Set(['em-resolucao', 'espera'])
 const OCC_PALETTE = ['#06b6d4', '#7c3aed', '#ef4444', '#f59e0b', '#10b981', '#ef76b2']
 
+const totalOccurrencesInRoutes = computed(() => {
+  // Somar todos os waypoints (excluindo o ponto de partida na junta, que é o index 0)
+  return routes.value.reduce((acc, route) => {
+    const waypoints = Array.isArray(route.waypoints) ? route.waypoints : []
+    return acc + Math.max(0, waypoints.length - 1)
+  }, 0)
+})
+
 const activeOccurrenceTypes = computed(() => {
   const summary = new Map()
+  
+  // Criar um set de coordenadas únicas que estão presentes em TODAS as rotas
+  const routePointsSet = new Set()
+  routes.value.forEach(route => {
+    const waypoints = Array.isArray(route.waypoints) ? route.waypoints : []
+    // Ignoramos o waypoint[0] porque é a Junta de Freguesia
+    waypoints.slice(1).forEach(wp => {
+      routePointsSet.add(`${wp.latitude.toFixed(6)},${wp.longitude.toFixed(6)}`)
+    })
+  })
 
   occurrenceMarkers.value.forEach((marker) => {
-    if (!ACTIVE_OCCURRENCE_STATES.has(String(marker.statusClass || ''))) {
-      return
-    }
+    // Verificar se este marcador está em alguma rota
+    const markerCoords = `${Number(marker.latitude).toFixed(6)},${Number(marker.longitude).toFixed(6)}`
+    if (!routePointsSet.has(markerCoords)) return
 
     const key = String(marker.typeKey || normalizeTypeKey(marker.tipo || '')).trim()
     const meta = getOccurrenceTypeMeta(marker.tipo || key)
@@ -158,7 +192,6 @@ const selectedOccurrenceType = ref(null)
 
 function toggleOccurrenceFilter(key) {
   selectedOccurrenceType.value = selectedOccurrenceType.value === key ? null : key
-  drawOccurrences()
 }
 
 const toggleMenu = (e) => {
@@ -231,21 +264,14 @@ function isSelectedRoute(route) {
   return selectedRouteId.value > 0 && String(rid) === String(selectedRouteId.value)
 }
 
-function getActiveOccurrencePoints() {
-  return occurrenceMarkers.value
-    .filter((marker) => ACTIVE_OCCURRENCE_STATES.has(String(marker.statusClass || '')))
-    .map((marker) => [Number(marker.latitude), Number(marker.longitude)])
-    .filter(([latitude, longitude]) => !Number.isNaN(latitude) && !Number.isNaN(longitude))
-}
-
 function fitMapToContent(selectedRoute = null) {
   if (!mapInstance.value) return
 
   const routePoints = selectedRoute
     ? formatRoutePoints(selectedRoute)
     : routes.value.flatMap((route) => formatRoutePoints(route))
-  const occurrencePoints = getActiveOccurrencePoints()
-  const bounds = [...routePoints, ...occurrencePoints]
+  
+  const bounds = [...routePoints]
 
   if (bounds.length > 0) {
     mapInstance.value.fitBounds(bounds, { padding: [28, 28] })
@@ -275,75 +301,9 @@ async function loadOccurrences() {
   try {
     const markers = await listOccurrenceMarkers()
     occurrenceMarkers.value = Array.isArray(markers) ? markers : []
-    drawOccurrences()
   } catch {
     occurrenceMarkers.value = []
   }
-}
-
-function createPinIcon(color, iconUrl) {
-  const img = iconUrl
-    ? `<img src="${iconUrl}" style="width:16px;height:16px;object-fit:contain;filter:brightness(0) invert(1);margin-bottom:2px;" />`
-    : ''
-  return L.divIcon({
-    className: '',
-    iconSize: [32, 40],
-    iconAnchor: [16, 40],
-    popupAnchor: [0, -42],
-    html: `
-      <div style="
-        width:32px;
-        height:32px;
-        border-radius:50% 50% 50% 0;
-        transform:rotate(-45deg);
-        background:${color};
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        box-shadow:0 2px 6px rgba(0,0,0,0.3);
-      ">
-        <div style="transform:rotate(45deg);display:flex;align-items:center;justify-content:center;">
-          ${img}
-        </div>
-      </div>
-    `,
-  })
-}
-
-function drawOccurrences() {
-  if (!mapInstance.value || !occurrenceLayer.value) return
-  occurrenceLayer.value.clearLayers()
-
-  const colorByKey = new Map(activeOccurrenceTypes.value.map((t) => [t.key, t.color]))
-
-  occurrenceMarkers.value.forEach((markerData) => {
-    if (!ACTIVE_OCCURRENCE_STATES.has(String(markerData.statusClass || ''))) {
-      return
-    }
-
-    const key = String(markerData.typeKey || normalizeTypeKey(markerData.tipo || '')).trim()
-
-    if (selectedOccurrenceType.value && selectedOccurrenceType.value !== key) return
-
-    const lat = Number(markerData.latitude)
-    const lng = Number(markerData.longitude)
-    if (Number.isNaN(lat) || Number.isNaN(lng)) return
-
-    const markerColor = colorByKey.get(key) || '#64748b'
-    const meta = getOccurrenceTypeMeta(markerData.tipo || key)
-    const pinIcon = createPinIcon(markerColor, meta.icon)
-
-    const marker = L.marker([lat, lng], { icon: pinIcon })
-    marker.bindPopup(`
-      <div style="min-width:140px;">
-        <strong style="font-size:13px;">${markerData.tipo || ''}</strong><br/>
-        <span style="font-size:12px;">${markerData.detalhes || ''}</span>
-      </div>
-    `)
-    marker.addTo(occurrenceLayer.value)
-  })
-
-  fitMapToContent(routes.value.find((route) => isSelectedRoute(route)) || null)
 }
 
 async function loadRoutes() {
@@ -396,10 +356,6 @@ watch([routes, selectedRouteId], () => {
   drawRoutes()
 })
 
-watch(occurrenceMarkers, () => {
-  drawOccurrences()
-})
-
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleDocClick)
   if (mapInstance.value) {
@@ -434,23 +390,60 @@ onBeforeUnmount(() => {
   align-items: center;
   position: relative;
 }
-.admin-label {
-  font-weight: 700;
-  font-size: 16px;
-  color: #1a1a1a;
-}
 .icon {
   cursor: pointer;
   font-size: 1.2rem;
 }
-.icon.notification {
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
-  cursor: pointer;
-}
 .menu-trigger {
   font-size: 1.4rem;
+}
+
+/* INDICATORS */
+.indicators-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-bottom: 40px;
+}
+.indicator-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 24px;
+  background: #fff;
+  border: 1px solid #f1f5f9;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+.indicator-icon-bg {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.indicator-icon-bg.pending { background: #fee2e2; }
+.indicator-icon-bg.progress { background: #fef9c3; }
+.indicator-icon {
+  width: 28px;
+  height: 28px;
+}
+.indicator-info {
+  display: flex;
+  flex-direction: column;
+}
+.indicator-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+}
+.indicator-label {
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 600;
+  margin-top: 4px;
 }
 
 /* MAIN CONTENT */
@@ -539,6 +532,11 @@ onBeforeUnmount(() => {
 .legend-text span {
   font-size: 14px;
   color: #64748b;
+}
+.no-occs-msg {
+  color: #64748b;
+  font-style: italic;
+  margin-top: 20px;
 }
 
 /* PROXIMAS ROTAS */
