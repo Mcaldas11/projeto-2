@@ -5,7 +5,7 @@
       <div v-if="modelValue" class="sidebar-menu">
         <button class="sidebar-close" @click="closeMenu">✕</button>
         <div class="sidebar-top">
-          <router-link to="/" class="sidebar-item" @click.prevent="navigateHome">
+          <router-link v-if="!isCitizen" to="/" class="sidebar-item" @click.prevent="navigateHome">
             <span class="sidebar-label">Home</span>
             <img src="@/assets/home.png" alt="home" class="sidebar-icon" />
           </router-link>

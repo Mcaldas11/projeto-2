@@ -1,8 +1,8 @@
 <template>
   <div class="auth-page">
-    <div class="bg-container">
-      <img src="@/assets/login_fundo.png" alt="Cidade" class="bg-img" />
-      <div class="bg-overlay"></div>
+    <div class="background-overlay">
+      <img src="@/assets/login_fundo.png" alt="Fundo Cidade" class="bg-image" />
+      <div class="dark-layer"></div>
     </div>
 
     <div class="top-logo">
@@ -99,59 +99,12 @@ const handleFinish = async () => {
 
   const [firstName = '', lastName = ''] = [stored.firstName || '', stored.lastName || '']
 
-  // Respect role selected in the first step (default to 'cidadao')
-  const role = stored.role || 'cidadao'
-
   if (!API_BASE_URL) {
     errorMessage.value = 'Define VITE_API_BASE_URL para concluir o registo no backend.'
     return
   }
 
-  if (role === 'trabalhador') {
-    const payload = {
-      nomeTrabalhador: `${firstName} ${lastName}`.trim(),
-      emailTrabalhador: stored.email,
-      telemovelTrabalhador: stored.phone,
-      idFreguesia: Number(selectedFreguesia.value),
-      password: stored.password,
-    }
-
-    const response = await fetch(`${API_BASE_URL}/trabalhadores`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    })
-
-    if (!response.ok) {
-      const body = await response.json().catch(() => ({}))
-      errorMessage.value = body?.message || 'Não foi possível concluir o registo.'
-      return
-    }
-
-    const result = await response.json()
-    localStorage.setItem('role', 'trabalhador')
-    localStorage.setItem('authToken', result.token)
-    localStorage.setItem('authUserType', result.userType || 'trabalhador')
-    localStorage.setItem('authUserId', String(result.userId || ''))
-    // store structured profile (firstName, lastName) and freguesia id
-    localStorage.setItem(
-      'userProfile',
-      JSON.stringify({
-        firstName: firstName,
-        lastName: lastName,
-        email: stored.email,
-        idFreguesia: Number(selectedFreguesia.value),
-      }),
-    )
-
-    sessionStorage.removeItem(STORAGE_KEY)
-    router.push({ name: 'home' })
-    return
-  }
-
-  // Default: create cidadao
+  // Registo de cidadão (único permitido nesta via)
   const payloadCidadao = {
     nome: `${firstName} ${lastName}`.trim(),
     email: stored.email,
@@ -190,7 +143,7 @@ const handleFinish = async () => {
   )
 
   sessionStorage.removeItem(STORAGE_KEY)
-  router.push({ name: 'home' })
+  router.push({ name: 'conta' })
 }
 </script>
 
@@ -204,37 +157,28 @@ const handleFinish = async () => {
   justify-content: center;
   align-items: center;
   font-family: sans-serif;
+  overflow: hidden;
 }
-.bg-container {
+.background-overlay {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   z-index: -1;
 }
-.bg-img {
+.bg-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-.bg-overlay {
+.dark-layer {
   position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.3);
-}
-.header-logo {
-  position: absolute;
-  top: 30px;
-  left: 40px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: white;
-}
-.logo-icon {
-  height: 40px;
-}
-.logo-name {
-  font-weight: bold;
-  font-size: 1.4rem;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
 }
 
 /* Match LoginView logo position */
@@ -249,7 +193,6 @@ const handleFinish = async () => {
 }
 .logo-img {
   height: 45px;
-  cursor: pointer;
 }
 
 .auth-card {
@@ -285,7 +228,7 @@ h2 {
 }
 
 form {
-  padding-bottom: 250px;
+  padding-bottom: 20px;
 }
 
 .select-wrapper {

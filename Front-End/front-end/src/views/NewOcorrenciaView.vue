@@ -70,12 +70,10 @@
               :class="['custom-select', { 'field-invalid': validationErrors.tipo_ocorrencia }]"
               @blur="validateField('tipo_ocorrencia')"
             >
-              <option value="" disabled>Seleccione o tipo de ocorrência</option>
-              <option value="Estradas e passeios">Estradas e passeios</option>
-              <option value="Sinalização de trânsito">Sinalização de trânsito</option>
-              <option value="Iluminação">Iluminação</option>
-              <option value="Higiene e limpeza">Higiene e limpeza</option>
-              <option value="Parques e jardins">Parques e jardins</option>
+              <option value="" disabled>Selecione o tipo de ocorrência</option>
+              <option v-for="tipo in occurrenceTypes" :key="tipo" :value="tipo">
+                {{ tipo }}
+              </option>
             </select>
             <span v-if="validationErrors.tipo_ocorrencia" class="field-error"
               >Escolha o tipo de ocorrência.</span
@@ -91,10 +89,10 @@
               :class="['custom-select', { 'field-invalid': validationErrors.severidade }]"
               @blur="validateField('severidade')"
             >
-              <option value="" disabled>Seleccione a severidade</option>
-              <option value="Baixa">Baixa</option>
-              <option value="Média">Média</option>
-              <option value="Alta">Alta</option>
+              <option value="" disabled>Selecione a severidade</option>
+              <option v-for="level in severityLevels" :key="level" :value="level">
+                {{ level }}
+              </option>
             </select>
             <span v-if="validationErrors.severidade" class="field-error"
               >Escolha a severidade.</span
@@ -126,7 +124,9 @@
 
             <div v-if="filePreviews.length" class="previews inside">
               <div v-for="(p, i) in filePreviews" :key="p.url" class="preview-item">
-                <button type="button" class="preview-remove" @click.stop.prevent="removeFile(i)">×</button>
+                <button type="button" class="preview-remove" @click.stop.prevent="removeFile(i)">
+                  ×
+                </button>
                 <img :src="p.url" :alt="p.name" class="preview-img" />
                 <div class="preview-name">{{ p.name }}</div>
               </div>
@@ -141,7 +141,9 @@
           <button type="submit" class="btn-submit" :disabled="submitting">
             {{ submitting ? 'A enviar...' : 'Reportar Ocorrência' }}
           </button>
-          <button type="button" class="btn-cancel" @click="$router.back()" :disabled="submitting">Cancelar</button>
+          <button type="button" class="btn-cancel" @click="$router.back()" :disabled="submitting">
+            Cancelar
+          </button>
         </div>
       </form>
     </main>
@@ -182,6 +184,16 @@ const currentDate = new Date().toLocaleDateString('pt-PT', {
   month: 'long',
   year: 'numeric',
 })
+
+const occurrenceTypes = [
+  'Estradas e passeios',
+  'Sinalização de trânsito',
+  'Iluminação',
+  'Higiene e limpeza',
+  'Parques e jardins',
+]
+
+const severityLevels = ['Baixa', 'Média', 'Alta']
 
 const fileInput = ref(null)
 // Cada entrada: { name, url, file }  — o `file` é o File original, sempre presente
@@ -262,7 +274,9 @@ const onFileChange = (e) => {
 
 const removeFile = (index) => {
   const removed = filePreviews.value.splice(index, 1)[0]
-  try { URL.revokeObjectURL(removed.url) } catch {}
+  try {
+    URL.revokeObjectURL(removed.url)
+  } catch {}
 }
 
 const handleSubmit = async () => {
@@ -291,12 +305,19 @@ const handleSubmit = async () => {
     form.value.tipo_ocorrencia = ''
     form.value.severidade = ''
     form.value.description = ''
-    validationErrors.value = { location: false, tipo_ocorrencia: false, severidade: false, description: false }
+    validationErrors.value = {
+      location: false,
+      tipo_ocorrencia: false,
+      severidade: false,
+      description: false,
+    }
 
     // Revogar object URLs e limpar previews
-    filePreviews.value.forEach((p) => { try { URL.revokeObjectURL(p.url) } catch {
-      
-    } })
+    filePreviews.value.forEach((p) => {
+      try {
+        URL.revokeObjectURL(p.url)
+      } catch {}
+    })
     filePreviews.value = []
 
     router.push({ path: '/ocorrencias' })
@@ -364,7 +385,9 @@ const handleSubmit = async () => {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  transition: transform 0.18s ease, opacity 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    opacity 0.18s ease;
   transform-origin: top right;
 }
 
@@ -520,6 +543,7 @@ const handleSubmit = async () => {
   display: grid;
   grid-template-columns: 200px 1fr;
   margin-bottom: 25px;
+  column-gap: 40px;
   align-items: start;
 }
 .field-label {

@@ -1,8 +1,8 @@
 <template>
   <div class="auth-page">
-    <div class="bg-container">
-      <img src="@/assets/login_fundo.png" alt="Cidade" class="bg-img" />
-      <div class="bg-overlay"></div>
+    <div class="background-overlay">
+      <img src="@/assets/login_fundo.png" alt="Fundo Cidade" class="bg-image" />
+      <div class="dark-layer"></div>
     </div>
 
     <div class="top-logo">
@@ -148,37 +148,28 @@ const handleSubmit = () => {
   justify-content: center;
   align-items: center;
   font-family: sans-serif;
+  overflow: hidden;
 }
-.bg-container {
+.background-overlay {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   z-index: -1;
 }
-.bg-img {
+.bg-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-.bg-overlay {
+.dark-layer {
   position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.3);
-}
-.header-logo {
-  position: absolute;
-  top: 30px;
-  left: 40px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: white;
-}
-.logo-icon {
-  height: 40px;
-}
-.logo-name {
-  font-weight: bold;
-  font-size: 1.4rem;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
 }
 
 /* Match LoginView logo position */
@@ -193,7 +184,6 @@ const handleSubmit = () => {
 }
 .logo-img {
   height: 45px;
-  cursor: pointer;
 }
 .auth-card {
   background: white;
@@ -282,7 +272,9 @@ h2 {
 /* Transição de fade */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
 }
 .fade-enter-from,
 .fade-leave-to {

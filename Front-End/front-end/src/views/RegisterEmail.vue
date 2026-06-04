@@ -1,8 +1,8 @@
 <template>
   <div class="auth-page">
-    <div class="bg-container">
-      <img src="@/assets/login_fundo.png" alt="Cidade" class="bg-img" />
-      <div class="bg-overlay"></div>
+    <div class="background-overlay">
+      <img src="@/assets/login_fundo.png" alt="Fundo Cidade" class="bg-image" />
+      <div class="dark-layer"></div>
     </div>
 
     <div class="top-logo">
@@ -17,15 +17,6 @@
         <p class="welcome-text">Bem-vindo! Insere os teus dados para criares a tua conta</p>
 
         <form @submit.prevent="handleNext">
-          <div class="role-select">
-            <label>
-              <input type="radio" value="cidadao" v-model="role" /> Criar como Cidadão
-            </label>
-            <label>
-              <input type="radio" value="trabalhador" v-model="role" /> Criar como Trabalhador
-            </label>
-          </div>
-
           <div class="name-grid">
             <div class="input-field">
               <label>Primeiro Nome</label>
@@ -47,6 +38,8 @@
             <input type="tel" v-model="phone" placeholder="Ex: 912345678" required />
           </div>
 
+          <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+
           <button type="submit" class="btn-primary">Continuar</button>
         </form>
 
@@ -61,6 +54,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { API_BASE_URL } from '@/services/municipalityService'
 
 const STORAGE_KEY = 'vc-comunica-register'
 
@@ -69,19 +63,56 @@ const firstName = ref('')
 const lastName = ref('')
 const email = ref('')
 const phone = ref('')
-const role = ref('cidadao')
+const errorMessage = ref('')
 
-const handleNext = () => {
-  const payload = {
-    firstName: firstName.value.trim(),
-    lastName: lastName.value.trim(),
-    email: email.value.trim(),
-    phone: phone.value.trim(),
-    role: role.value || 'cidadao',
+const handleNext = async () => {
+  errorMessage.value = ''
+
+  try {
+    // 1. Procurar duplicados em Cidadãos e Trabalhadores
+    const [cidadaosRes, trabalhadoresRes] = await Promise.all([
+      fetch(`${API_BASE_URL}/cidadaos`),
+      fetch(`${API_BASE_URL}/trabalhadores`),
+    ])
+
+    const cidadaos = await cidadaosRes.json()
+    const trabalhadores = await trabalhadoresRes.json()
+
+    const inputEmail = email.value.trim().toLowerCase()
+    const inputPhone = phone.value.trim().replace(/\s/g, '')
+
+    const emailExists =
+      cidadaos.some((c) => c.email?.toLowerCase() === inputEmail) ||
+      trabalhadores.some((t) => (t.email || t.emailTrabalhador)?.toLowerCase() === inputEmail)
+
+    const phoneExists =
+      cidadaos.some((c) => c.nrTelemovel === inputPhone) ||
+      trabalhadores.some((t) => (t.telemovel || t.telemovelTrabalhador) === inputPhone)
+
+    if (emailExists) {
+      errorMessage.value = 'Este email já se encontra registado na plataforma.'
+      return
+    }
+
+    if (phoneExists) {
+      errorMessage.value = 'Este número de telemóvel já se encontra registado.'
+      return
+    }
+
+    const payload = {
+      firstName: firstName.value.trim(),
+      lastName: lastName.value.trim(),
+      email: email.value.trim(),
+      phone: phone.value.trim(),
+      role: 'cidadao',
+    }
+
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
+    router.push('/register-password')
+  } catch (error) {
+    errorMessage.value = 'Erro ao validar os dados. Por favor, tente novamente.'
+    console.error('Validation error:', error)
   }
-
-  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
-  router.push('/register-password')
 }
 </script>
 
@@ -95,37 +126,28 @@ const handleNext = () => {
   justify-content: center;
   align-items: center;
   font-family: sans-serif;
+  overflow: hidden;
 }
-.bg-container {
+.background-overlay {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   z-index: -1;
 }
-.bg-img {
+.bg-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-.bg-overlay {
+.dark-layer {
   position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.3);
-}
-.header-logo {
-  position: absolute;
-  top: 30px;
-  left: 40px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: white;
-}
-.logo-icon {
-  height: 40px;
-}
-.logo-name {
-  font-weight: bold;
-  font-size: 1.4rem;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
 }
 
 /* Match LoginView logo position */
@@ -140,7 +162,6 @@ const handleNext = () => {
 }
 .logo-img {
   height: 45px;
-  cursor: pointer;
 }
 
 .auth-card {
@@ -160,21 +181,6 @@ h2 {
   font-size: 0.85rem;
   color: #777;
   margin-bottom: 30px;
-}
-
-.role-select {
-  display: flex;
-  justify-content: center;
-  gap: 18px;
-  margin-bottom: 18px;
-  font-size: 0.95rem;
-  color: #444;
-}
-.role-select label {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
 }
 
 /* Grid para os nomes ficarem lado a lado */
@@ -203,6 +209,13 @@ h2 {
   border-radius: 6px;
   box-sizing: border-box;
   font-size: 0.9rem;
+}
+
+.error-message {
+  color: #ef4444;
+  font-size: 0.85rem;
+  margin-bottom: 15px;
+  text-align: left;
 }
 
 .btn-primary {

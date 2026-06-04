@@ -201,7 +201,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import Footer from '@/components/footer.vue'
+import Footer from '@/components/Footer.vue'
 import SidebarMenu from '@/components/SidebarMenu.vue'
 // import notifOn from '@/assets/notificationson.png'
 // import notifOff from '@/assets/notificationsoff.png'
@@ -667,6 +667,11 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 40px;
+  background-color: #f8fafc;
+  padding: 30px;
+  border-radius: 20px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 .user-info {
   display: flex;

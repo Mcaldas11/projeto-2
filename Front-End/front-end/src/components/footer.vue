@@ -53,14 +53,15 @@ const roleAwareDefaultColumns = computed(() => {
   const accountLabel = role === 'cidadao' || !role ? 'Conta' : 'Perfil'
   const accountRoute = role === 'cidadao' || !role ? '/conta' : getAccountRoute()
 
-  return [
-    [
-      { label: 'Home', to: homeRoute },
-      { label: 'Ocorrências', to: '/ocorrencias' },
-      { label: 'Mapa Ocorrências', to: '/ocorrencias' },
-    ],
-    [{ label: accountLabel, to: accountRoute }],
-  ]
+  const firstColumn = []
+  // Apenas adiciona a Home se NÃO for cidadão
+  if (role !== 'cidadao' && role !== '') {
+    firstColumn.push({ label: 'Home', to: homeRoute })
+  }
+  firstColumn.push({ label: 'Ocorrências', to: '/ocorrencias' })
+  firstColumn.push({ label: 'Mapa Ocorrências', to: '/ocorrencias' })
+
+  return [firstColumn, [{ label: accountLabel, to: accountRoute }]]
 })
 
 const resolvedColumns = computed(() =>
@@ -94,7 +95,7 @@ const resolvedLogoSrc = computed(() => props.logoSrc || defaultLogo)
 
 .col a {
   text-decoration: none;
-  color: #2d5a27;
+  color: rgb(80, 65, 29);
   font-weight: 600;
 }
 
@@ -106,7 +107,7 @@ const resolvedLogoSrc = computed(() => props.logoSrc || defaultLogo)
 
 .logo-img-small {
   align-items: center;
-  height: 40px;
+  height: 60px;
 }
 
 .copyright {

@@ -189,7 +189,7 @@
       </section>
     </main>
 
-    <FooterHome />
+    <Footer />
   </div>
 </template>
 
@@ -198,7 +198,7 @@ import { computed, nextTick, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import FooterHome from '@/components/FooterHome.vue'
+import Footer from '@/components/footer.vue'
 import SidebarMenu from '@/components/SidebarMenu.vue'
 // import notifOn from '@/assets/notificationson.png'
 // import notifOff from '@/assets/notificationsoff.png'
