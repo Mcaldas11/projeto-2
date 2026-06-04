@@ -318,7 +318,16 @@ export const getOcorrenciasPendentesForTrabalhador = async (req, res, next) => {
       return next(notFoundError("trabalhador", req.userData.userId));
     }
 
-    const ocorrencias = await Ocorrencia.findAll({ where: { estado: DEFAULT_ESTADO } });
+    if (!trabalhador.idFreguesia) {
+      return res.json([]);
+    }
+
+    const ocorrencias = await Ocorrencia.findAll({
+      where: {
+        estado: DEFAULT_ESTADO,
+        idFreguesia: trabalhador.idFreguesia,
+      },
+    });
     const data = mapOcorrenciasWithFotos(ocorrencias).sort((left, right) => {
       const leftDate = left.dataOcorrencia ? new Date(left.dataOcorrencia).getTime() : 0;
       const rightDate = right.dataOcorrencia ? new Date(right.dataOcorrencia).getTime() : 0;
