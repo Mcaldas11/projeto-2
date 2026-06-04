@@ -34,8 +34,7 @@
 
         <div class="sidebar-bottom">
           <button type="button" class="sidebar-item sidebar-logout" @click="showLogoutModal = true">
-            <span class="sidebar-label">Terminar Sessão</span>
-            <img src="@/assets/notificationsoff.png" alt="terminar sessao" class="sidebar-icon" />
+            <span class="sidebar-label">Terminar Sessão  X</span>
           </button>
         </div>
       </div>

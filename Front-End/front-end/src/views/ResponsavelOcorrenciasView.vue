@@ -83,9 +83,9 @@
           <thead>
             <tr>
               <th>Nome</th>
-              <th>Situação ↕</th>
+              <th>Situação </th>
               <th>
-                Tipo de Problema <img src="@/assets/detalhes.png" alt="Detalhes" class="th-icon" />
+                Tipo de Problema 
               </th>
               <th>Detalhes</th>
               <th></th>
@@ -103,8 +103,8 @@
               <td>{{ occ.tipo }}</td>
               <td class="details-cell">{{ occ.detalhes }}</td>
               <td>
-                <router-link :to="`/ocorrencia/${occ.id}`">
-                  <img src="@/assets/detalhes.png" alt="Detalhes" class="info-btn" />
+                <router-link :to="`/ocorrencia/${occ.id}`" class="details-link-btn">
+                  Ver detalhes
                 </router-link>
               </td>
             </tr>
@@ -660,6 +660,23 @@ onBeforeUnmount(() => {
 .toggle-btn.active {
   background: #3b82f6;
   color: white;
+}
+
+/* Botao detalhes */
+.details-link-btn {
+  display: inline-block;
+  background-color: #b1ffb1;
+  color: #0b2b2b;
+  padding: 8px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.85rem;
+  transition: background-color 0.2s;
+}
+
+.details-link-btn:hover {
+  background-color: #98fb98;
 }
 
 /* TABELA */

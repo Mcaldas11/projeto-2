@@ -68,11 +68,10 @@
             <tr>
               <th>Nome</th>
               <th class="sortable" @click="toggleSort">
-                Situação <span class="sort-arrow">↕</span>
+                Situação 
               </th>
               <th>
                 Tipo de Problema
-                <img src="@/assets/detalhes.png" alt="Info" class="th-icon" />
               </th>
               <th>Detalhes</th>
               <th></th>
@@ -94,8 +93,8 @@
               <td>{{ occ.tipo }}</td>
               <td class="details-cell">{{ occ.detalhes }}</td>
               <td>
-                <router-link :to="`/admin/ocorrencia/${occ.id}`">
-                  <img src="@/assets/detalhes.png" alt="Detalhes" class="info-btn" />
+                <router-link :to="`/ocorrencia/${occ.id}`" class="details-link-btn">
+                  Ver detalhes
                 </router-link>
               </td>
             </tr>
@@ -744,6 +743,25 @@ watch(filteredOcorrencias, () => {
   align-items: center;
   gap: 6px;
 }
+
+
+/* Botao detalhes */
+.details-link-btn {
+  display: inline-block;
+  background-color: #b1ffb1;
+  color: #0b2b2b;
+  padding: 8px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.85rem;
+  transition: background-color 0.2s;
+}
+
+.details-link-btn:hover {
+  background-color: #98fb98;
+}
+
 
 /* ROTAS SECTION */
 .rotas-section {

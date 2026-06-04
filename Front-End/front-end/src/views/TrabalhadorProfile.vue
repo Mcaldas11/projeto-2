@@ -83,25 +83,10 @@
             <label>Média de Avaliações</label>
             <div class="display-box rating-box">⭐ {{ worker.ratingMedia }} / 5.0</div>
           </div>
-
-          <div class="detail-field full-width">
-            <label>Credenciais de Acesso</label>
-            <div
-              :class="['spoiler-credential', { revealed: isCredRevealed }]"
-              @click="isCredRevealed = !isCredRevealed"
-            >
-              <span class="cred-text">{{ worker.credenciais }}</span>
-              <span v-if="!isCredRevealed" class="spoiler-label"
-                >Clique para revelar credencial</span
-              >
-            </div>
-          </div>
         </div>
       </section>
 
-      <!-- SECÇÃO INFERIOR: APENAS OCORRÊNCIAS DA FREGUESIA E ROTAS AGENDADAS -->
       <section class="worker-dashboard-bottom">
-        <!-- Listagem de Ocorrências com base na Tabela do Novo Design -->
         <div class="dashboard-block user-occurrences">
           <h3>Ocorrências aceites em {{ worker.freguesia }}</h3>
           <div class="table-container">
@@ -256,7 +241,6 @@ const toggleMenu = () => {
 // const removeNotif = (i) => notifications.value.splice(i, 1)
 
 // Estado reativo do Perfil Técnico do Trabalhador
-const isCredRevealed = ref(false)
 const storedProfile = JSON.parse(localStorage.getItem('userProfile') || 'null')
 const worker = ref({
   nome: storedProfile?.firstName || '',

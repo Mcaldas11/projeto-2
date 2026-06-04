@@ -91,9 +91,9 @@
           <thead>
             <tr>
               <th>Nome</th>
-              <th>Situação ↕</th>
+              <th>Situação</th>
               <th>
-                Tipo de Problema <img src="@/assets/detalhes.png" alt="Detalhes" class="th-icon" />
+                Tipo de Problema 
               </th>
               <th>Detalhes</th>
               <th></th>

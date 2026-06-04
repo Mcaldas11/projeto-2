@@ -47,8 +47,8 @@
             <table class="worker-table">
               <thead>
                 <tr>
-                  <th>Status ↕</th>
-                  <th>Tipo de Ocorrência <span class="info-circle">?</span></th>
+                  <th>Status</th>
+                  <th>Tipo de Ocorrência </th>
                   <th>Avaliação</th>
                   <th></th>
                 </tr>

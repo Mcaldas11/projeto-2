@@ -13,7 +13,7 @@
           class="icon notification"
           @click="toggleNotif"
           ref="notifIcon" -->
-        />
+        
         <span class="icon menu-trigger" @click="toggleMenu">☰</span>
 
         <AdminSidebarMenu v-model="showMenu" />
