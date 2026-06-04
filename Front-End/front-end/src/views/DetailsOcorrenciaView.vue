@@ -287,11 +287,12 @@
 </template>
 
 <script setup>
+import { createRouter, createWebHistory } from 'vue-router'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Footer from '@/components/footer.vue'
 import SidebarMenu from '@/components/SidebarMenu.vue'
-import { defaultOccurrenceAvatar } from '@/utils/occurrenceStorage'
+import { defaultOccurrenceAvatar, avatarImg as defaultWorkerAvatar } from '@/utils/occurrenceStorage'
 import { API_BASE_URL, getOccurrence, resolveOccurrence } from '@/services/occurrenceService'
 import { getOccurrenceTypeMeta } from '@/utils/occurrenceTypes'
 import { getAuthUserType, getNewOccurrenceRoute, getAuthUserId } from '@/utils/auth'
@@ -300,6 +301,7 @@ import { getAuthUserType, getNewOccurrenceRoute, getAuthUserId } from '@/utils/a
 import { createMensagem, getMensagensByOcorrencia, updateMensagem } from '@/services/messageService'
 
 const showMenu = ref(false)
+const showNotif = ref(false)
 const menuPanel = ref(null)
 const menuIcon = ref(null)
 const route = useRoute()

@@ -39,13 +39,19 @@ async function listRoutes() {
     throw new Error('Define VITE_API_URL para carregar as rotas da base de dados.')
   }
 
-  const response = await fetch(`${API_BASE_URL}/routes`)
-  if (!response.ok) {
-    throw new Error('Failed to load routes from backend')
-  }
+  try {
+    const response = await fetch(`${API_BASE_URL}/routes`)
+    if (!response.ok) {
+      console.warn('Endpoint /routes not found or failed. Returning empty array.')
+      return []
+    }
 
-  const data = await response.json()
-  return Array.isArray(data) ? data : []
+    const data = await response.json()
+    return Array.isArray(data) ? data : []
+  } catch (error) {
+    console.warn('Failed to load routes:', error.message)
+    return []
+  }
 }
 
 async function listRoutesWithGeometry() {

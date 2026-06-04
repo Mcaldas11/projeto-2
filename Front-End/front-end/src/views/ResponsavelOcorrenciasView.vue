@@ -241,12 +241,12 @@ async function geocodeLocation(locationValue) {
   endpoint.searchParams.set('limit', '1')
   endpoint.searchParams.set('countrycodes', 'pt')
   endpoint.searchParams.set('q', query)
+  endpoint.searchParams.set('email', 'vccomunica@exemplo.pt')
 
   try {
     const response = await fetch(endpoint.toString(), {
       headers: {
         Accept: 'application/json',
-        'Accept-Language': 'pt-PT,pt;q=0.9,en;q=0.7',
       },
     })
 

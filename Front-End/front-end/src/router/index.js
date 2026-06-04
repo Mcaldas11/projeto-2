@@ -129,36 +129,40 @@ const router = createRouter({
       component: AdminFreguesiasView,
       meta: { requiresAdmin: true },
     },
+    {
+      path: '/admin/perfil',
+      redirect: '/trabalhador/perfil',
+    },
   ],
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to) => {
   if (to.name === 'new-ocorrencia') {
     const role = localStorage.getItem('role') || sessionStorage.getItem('authUserType')
     if (role !== 'cidadao') {
-      return next({ name: 'home' })
+      return { name: 'home' }
     }
   }
 
   if ((to.name === 'conta' || to.name === 'new-ocorrencia') && !isAuthenticated()) {
-    return next({ name: 'login', query: { redirect: to.fullPath } })
+    return { name: 'login', query: { redirect: to.fullPath } }
   }
   if (to.name === 'admin-rotas' || to.name === 'responsavel-rotas') {
     const role = localStorage.getItem('role')
-    if (role === 'admin' || role === 'trabalhador' || role === 'responsavel') return next()
-    return next({ name: 'login' })
+    if (role === 'admin' || role === 'trabalhador' || role === 'responsavel') return true
+    return { name: 'login' }
   }
   if (to.meta && to.meta.requiresWorker) {
     const role = localStorage.getItem('role')
-    if (role === 'trabalhador' || role === 'responsavel') return next()
-    return next({ name: 'login' })
+    if (role === 'trabalhador' || role === 'responsavel') return true
+    return { name: 'login' }
   }
   if (to.meta && to.meta.requiresAdmin) {
     const role = localStorage.getItem('role')
-    if (role === 'admin') return next()
-    return next({ name: 'login' })
+    if (role === 'admin') return true
+    return { name: 'login' }
   }
-  return next()
+  return true
 })
 
 export default router
