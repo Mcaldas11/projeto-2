@@ -22,7 +22,6 @@
 <script setup>
 import { computed } from 'vue'
 import defaultLogo from '@/assets/logo.svg'
-import { getAccountRoute } from '@/utils/auth'
 
 const props = defineProps({
   columns: {
@@ -36,30 +35,19 @@ const props = defineProps({
 })
 
 const scrollToTop = () => {
-  // Força o scroll para o topo, especialmente útil se já estivermos na mesma página
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 const roleAwareDefaultColumns = computed(() => {
-  const role = localStorage.getItem('role') || ''
-
-  const homeRouteByRole = {
-    admin: '/admin',
-    trabalhador: '/trabalhador',
-    responsavel: '/responsavel/perfil',
-  }
-
-  const homeRoute = homeRouteByRole[role] || '/'
-  const accountLabel = role === 'cidadao' || !role ? 'Conta' : 'Perfil'
-  const accountRoute = role === 'cidadao' || !role ? '/conta' : getAccountRoute()
-
   return [
     [
-      { label: 'Home', to: homeRoute },
-      { label: 'Ocorrências', to: '/ocorrencias' },
-      { label: 'Mapa Ocorrências', to: '/ocorrencias' },
+      { label: 'Home', to: '/' },
+      { label: 'Conta', to: '/conta' },
     ],
-    [{ label: accountLabel, to: accountRoute }],
+    [
+      { label: 'Ocorrências', to: '/ocorrencias' },
+      { label: 'Mapa Ocorrências', to: { path: '/ocorrencias', query: { mode: 'mapa' } } },
+    ],
   ]
 })
 
@@ -94,7 +82,7 @@ const resolvedLogoSrc = computed(() => props.logoSrc || defaultLogo)
 
 .col a {
   text-decoration: none;
-  color: #2d5a27;
+  color: rgb(80, 65, 29);
   font-weight: 600;
 }
 
@@ -106,7 +94,7 @@ const resolvedLogoSrc = computed(() => props.logoSrc || defaultLogo)
 
 .logo-img-small {
   align-items: center;
-  height: 40px;
+  height: 60px;
 }
 
 .copyright {

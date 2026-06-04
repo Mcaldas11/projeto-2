@@ -71,10 +71,11 @@
 
     <section class="about-section">
       <div class="about-text">
-        <h2 class="section-title">Sobre<br />Nós</h2>
+        <h2 class="section-title">Sobre Nós</h2>
+        <br />
         <p>A VC Comunica é uma plataforma inovadora, criada para ligar cidadãos e autoridades.</p>
         <p>
-          O nosso objectivo é facilitar a comunicação de ocorrências, promover a transparência e
+          O nosso objetivo é facilitar a comunicação de ocorrências, promover a transparência e
           construir uma cidade mais segura e eficiente para todos.
         </p>
       </div>
@@ -82,6 +83,30 @@
         <img src="@/assets/about1.png" alt="Ocorrência 1" class="about-img" />
         <img src="@/assets/about2.png" alt="Ocorrência 2" class="about-img" />
         <img src="@/assets/about3.png" alt="Ocorrência 3" class="about-img" />
+      </div>
+    </section>
+
+    <section class="freguesias-section">
+      <div class="freguesias-content-card">
+        <div class="section-heading-row">
+          <h2 class="section-title-freguesia">Freguesias Aderentes</h2>
+        </div>
+
+        <div v-if="loadingParishes" style="color: #666; margin-bottom: 20px">
+          A carregar freguesias aderentes...
+        </div>
+        <div v-else class="teams-slider">
+          <div
+            v-for="parish in parishes"
+            :key="parish.idFreguesia || parish.idMunicipio"
+            class="team-card"
+          >
+            <h3 class="freguesia-nome">{{ parish.nome }}</h3>
+          </div>
+          <div v-if="parishes.length === 0 && !loadingParishes" style="color: #666">
+            Nenhuma freguesia registada de momento.
+          </div>
+        </div>
       </div>
     </section>
 
@@ -110,7 +135,7 @@
       </div>
     </section>
 
-    <Footer />
+    <FooterHome />
   </div>
 </template>
 
@@ -328,7 +353,7 @@
 }
 
 .stat-card {
-  background-color: #b9f397;
+  background-color: #e0b751;
   color: #1a330a;
   padding: 30px;
   border-radius: 20px;
@@ -337,9 +362,20 @@
 }
 
 .stat-number {
+  color: rgb(80, 65, 29);
   font-size: 3rem;
   font-weight: 900;
   margin: 0 0 10px 0;
+}
+
+.team-card .freguesia-nome {
+  color: rgb(80, 65, 29);
+
+  margin: 0 0 10px 0;
+}
+
+.stat-label {
+  color: rgb(80, 65, 29);
 }
 
 /* Sobre Nós */
@@ -404,17 +440,44 @@
   text-decoration: none;
 }
 
-.teams-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+.teams-slider {
+  display: flex;
+  overflow-x: auto;
+  gap: 20px;
+  padding: 10px 5px 30px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch; /* Suavidade no iOS */
+}
+
+/* Estilização da barra de scroll para ser discreta */
+.teams-slider::-webkit-scrollbar {
+  height: 6px;
+}
+.teams-slider::-webkit-scrollbar-track {
+  background: #f5f1e9;
+  border-radius: 10px;
+}
+.teams-slider::-webkit-scrollbar-thumb {
+  background: #e0b751;
+  border-radius: 10px;
 }
 
 .team-card {
-  background: #f8fafc;
+  flex: 0 0 280px;
+  background: #f5f1e9;
   border: 1px solid #e2e8f0;
   border-radius: 18px;
   padding: 20px;
+  scroll-snap-align: start;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.team-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
 .team-card h3 {
@@ -430,16 +493,52 @@
   font-weight: 600;
 }
 
+.freguesias-section {
+  position: relative;
+  padding: 90px;
+  margin-bottom: -60px;
+  /* O gradiente abaixo funciona como uma camada de cor por cima da imagem.
+     rgba(255, 255, 255, 0.7) adiciona uma película branca com 70% de opacidade. */
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('@/assets/fundo_freguesias.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  overflow: hidden;
+}
+
+.freguesias-content-card {
+  background: rgba(206, 206, 206, 0.15);
+  padding-bottom: 40px;
+  padding-left: 40px;
+  padding-right: 40px;
+  padding-top: 10px;
+  border-radius: 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+}
+
 /* Como Reportar */
 .how-to-section {
   padding: 80px;
   background-color: #fafafa;
+  padding-top: 100px;
+  margin-top: 70px;
+  padding-bottom: 160px;
+  margin-bottom: -60px;
 }
 
 .section-title-large {
   font-size: 3.5rem;
   font-weight: 900;
   margin-bottom: 60px;
+}
+
+.section-title-freguesia {
+  font-size: 3.5rem;
+  font-weight: 900;
+  margin-bottom: 40px;
+  color: #e0b751;
 }
 
 .steps-grid {
@@ -538,12 +637,13 @@
 
 <script setup>
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
-import Footer from '@/components/footer.vue'
+import FooterHome from '@/components/FooterHome.vue'
 import SidebarMenu from '@/components/SidebarMenu.vue'
 // import notifOn from '@/assets/notificationson.png'
 // import notifOff from '@/assets/notificationsoff.png'
 import { getNewOccurrenceRoute } from '@/utils/auth'
 import { listAllOccurrences } from '@/services/occurrenceService'
+import { listFreguesias } from '@/services/municipalityService'
 
 // const showNotif = ref(false)
 // const notifPanel = ref(null)
@@ -562,6 +662,22 @@ const inAnalysisCount = ref(0)
 const loadingStats = ref(false)
 const statsError = ref('')
 let statsIntervalId = null
+
+const parishes = ref([])
+const loadingParishes = ref(false)
+
+async function loadParishes() {
+  loadingParishes.value = true
+  try {
+    const data = await listFreguesias()
+    // Ordenamos as freguesias por nome para uma lista mais organizada
+    parishes.value = data.sort((a, b) => a.nome.localeCompare(b.nome))
+  } catch (error) {
+    console.error('Failed to load parishes', error)
+  } finally {
+    loadingParishes.value = false
+  }
+}
 
 async function loadStats() {
   loadingStats.value = true
@@ -640,6 +756,7 @@ onMounted(() => {
 
   document.addEventListener('click', handleDocClick)
   void loadStats()
+  void loadParishes()
   // Poll every 30s
   statsIntervalId = setInterval(() => {
     void loadStats()
