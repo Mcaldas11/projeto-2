@@ -159,6 +159,8 @@ import Footer from '@/components/footer.vue'
 import avatarImg from '@/assets/avatar.png'
 import { getAuthToken, getAuthUserId } from '@/utils/auth'
 import ResponsavelSidebarMenu from '@/components/ResponsavelSidebarMenu.vue'
+import { listOccurrences } from '@/services/occurrenceService'
+import { listRoutes } from '@/services/routeService'
 
 const responsavelFooterColumns = [
   [
@@ -399,8 +401,38 @@ async function handleSaveEdit() {
 // Ocorrências vinculadas à freguesia do funcionário
 const ocorrencias = ref([])
 
+async function loadOcorrenciasFreguesia() {
+  try {
+    const data = await listOccurrences()
+    ocorrencias.value = data.map((occ) => ({
+      id: occ.id,
+      status: occ.situacao,
+      statusClass: occ.statusClass,
+      tipo: occ.tipo,
+      local: occ.location,
+    }))
+  } catch (error) {
+    console.warn('Falha ao carregar ocorrências da freguesia:', error)
+  }
+}
+
 // Rotas exclusivas do Trabalhador
 const rotas = ref([])
+
+async function loadRotasResponsavel() {
+  try {
+    const data = await listRoutes()
+    rotas.value = data.map((route) => ({
+      id: route.idRota || route.id,
+      nome: route.nome,
+      descricao: `${route.waypoints?.length || 0} pontos de paragem`,
+      data: 'Rota Ativa', // Rota model doesn't have date
+      hora: 'Horário flexível', // Rota model doesn't have time
+    }))
+  } catch (error) {
+    console.warn('Falha ao carregar rotas do responsável:', error)
+  }
+}
 
 const openRoute = (route) => {
   router.push({
@@ -426,8 +458,10 @@ function handleLogout() {
   router.replace({ name: 'login' })
 }
 
-onMounted(() => {
-  loadResponsibleProfile()
+onMounted(async () => {
+  await loadResponsibleProfile()
+  loadOcorrenciasFreguesia()
+  loadRotasResponsavel()
 })
 </script>
 
@@ -742,6 +776,10 @@ onMounted(() => {
 .espera {
   background: #ffedd5;
   color: #ea580c;
+}
+.resolvido {
+  background: #dcfce7;
+  color: #16a34a;
 }
 .details-cell {
   color: #64748b;
