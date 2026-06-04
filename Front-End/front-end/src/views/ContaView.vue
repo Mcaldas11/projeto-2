@@ -57,6 +57,7 @@
           <div class="user-text">
             <h2>{{ userFirstName }} {{ userLastName }}</h2>
             <p>{{ userEmail }}</p>
+            <p>{{ userPhone }}</p>
           </div>
         </div>
         <button @click="editarNome" class="btn-edit">Edit</button>
@@ -65,7 +66,7 @@
       <section class="profile-details">
         <div class="details-grid">
           <div class="detail-field">
-            <label>Freguesia</label>
+            <h3>Freguesia</h3>
             <div>
               <select name="freguesia" class="display-box select-box" v-model="selectedFregId">
                 <option value="" disabled>Seleciona a freguesia</option>
@@ -176,20 +177,20 @@
     </div>
 
     <!-- Review Ocorrencia Modal -->
-    <div v-if="showREviewModal" class="modal-overlay" @click.self="showReviewModal = false">
+    <div v-if="showReviewModal" class="modal-overlay" @click.self="showReviewModal = false">
       <div class="modal-card">
         <h3>Avalie a resolução da ocorrência</h3>
         <div class="form-row">
           <label class="field-label">Descrição:</label>
           <textarea
-            v-model="form.description"
+            v-model="reviewForm.description"
             class="custom-textarea"
             placeholder="Escreva aqui a sua avaliação..."
           ></textarea>
         </div>
         <div class="modal-actions">
-          <button class="modal-btn cancel" @click="handleCancelEdit">Cancelar</button>
-          <button class="modal-btn confirm" @click="handleSaveEdit">Guardar</button>
+          <button class="modal-btn cancel" @click="showReviewModal = false">Cancelar</button>
+          <button class="modal-btn confirm" @click="handleSaveReview">Guardar</button>
         </div>
       </div>
     </div>
@@ -201,7 +202,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import Footer from '@/components/Footer.vue'
+import Footer from '@/components/footer.vue'
 import SidebarMenu from '@/components/SidebarMenu.vue'
 // import notifOn from '@/assets/notificationson.png'
 // import notifOff from '@/assets/notificationsoff.png'
@@ -223,6 +224,11 @@ const userEmail = ref(storedProfile?.email || '')
 const userPhone = ref(storedProfile?.nrTelemovel || '')
 const profilePhoto = ref(storedProfile?.fotoPerfil || '')
 const selectedFregId = ref(storedProfile?.fregCidadao || storedProfile?.idFreguesia || '')
+
+const showReviewModal = ref(false)
+const reviewForm = ref({
+  description: '',
+})
 
 const userOccurrences = ref([])
 
@@ -314,7 +320,9 @@ const toggleMenu = () => {
 }
 // const removeNotif = (i) => notifications.value.splice(i, 1)
 
-const reviewOcorrencia = () => {}
+const reviewOcorrencia = () => {
+  showReviewModal.value = true
+}
 
 const editarNome = () => {
   editFirstName.value = userFirstName.value
@@ -403,7 +411,7 @@ async function handleSaveEdit() {
         firstName: editFirstName.value.trim(),
         lastName: editLastName.value.trim(),
         email: editEmail.value.trim(),
-        telemovel: editPhone.value.trim(),
+        nrTelemovel: editPhone.value.trim(),
         idFreguesia: selectedFregId.value,
       }),
     })
@@ -420,7 +428,7 @@ async function handleSaveEdit() {
     userFirstName.value = firstName
     userLastName.value = lastName
     userEmail.value = updatedCidadao.email
-    userPhone.value = updatedCidadao.nrTelemovel
+    userPhone.value = updatedCidadao.nrTelemovel || updatedCidadao.telemovel || ''
 
     // Use the flag to prevent the watcher from triggering another save/confirm
     isInternalChange = true
@@ -440,6 +448,45 @@ async function handleSaveEdit() {
     showEditModal.value = false
   } catch (error) {
     alert(error.message || 'Não foi possível guardar o perfil.')
+  }
+}
+
+function handleSaveReview() {
+  console.log('Avaliação guardada:', reviewForm.value.description)
+  showReviewModal.value = false
+}
+
+async function fetchUserProfile() {
+  const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken')
+  if (!API_BASE_URL || !token) return
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/cidadaos/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (response.ok) {
+      const profile = await response.json()
+      userPhone.value = profile.nrTelemovel || profile.telemovel || ''
+
+      const { firstName, lastName } = splitName(profile.nome)
+      userFirstName.value = firstName
+      userLastName.value = lastName
+      userEmail.value = profile.email
+
+      localStorage.setItem(
+        'userProfile',
+        JSON.stringify({
+          firstName,
+          lastName,
+          email: profile.email,
+          nrTelemovel: userPhone.value,
+          fotoPerfil: profile.fotoPerfil || profilePhoto.value,
+          fregCidadao: profile.fregCidadao || Number(selectedFregId.value),
+        }),
+      )
+    }
+  } catch (err) {
+    console.error('Falha ao sincronizar perfil:', err)
   }
 }
 
@@ -501,6 +548,7 @@ function handleLogout() {
 
 onMounted(async () => {
   try {
+    void fetchUserProfile()
     const [loadedOccurrences, loadedFreguesias] = await Promise.all([
       listOccurrences(true),
       listFreguesias(),
@@ -739,12 +787,13 @@ onMounted(async () => {
   gap: 20px 40px;
   margin-bottom: 60px;
 }
-.detail-field label {
-  display: block;
+.detail-field h3,
+.user-occurrences h3 {
+  font-size: 18px;
   font-weight: 800;
-  color: #475569;
-  margin-bottom: 8px;
-  font-size: 14px;
+  color: #1e293b;
+  margin-bottom: 20px;
+  display: block;
 }
 
 /* select.display-box {
@@ -778,11 +827,6 @@ onMounted(async () => {
 }
 
 /* TABELA DE OCORRÊNCIAS */
-.user-occurrences h3 {
-  font-size: 18px;
-  font-weight: 800;
-  margin-bottom: 20px;
-}
 .table-container {
   border: 1px solid #f1f5f9;
   border-radius: 15px;

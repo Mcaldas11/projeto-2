@@ -164,6 +164,8 @@ const handleLogin = async () => {
     if (profile) {
       const profileName = profile.nome || profile.nomeTrabalhador || ''
       const profileEmail = profile.email || profile.emailTrabalhador || ''
+      const profilePhone =
+        profile.nrTelemovel || profile.telemovelTrabalhador || profile.telemovel || ''
       const { firstName, lastName } = splitName(profileName)
       const fotoPerfil = profile.fotoPerfil || ''
       const freg = profile.fregCidadao || profile.idFreguesia || null
@@ -174,6 +176,7 @@ const handleLogin = async () => {
           firstName,
           lastName,
           email: profileEmail,
+          nrTelemovel: profilePhone,
           fotoPerfil,
           fregCidadao: freg,
           idFreguesia: freg,

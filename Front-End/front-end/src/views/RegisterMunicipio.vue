@@ -138,6 +138,7 @@ const handleFinish = async () => {
       firstName,
       lastName,
       email: stored.email,
+      nrTelemovel: stored.phone,
       fregCidadao: Number(selectedFreguesia.value),
     }),
   )
