@@ -108,13 +108,6 @@
         <p class="modal-subtitle">A equipa será associada a: {{ selectedFreguesia }}</p>
         <div class="modal-form">
           <div class="form-row">
-            <label class="modal-label">Especialização / Nome da Equipa</label>
-            <input
-              v-model="newTeamEspecializacao"
-              type="text"
-              class="modal-input"
-              placeholder="Ex: Manutenção de Vias"
-            />
             <label class="modal-label">Especialização</label>
             <select v-model="newTeamEspecializacao" class="modal-select">
               <option value="" disabled>Selecionar especialização</option>

@@ -95,13 +95,13 @@
             </select>
           </div>
           <div class="form-row">
-            <label class="modal-label">Especialização / Nome da Equipa</label>
-            <input
-              v-model="newTeamEspecializacao"
-              type="text"
-              class="modal-input"
-              placeholder="Ex: Manutenção de Vias"
-            />
+            <label class="modal-label">Especialização</label>
+            <select v-model="newTeamEspecializacao" class="modal-select">
+              <option value="" disabled>Selecionar especialização</option>
+              <option v-for="esp in ESPECIALIZACOES" :key="esp" :value="esp">
+                {{ esp }}
+              </option>
+            </select>
           </div>
         </div>
         <p v-if="createTeamError" class="modal-error">{{ createTeamError }}</p>
@@ -172,6 +172,14 @@ import {
   createTeam,
   unassignWorkerFromTeam,
 } from '@/services/teamService'
+
+const ESPECIALIZACOES = [
+  'Estradas e passeios',
+  'Sinalização de trânsito',
+  'Iluminação',
+  'Higiene e limpeza',
+  'Parques e jardins',
+]
 
 const adminFooterColumns = [
   [
