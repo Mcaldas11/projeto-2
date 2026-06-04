@@ -6,31 +6,12 @@
       </div>
       <div class="nav-icons">
         <span class="icon add">+</span>
-        <!-- <img
-          :src="notifications.length === 0 ? notifOff : notifOn"
-          alt="notifications"
-          class="icon notification"
-          @click="toggleNotif"
-        /> -->
+        
         <span class="icon" @click="toggleMenu">☰</span>
 
         <SidebarMenu v-model="showMenu" />
 
-        <!-- <div v-if="showNotif" class="notifications" ref="notifPanel">
-          <h4>Notificações</h4>
-          <div class="notif-list">
-            <div
-              v-for="(n, i) in notifications"
-              :key="n.id"
-              class="notif-item"
-              @click.stop="removeNotif(i)"
-            >
-              <div class="notif-title">{{ n.title }}</div>
-              <div class="notif-body" v-html="n.body"></div>
-            </div>
-            <div v-if="notifications.length === 0" class="notif-empty">Sem notificações</div>
-          </div>
-        </div> -->
+      
       </div>
     </nav>
 
@@ -157,24 +138,15 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import Footer from '@/components/footer.vue'
 import SidebarMenu from '@/components/SidebarMenu.vue'
-// import notifOn from '@/assets/notificationson.png'
-// import notifOff from '@/assets/notificationsoff.png'
 import { createOccurrence } from '@/services/occurrenceService'
 
 // Estados do Header
 const showNotif = ref(false)
 const showMenu = ref(false)
-// const notifications = ref([])
-
-// const toggleNotif = () => {
-//   showNotif.value = !showNotif.value
-//   showMenu.value = false
-// }
 const toggleMenu = () => {
   showMenu.value = !showMenu.value
   showNotif.value = false
 }
-// const removeNotif = (i) => notifications.value.splice(i, 1)
 
 const router = useRouter()
 

@@ -7,32 +7,13 @@
         </router-link>
       </div>
       <div class="nav-right">
-        <!-- <img
-          :src="notifications.length === 0 ? notifOff : notifOn"
-          alt="notifications"
-          class="icon notification"
-          @click="toggleNotif"
-          ref="notifIcon" -->
+        
         
         <span class="icon menu-trigger" @click="toggleMenu">☰</span>
 
         <AdminSidebarMenu v-model="showMenu" />
 
-        <!-- <div v-if="showNotif" class="notifications" ref="notifPanel">
-          <h4>Notificações</h4>
-          <div class="notif-list">
-            <div
-              v-for="(n, i) in notifications"
-              :key="n.id"
-              class="notif-item"
-              @click.stop="removeNotif(i)"
-            >
-              <div class="notif-title">{{ n.title }}</div>
-              <div class="notif-body" v-html="n.body"></div>
-            </div>
-            <div v-if="notifications.length === 0" class="notif-empty">Sem notificações</div>
-          </div>
-        </div> -->
+        
       </div>
     </nav>
 
@@ -100,8 +81,6 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import Footer from '@/components/footer.vue'
 import AdminSidebarMenu from '@/components/AdminSidebarMenu.vue'
-/* import notifOn from '@/assets/notificationson.png'
-import notifOff from '@/assets/notificationsoff.png' */
 import adminFooterLogo from '@/assets/logo_footer.png'
 import { listRoutesWithGeometry } from '@/services/routeService'
 import { listOccurrenceMarkers } from '@/services/occurrenceService'
@@ -179,18 +158,12 @@ function toggleOccurrenceFilter(key) {
   drawOccurrences()
 }
 
-/* const toggleNotif = (e) => {
-  e.stopPropagation()
-  showNotif.value = !showNotif.value
-  showMenu.value = false
-} */
 const toggleMenu = (e) => {
   e.stopPropagation()
   showMenu.value = !showMenu.value
   showNotif.value = false
 }
-/* const removeNotif = (i) => notifications.value.splice(i, 1)
- */
+
 function formatRoutePoints(route) {
   return (route.geometry?.length ? route.geometry : route.waypoints || []).map((point) => [
     point.latitude,

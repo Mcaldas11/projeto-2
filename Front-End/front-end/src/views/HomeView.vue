@@ -11,32 +11,12 @@
             <router-link v-if="newOccurrenceRoute" :to="newOccurrenceRoute" class="icon add"
               >+</router-link
             >
-            <!-- <img
-              :src="notifications.length === 0 ? notifOff : notifOn"
-              alt="notifications"
-              class="icon notification"
-              @click="toggleNotif"
-              ref="notifIcon"
-            /> -->
+            
             <span class="icon" ref="menuIcon" @click="toggleMenu">☰</span>
 
             <SidebarMenu v-model="showMenu" />
 
-            <!-- <div v-if="showNotif" class="notifications" ref="notifPanel">
-              <h4>Notificações</h4>
-              <div class="notif-list">
-                <div
-                  v-for="(n, i) in notifications"
-                  :key="n.id"
-                  class="notif-item"
-                  @click.stop="removeNotif(i)"
-                >
-                  <div class="notif-title">{{ n.title }}</div>
-                  <div class="notif-body" v-html="n.body"></div>
-                </div>
-                <div v-if="notifications.length === 0" class="notif-empty">Sem notificações</div>
-              </div>
-            </div> -->
+            
           </div>
         </nav>
 
@@ -639,21 +619,15 @@
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import FooterHome from '@/components/FooterHome.vue'
 import SidebarMenu from '@/components/SidebarMenu.vue'
-// import notifOn from '@/assets/notificationson.png'
-// import notifOff from '@/assets/notificationsoff.png'
 import { getNewOccurrenceRoute } from '@/utils/auth'
 import { listAllOccurrences } from '@/services/occurrenceService'
 import { listFreguesias } from '@/services/municipalityService'
 
-// const showNotif = ref(false)
-// const notifPanel = ref(null)
-// const notifIcon = ref(null)
 const showMenu = ref(false)
 const menuPanel = ref(null)
 const menuIcon = ref(null)
 const newOccurrenceRoute = computed(() => getNewOccurrenceRoute())
 
-// const notifications = ref([])
 
 // Stats from backend
 const totalOccurrences = ref(0)
@@ -706,28 +680,17 @@ async function loadStats() {
   }
 }
 
-// function toggleNotif(event) {
-//   showNotif.value = !showNotif.value
-//   event.stopPropagation()
-// }
+
 
 function toggleMenu(event) {
   showMenu.value = !showMenu.value
   event.stopPropagation()
 }
 
-// function removeNotif(index) {
-//   notifications.value.splice(index, 1)
-// }
+
 
 function handleDocClick(e) {
-  // const nPanel = notifPanel.value
-  // const nIcon = notifIcon.value
-  // if (showNotif.value) {
-  //   if (nPanel && !nPanel.contains(e.target) && nIcon && !nIcon.contains(e.target)) {
-  //     showNotif.value = false
-  //   }
-  // }
+  
 
   const mPanel = menuPanel.value
   const mIcon = menuIcon.value
