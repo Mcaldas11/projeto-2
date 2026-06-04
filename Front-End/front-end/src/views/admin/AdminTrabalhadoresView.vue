@@ -7,18 +7,16 @@
         </router-link>
       </div>
       <div class="nav-right">
-        
         <span class="icon menu-trigger" @click="toggleMenu">☰</span>
 
         <AdminSidebarMenu v-model="showMenu" />
-
-        
       </div>
     </nav>
 
     <main class="main-content">
       <div class="title-filter">
         <h1 class="page-title">Trabalhadores</h1>
+        <button class="btn-create-worker" @click="openCreateModal">+ Adicionar Trabalhador</button>
         <div class="filter-select">
           <label>Freguesia</label>
           <select v-model="selectedFreguesia">
@@ -104,6 +102,73 @@
       </div>
     </main>
 
+    <!-- Create Worker Modal -->
+    <div v-if="showCreateModal" class="modal-overlay" @click.self="closeCreateModal">
+      <div class="modal-card">
+        <h3>Criar novo trabalhador</h3>
+        <div class="modal-form">
+          <div class="form-row-modal">
+            <label class="modal-label">Nome Completo</label>
+            <input
+              v-model="newWorker.nome"
+              type="text"
+              class="modal-input"
+              placeholder="Ex: João Silva"
+            />
+          </div>
+          <div class="form-row-modal">
+            <label class="modal-label">Email (@example.pt)</label>
+            <input
+              v-model="newWorker.email"
+              type="email"
+              class="modal-input"
+              placeholder="nome@example.pt"
+            />
+          </div>
+          <div class="form-row-modal">
+            <label class="modal-label">Freguesia</label>
+            <select v-model="newWorker.idFreguesia" class="modal-select">
+              <option :value="null" disabled>Selecionar freguesia</option>
+              <option
+                v-for="freg in allFreguesiasRaw"
+                :key="freg.idFreguesia"
+                :value="freg.idFreguesia"
+              >
+                {{ freg.nome }}
+              </option>
+            </select>
+          </div>
+          <div class="form-row-modal">
+            <label class="modal-label">Telemóvel</label>
+            <input
+              v-model="newWorker.telemovel"
+              type="text"
+              class="modal-input"
+              placeholder="912345678"
+            />
+          </div>
+          <div class="form-row-modal">
+            <label class="modal-label">Palavra-passe</label>
+            <input
+              v-model="newWorker.password"
+              type="password"
+              class="modal-input"
+              placeholder="Mín. 6 chars"
+            />
+          </div>
+        </div>
+        <p v-if="createError" class="modal-error">{{ createError }}</p>
+        <div class="modal-actions">
+          <button class="modal-btn cancel" @click="closeCreateModal" :disabled="isCreating">
+            Cancelar
+          </button>
+          <button class="modal-btn confirm" @click="handleCreateWorker" :disabled="isCreating">
+            {{ isCreating ? 'A criar...' : 'Criar Conta' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Edit Worker Modal -->
     <div v-if="showEditModal" class="modal-overlay" @click.self="closeEditModal">
       <div class="modal-card">
@@ -150,6 +215,7 @@ import {
   listWorkers,
   assignWorkerToTeam,
   unassignWorkerFromTeam,
+  createWorker,
   deleteWorker as removeWorker,
 } from '@/services/teamService'
 
@@ -170,7 +236,6 @@ const notifIcon = ref(null)
 const isLoading = ref(true)
 const loadError = ref('')
 const freguesiasOptions = ref(['Todas'])
-
 
 const toggleMenu = (e) => {
   e.stopPropagation()
@@ -195,14 +260,82 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
 
 const allWorkers = ref([])
 const allTeams = ref([])
+const allFreguesiasRaw = ref([])
 
 const selectedFreguesia = ref('Todas')
 
 const showEditModal = ref(false)
+const showCreateModal = ref(false)
 const editWorkerData = ref(null)
 const editTeamId = ref('')
 const editError = ref('')
+const createError = ref('')
 const isSaving = ref(false)
+const isCreating = ref(false)
+
+const newWorker = ref({
+  nome: '',
+  email: '',
+  idFreguesia: null,
+  telemovel: '',
+  password: '',
+})
+
+const openCreateModal = () => {
+  newWorker.value = {
+    nome: '',
+    email: '',
+    idFreguesia: null,
+    telemovel: '',
+    password: '',
+  }
+  createError.value = ''
+  showCreateModal.value = true
+}
+
+const closeCreateModal = () => {
+  showCreateModal.value = false
+}
+
+const handleCreateWorker = async () => {
+  const { nome, email, idFreguesia, telemovel, password } = newWorker.value
+
+  if (!nome.trim() || !email.trim() || !idFreguesia || !telemovel.trim() || !password) {
+    createError.value = 'Todos os campos são obrigatórios.'
+    return
+  }
+
+  if (!email.toLowerCase().endsWith('@example.pt')) {
+    createError.value = 'O email tem de terminar em @example.pt'
+    return
+  }
+
+  if (password.length < 6) {
+    createError.value = 'A palavra-passe deve ter pelo menos 6 caracteres.'
+    return
+  }
+
+  isCreating.value = true
+  createError.value = ''
+
+  try {
+    await createWorker({
+      nomeTrabalhador: nome.trim(),
+      emailTrabalhador: email.trim().toLowerCase(),
+      telemovelTrabalhador: telemovel.trim(),
+      password: password,
+      idFreguesia: idFreguesia,
+    })
+
+    alert('Trabalhador criado com sucesso!')
+    await loadWorkersFromBackend()
+    closeCreateModal()
+  } catch (error) {
+    createError.value = error.message || 'Erro ao criar trabalhador.'
+  } finally {
+    isCreating.value = false
+  }
+}
 
 const filteredWorkers = computed(() => {
   if (!selectedFreguesia.value || selectedFreguesia.value === 'Todas') return allWorkers.value
@@ -331,6 +464,7 @@ async function loadWorkersFromBackend() {
       'Todas',
       ...loadedFreguesias.map((freguesia) => freguesia?.nome).filter(Boolean),
     ]
+    allFreguesiasRaw.value = loadedFreguesias
 
     allTeams.value = loadedTeams
     allWorkers.value = buildWorkerCards(loadedWorkers, loadedTeams)
@@ -351,6 +485,8 @@ watch(selectedFreguesia, () => {
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
 .page-container {
   font-family: Arial, sans-serif;
   color: #1a1a1a;
@@ -447,6 +583,17 @@ watch(selectedFreguesia, () => {
   font-size: 36px;
   font-weight: 800;
   margin: 0 0 30px 0;
+}
+
+.btn-create-worker {
+  background: #22c55e;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .title-filter {
@@ -651,6 +798,17 @@ watch(selectedFreguesia, () => {
   border-radius: 16px;
   box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
 }
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 15px 0;
+}
+.form-row-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 .modal-subtitle {
   color: #64748b;
   margin: 6px 0 16px;
@@ -668,6 +826,13 @@ watch(selectedFreguesia, () => {
   border-radius: 10px;
   padding: 10px 12px;
   font-size: 14px;
+}
+.modal-input {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-sizing: border-box;
 }
 .modal-hint {
   color: #94a3b8;
