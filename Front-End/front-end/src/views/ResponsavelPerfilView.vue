@@ -8,11 +8,8 @@
         </router-link>
       </div>
       <div class="nav-icons">
-       
         <span class="icon menu-hamburger" @click="toggleMenu">☰</span>
         <ResponsavelSidebarMenu v-model="showMenu" />
-
-        
       </div>
     </nav>
 
@@ -101,7 +98,6 @@
               </div>
               <div class="route-date-side">
                 <span class="r-date">{{ route.data }}</span>
-                <span class="r-time">⏰ {{ route.hora }}</span>
               </div>
             </button>
             <div v-if="rotas.length === 0" class="notif-empty">Nenhuma rota planeada.</div>
@@ -251,7 +247,6 @@ const createWorkerProfile = (profile = null) => {
 }
 
 const showMenu = ref(false)
-
 
 const toggleMenu = () => {
   showMenu.value = !showMenu.value
