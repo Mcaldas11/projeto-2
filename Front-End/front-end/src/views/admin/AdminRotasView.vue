@@ -18,7 +18,7 @@
     </nav>
 
     <main class="main-content">
-      <h1 class="page-title">Rotas</h1>
+      <h1 class="page-title">Rotas Globais</h1>
 
       <!-- Rotas Ativas -->
       <section class="rotas-ativas">
@@ -29,7 +29,7 @@
 
           <div class="rotas-legend">
 
-            <h3 class="legend-title legend-title-secondary">Ocorrências Ativas</h3>
+            <h3 class="legend-title legend-title-secondary">Ocorrências Ativas no Município</h3>
             <div class="occ-legend-grid">
               <div
                 v-for="type in activeOccurrenceTypes"
@@ -48,25 +48,30 @@
         </div>
       </section>
 
-      <!-- Proximas Rotas Otimizadas -->
+      <!-- Todas as Rotas do Município -->
       <section class="proximas-rotas">
-        <h2 class="section-subtitle">Proximas Rotas Otimizadas</h2>
-        <p class="espera-label">Nº Ocorrências em espera</p>
+        <h2 class="section-subtitle">Todas as Rotas Geradas</h2>
+        <p class="espera-label">Rotas ativas em todas as freguesias</p>
         <div class="category-cards">
           <div
             v-for="route in routes"
-            :key="route.id"
+            :key="route.idRota || route.id"
             :class="['category-card', { selected: isSelectedRoute(route) }]"
           >
-            <div class="card-bar" :style="{ background: route.color }"></div>
+            <div class="card-bar" :style="{ background: route.color || route.cor }"></div>
             <div class="card-content">
-              <strong>{{ route.teamName }}</strong>
-              <span>{{ route.waypoints.length }} pontos</span>
+              <strong>{{ route.nome }}</strong>
+              <span>{{ route.waypoints?.length || 0 }} pontos</span>
             </div>
-            <span class="info-icon" title="Mais informações">ⓘ</span>
+            <img 
+              src="@/assets/delete_icon.svg" 
+              class="delete-route-icon" 
+              title="Apagar rota"
+              @click.stop="apagarRota(route.idRota || route.id)" 
+            />
           </div>
         </div>
-        <button class="btn-gerar-rotas" @click="gerarRotas">Gerar Rotas</button>
+        <p v-if="routes.length === 0" class="no-routes-msg">Nenhuma rota guardada no sistema.</p>
       </section>
     </main>
 
@@ -82,7 +87,7 @@ import 'leaflet/dist/leaflet.css'
 import Footer from '@/components/footer.vue'
 import AdminSidebarMenu from '@/components/AdminSidebarMenu.vue'
 import adminFooterLogo from '@/assets/logo_footer.png'
-import { listRoutesWithGeometry } from '@/services/routeService'
+import { listRoutesWithGeometry, deleteRota } from '@/services/routeService'
 import { listOccurrenceMarkers } from '@/services/occurrenceService'
 import { getOccurrenceTypeMeta, normalizeTypeKey } from '@/utils/occurrenceTypes'
 
@@ -142,7 +147,6 @@ const activeOccurrenceTypes = computed(() => {
     .sort((left, right) => right.count - left.count)
     .slice(0, 6)
 
-  // Assign colors by index — mesma paleta do AdminHomeView
   sorted.forEach((type, i) => {
     type.color = OCC_PALETTE[i % OCC_PALETTE.length]
   })
@@ -150,8 +154,7 @@ const activeOccurrenceTypes = computed(() => {
   return sorted
 })
 
-/* const notifications = ref([])
- */const selectedOccurrenceType = ref(null)
+const selectedOccurrenceType = ref(null)
 
 function toggleOccurrenceFilter(key) {
   selectedOccurrenceType.value = selectedOccurrenceType.value === key ? null : key
@@ -165,7 +168,11 @@ const toggleMenu = (e) => {
 }
 
 function formatRoutePoints(route) {
-  return (route.geometry?.length ? route.geometry : route.waypoints || []).map((point) => [
+  const points = route.geometry && route.geometry.length > 0 
+    ? route.geometry 
+    : (route.waypoints || [])
+
+  return points.map((point) => [
     point.latitude,
     point.longitude,
   ])
@@ -184,7 +191,7 @@ function drawRoutes() {
     if (points.length < 2) return
 
     const polyline = L.polyline(points, {
-      color: route.color,
+      color: route.color || route.cor || '#3b82f6',
       weight: isSelectedRoute(route) ? 8 : 5,
       opacity: isSelectedRoute(route) ? 1 : 0.95,
       lineJoin: 'round',
@@ -193,29 +200,35 @@ function drawRoutes() {
     polyline.addTo(routeLayer.value)
     bounds.push(...points)
 
-    const startPoint = points[0]
-    const endPoint = points[points.length - 1]
-    L.circleMarker(startPoint, {
-      radius: 6,
-      color: route.color,
-      fillColor: '#fff',
-      fillOpacity: 1,
-      weight: 3,
-    }).addTo(routeLayer.value)
-    L.circleMarker(endPoint, {
-      radius: 7,
-      color: route.color,
-      fillColor: route.color,
-      fillOpacity: 1,
-      weight: 2,
-    }).addTo(routeLayer.value)
+    const originalPoints = (route.waypoints || []).map(wp => [wp.latitude, wp.longitude])
+    if (originalPoints.length >= 2) {
+      const startPoint = originalPoints[0]
+      const endPoint = originalPoints[originalPoints.length - 1]
+      
+      L.circleMarker(startPoint, {
+        radius: 6,
+        color: route.color || route.cor || '#3b82f6',
+        fillColor: '#fff',
+        fillOpacity: 1,
+        weight: 3,
+      }).addTo(routeLayer.value)
+
+      L.circleMarker(endPoint, {
+        radius: 7,
+        color: route.color || route.cor || '#3b82f6',
+        fillColor: route.color || route.cor || '#3b82f6',
+        fillOpacity: 1,
+        weight: 2,
+      }).addTo(routeLayer.value)
+    }
   })
 
   fitMapToContent(selectedRoute)
 }
 
 function isSelectedRoute(route) {
-  return selectedRouteId.value > 0 && Number(route.id) === selectedRouteId.value
+  const rid = route.idRota || route.id
+  return selectedRouteId.value > 0 && String(rid) === String(selectedRouteId.value)
 }
 
 function getActiveOccurrencePoints() {
@@ -252,13 +265,10 @@ async function initMap() {
     maxZoom: 19,
   }).addTo(mapInstance.value)
 
-  console.debug('initMap: mapElement=', mapElement.value, 'TILE_URL=', TILE_URL)
-
   routeLayer.value = L.layerGroup().addTo(mapInstance.value)
   occurrenceLayer.value = L.layerGroup().addTo(mapInstance.value)
   await nextTick()
   drawRoutes()
-  console.debug('initMap: added tileLayer')
 }
 
 async function loadOccurrences() {
@@ -304,7 +314,6 @@ function drawOccurrences() {
   if (!mapInstance.value || !occurrenceLayer.value) return
   occurrenceLayer.value.clearLayers()
 
-  // Build a color map from the same computed palette so markers match the legend
   const colorByKey = new Map(activeOccurrenceTypes.value.map((t) => [t.key, t.color]))
 
   occurrenceMarkers.value.forEach((markerData) => {
@@ -314,7 +323,6 @@ function drawOccurrences() {
 
     const key = String(markerData.typeKey || normalizeTypeKey(markerData.tipo || '')).trim()
 
-    // If a filter is active, only draw markers of that type
     if (selectedOccurrenceType.value && selectedOccurrenceType.value !== key) return
 
     const lat = Number(markerData.latitude)
@@ -339,8 +347,25 @@ function drawOccurrences() {
 }
 
 async function loadRoutes() {
-  routes.value = await listRoutesWithGeometry()
+  const existingRoutes = await listRoutesWithGeometry()
+  routes.value = existingRoutes.map((r, i) => ({
+    ...r,
+    color: r.color || r.cor || OCC_PALETTE[i % OCC_PALETTE.length],
+  }))
   drawRoutes()
+}
+
+async function apagarRota(id) {
+  if (!confirm('Tens a certeza que pretendes apagar esta rota global?')) return
+
+  try {
+    await deleteRota(id)
+    routes.value = routes.value.filter(r => (r.idRota || r.id) !== id)
+    drawRoutes()
+  } catch (error) {
+    console.error('Erro ao apagar rota:', error)
+    alert('Não foi possível apagar a rota.')
+  }
 }
 
 function handleDocClick(e) {
@@ -360,7 +385,7 @@ onMounted(async () => {
   try {
     await initMap()
   } catch {
-    // ignore init errors here
+    // ignore
   }
 
   loadRoutes().catch(() => {})
@@ -382,10 +407,6 @@ onBeforeUnmount(() => {
     mapInstance.value = null
   }
 })
-
-const gerarRotas = () => {
-  loadRoutes()
-}
 </script>
 
 <style scoped>
@@ -430,48 +451,6 @@ const gerarRotas = () => {
 }
 .menu-trigger {
   font-size: 1.4rem;
-}
-
-/* MENU & NOTIFICATIONS */
-.notifications {
-  position: absolute;
-  top: 44px;
-  right: 0;
-  background: #fff;
-  border-radius: 12px;
-  padding: 12px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-  z-index: 70;
-  width: 320px;
-}
-.notifications h4 {
-  margin: 0 0 10px 0;
-  font-size: 18px;
-}
-.notif-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.notif-item {
-  background: #dff3ec;
-  padding: 12px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-.notif-title {
-  font-weight: 700;
-  margin-bottom: 4px;
-}
-.notif-body {
-  color: rgba(0, 0, 0, 0.7);
-  font-size: 14px;
-}
-.notif-empty {
-  color: #666;
-  font-size: 14px;
-  text-align: center;
-  padding: 12px;
 }
 
 /* MAIN CONTENT */
@@ -523,36 +502,6 @@ const gerarRotas = () => {
 .legend-title-secondary {
   margin-top: 36px;
 }
-.legend-items {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-.legend-bar {
-  width: 5px;
-  height: 45px;
-  border-radius: 3px;
-  flex-shrink: 0;
-}
-.legend-text {
-  display: flex;
-  flex-direction: column;
-}
-.legend-text strong {
-  font-size: 16px;
-  font-weight: 700;
-}
-.legend-text span {
-  font-size: 14px;
-  color: #64748b;
-}
-
-/* OCORRÊNCIAS ATIVAS — novo design (barra + texto, grelha 2 colunas) */
 .occ-legend-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -573,14 +522,23 @@ const gerarRotas = () => {
 .occ-legend-item--active {
   background: #f1f5f9;
 }
-.occ-legend-item--active .legend-text strong {
-  color: #0f172a;
-}
 .occ-legend-bar {
   width: 5px;
   height: 45px;
   border-radius: 3px;
   flex-shrink: 0;
+}
+.legend-text {
+  display: flex;
+  flex-direction: column;
+}
+.legend-text strong {
+  font-size: 16px;
+  font-weight: 700;
+}
+.legend-text span {
+  font-size: 14px;
+  color: #64748b;
 }
 
 /* PROXIMAS ROTAS */
@@ -611,6 +569,7 @@ const gerarRotas = () => {
   background: #fff;
   border: 1px solid #f1f5f9;
   border-radius: 12px;
+  position: relative;
 }
 .category-card.selected {
   border-color: #730000;
@@ -635,62 +594,26 @@ const gerarRotas = () => {
   font-size: 13px;
   color: #64748b;
 }
-.info-icon {
-  font-size: 18px;
-  color: #94a3b8;
+.delete-route-icon {
+  width: 18px;
+  height: 18px;
   cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s, transform 0.2s;
 }
-.btn-gerar-rotas {
-  background: #22c55e;
-  color: #fff;
-  border: none;
-  padding: 10px 24px;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
-  transition: opacity 0.15s;
+.delete-route-icon:hover {
+  opacity: 1;
+  transform: scale(1.1);
 }
-.btn-gerar-rotas:hover {
-  opacity: 0.9;
-}
-
-/* FOOTER */
-.main-footer {
-  padding: 60px 80px;
-  background-color: #f5f1e9;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-top: 80px;
-}
-.footer-links {
-  display: flex;
-  gap: 60px;
-}
-.col {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.col a {
-  text-decoration: none;
-  color: #2d5a27;
-  font-weight: 600;
-}
-.logo-img-small {
-  height: 80px;
-}
-.copyright {
-  font-size: 0.8rem;
-  color: #888;
-  margin-top: 10px;
+.no-routes-msg {
+  color: #64748b;
+  font-style: italic;
+  margin-top: 20px;
 }
 
 @media (max-width: 1024px) {
   .navbar,
-  .main-content,
-  .main-footer {
+  .main-content {
     padding: 20px;
   }
   .rotas-grid {
