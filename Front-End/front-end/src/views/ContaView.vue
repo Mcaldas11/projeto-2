@@ -87,13 +87,11 @@
                 <td>{{ occ.tipo }}</td>
                 <td class="details-cell">{{ occ.detalhes }}</td>
                 <td class="actions-cell">
-                  <router-link
-                    :to="`/ocorrencia/${occ.id}`"
-                    class="details-link"
-                    :aria-label="`Ver ocorrência ${occ.id}`"
-                  >
-                    <img src="@/assets/detalhes.png" alt="Detalhes" class="btn-table-info" />
-                  </router-link>
+                  
+                <router-link :to="`/ocorrencia/${occ.id}`" class="details-link-btn">
+                  Ver detalhes
+                </router-link>
+              
                   <span class="star-icon" v-if="occ.favorite" @click="reviewOcorrencia">★</span>
                 </td>
               </tr>
@@ -769,16 +767,7 @@ onMounted(async () => {
   display: block;
 }
 
-/* select.display-box {
-  width: 100%;
-  padding: 14px;
-  border-radius: 10px;
-  border-color: #64748b;
-  color: #94a3b8;
-  font-weight: 500;
-  appearance: none;
-  background: #f8fafc url("@/assets/arrow-down.png") no-repeat right 12px center;
-} */
+
 
 .display-box {
   background: #f8fafc;
@@ -992,6 +981,22 @@ onMounted(async () => {
   text-align: center;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
   animation: scaleIn 0.25s ease;
+}
+
+.details-link-btn {
+  display: inline-block;
+  background-color: #b1ffb1;
+  color: #0b2b2b;
+  padding: 8px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.85rem;
+  transition: background-color 0.2s;
+}
+
+.details-link-btn:hover {
+  background-color: #98fb98;
 }
 
 /* Edit modal specific styling to match design and use Montserrat */
