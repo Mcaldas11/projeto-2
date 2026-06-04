@@ -287,18 +287,27 @@ export const createTrabalhador = async (req, res, next) => {
         .json({ message: "Não tens permissão para criar trabalhadores." });
     }
 
-    const normalizedIdFreguesia = Number(idFreguesia);
+    let normalizedIdFreguesia = idFreguesia ? Number(idFreguesia) : null;
 
+    // Se for Responsável e não enviou idFreguesia, assume a dele
     if (isResponsavel && !isAdmin) {
       const requester = await Trabalhador.findByPk(req.userData.userId);
-      if (
-        !requester ||
-        Number(requester.idFreguesia) !== normalizedIdFreguesia
-      ) {
+      if (!requester) {
+        return res.status(403).json({ message: "Responsável não encontrado." });
+      }
+
+      if (!normalizedIdFreguesia) {
+        normalizedIdFreguesia = Number(requester.idFreguesia);
+      } else if (normalizedIdFreguesia !== Number(requester.idFreguesia)) {
         return res.status(403).json({
           message: "Só podes criar trabalhadores para a tua própria freguesia.",
         });
       }
+    }
+
+    // Se ainda não temos idFreguesia (ex: Admin não enviou), é erro
+    if (!normalizedIdFreguesia) {
+      return res.status(400).json({ message: "O campo idFreguesia é obrigatório." });
     }
 
     if (!password) {
