@@ -94,23 +94,26 @@ const normalizeWorkerType = (userType) =>
 const mapOcorrenciasWithFotos = (ocorrencias) =>
   ocorrencias.map((ocorrencia) => {
     const fotos = normalizeFotosField(ocorrencia.foto).map((foto) => foto.url);
+    const userImg = ocorrencia.cidadao?.fotoPerfil || null;
     return {
       ...ocorrencia.toJSON(),
       foto: buildFotosComIndice(fotos),
+      userImg,
     };
   });
 
 export const getAllOcorrencias = async (req, res, next) => {
   try {
-    const ocorrencias = await Ocorrencia.findAll();
-    const data = ocorrencias.map((ocorrencia) => {
-      const fotos = normalizeFotosField(ocorrencia.foto).map((foto) => foto.url);
-      return {
-        ...ocorrencia.toJSON(),
-        foto: buildFotosComIndice(fotos),
-      };
+    const ocorrencias = await Ocorrencia.findAll({
+      include: [
+        {
+          model: Cidadao,
+          as: "cidadao",
+          attributes: ["fotoPerfil"],
+        },
+      ],
     });
-    res.json(data);
+    res.json(mapOcorrenciasWithFotos(ocorrencias));
   } catch (error) {
     next(genericError("Error fetching ocorrencias"));
   }
@@ -119,14 +122,21 @@ export const getAllOcorrencias = async (req, res, next) => {
 export const getOcorrenciaById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const ocorrencia = await Ocorrencia.findByPk(id);
+    const ocorrencia = await Ocorrencia.findByPk(id, {
+      include: [
+        {
+          model: Cidadao,
+          as: "cidadao",
+          attributes: ["fotoPerfil"],
+        },
+      ],
+    });
 
     if (!ocorrencia) {
       return next(notFoundError("ocorrencia", id));
     }
 
-    const fotos = normalizeFotosField(ocorrencia.foto).map((foto) => foto.url);
-    res.json({ ...ocorrencia.toJSON(), foto: buildFotosComIndice(fotos) });
+    res.json(mapOcorrenciasWithFotos([ocorrencia])[0]);
   } catch (error) {
     next(genericError("Error fetching ocorrencia"));
   }
@@ -198,16 +208,15 @@ export const getOcorrenciasForCidadao = async (req, res, next) => {
         idCidadao: userId,
         idFreguesia: cidadao.fregCidadao,
       },
+      include: [
+        {
+          model: Cidadao,
+          as: "cidadao",
+          attributes: ["fotoPerfil"],
+        },
+      ],
     });
-    const data = ocorrencias.map((ocorrencia) => {
-      const fotos = normalizeFotosField(ocorrencia.foto).map((foto) => foto.url);
-      return {
-        ...ocorrencia.toJSON(),
-        foto: buildFotosComIndice(fotos),
-      };
-    });
-
-    res.json(data);
+    res.json(mapOcorrenciasWithFotos(ocorrencias));
   } catch (error) {
     next(genericError("Error fetching ocorrencias for cidadao"));
   }
@@ -227,16 +236,15 @@ export const getOcorrenciasFreguesiaForCidadao = async (req, res, next) => {
 
     const ocorrencias = await Ocorrencia.findAll({
       where: { idFreguesia: cidadao.fregCidadao },
+      include: [
+        {
+          model: Cidadao,
+          as: "cidadao",
+          attributes: ["fotoPerfil"],
+        },
+      ],
     });
-    const data = ocorrencias.map((ocorrencia) => {
-      const fotos = normalizeFotosField(ocorrencia.foto).map((foto) => foto.url);
-      return {
-        ...ocorrencia.toJSON(),
-        foto: buildFotosComIndice(fotos),
-      };
-    });
-
-    res.json(data);
+    res.json(mapOcorrenciasWithFotos(ocorrencias));
   } catch (error) {
     next(genericError("Error fetching ocorrencias for cidadao parish"));
   }
@@ -256,16 +264,15 @@ export const getOcorrenciasFreguesiaForTrabalhador = async (req, res, next) => {
 
     const ocorrencias = await Ocorrencia.findAll({
       where: { idFreguesia: trabalhador.idFreguesia },
+      include: [
+        {
+          model: Cidadao,
+          as: "cidadao",
+          attributes: ["fotoPerfil"],
+        },
+      ],
     });
-    const data = ocorrencias.map((ocorrencia) => {
-      const fotos = normalizeFotosField(ocorrencia.foto).map((foto) => foto.url);
-      return {
-        ...ocorrencia.toJSON(),
-        foto: buildFotosComIndice(fotos),
-      };
-    });
-
-    res.json(data);
+    res.json(mapOcorrenciasWithFotos(ocorrencias));
   } catch (error) {
     next(genericError("Error fetching ocorrencias for trabalhador parish"));
   }
@@ -288,10 +295,17 @@ export const getOcorrenciasResolvidasForTrabalhador = async (req, res, next) => 
 
     const ocorrencias = await Ocorrencia.findAll({
       where: { idEquipa: trabalhador.idEquipa },
-      include: [{
-        model: Mensagem,
-        as: "mensagens",
-      }],
+      include: [
+        {
+          model: Mensagem,
+          as: "mensagens",
+        },
+        {
+          model: Cidadao,
+          as: "cidadao",
+          attributes: ["fotoPerfil"],
+        },
+      ],
     });
     const data = mapOcorrenciasWithFotos(ocorrencias)
       .filter((ocorrencia) => ocorrencia.dataResolucao)
@@ -327,6 +341,13 @@ export const getOcorrenciasPendentesForTrabalhador = async (req, res, next) => {
         estado: DEFAULT_ESTADO,
         idFreguesia: trabalhador.idFreguesia,
       },
+      include: [
+        {
+          model: Cidadao,
+          as: "cidadao",
+          attributes: ["fotoPerfil"],
+        },
+      ],
     });
     const data = mapOcorrenciasWithFotos(ocorrencias).sort((left, right) => {
       const leftDate = left.dataOcorrencia ? new Date(left.dataOcorrencia).getTime() : 0;
@@ -355,7 +376,16 @@ export const getOcorrenciasEmResolucaoForTrabalhador = async (req, res, next) =>
       return res.json([]);
     }
 
-    const ocorrencias = await Ocorrencia.findAll({ where: { idEquipa: trabalhador.idEquipa } });
+    const ocorrencias = await Ocorrencia.findAll({
+      where: { idEquipa: trabalhador.idEquipa },
+      include: [
+        {
+          model: Cidadao,
+          as: "cidadao",
+          attributes: ["fotoPerfil"],
+        },
+      ],
+    });
     const data = mapOcorrenciasWithFotos(ocorrencias)
       .filter((ocorrencia) => {
         const estado = String(ocorrencia.estado || ocorrencia.situacao || "").toLowerCase();
@@ -398,22 +428,21 @@ export const getOcorrenciasHomeForTrabalhador = async (req, res, next) => {
 
     const ocorrencias = await Ocorrencia.findAll({
       where: { [Op.or]: orConditions },
-      include: [{
-        model: Mensagem,
-        as: "mensagens",
-      }],
+      include: [
+        {
+          model: Mensagem,
+          as: "mensagens",
+        },
+        {
+          model: Cidadao,
+          as: "cidadao",
+          attributes: ["fotoPerfil"],
+        },
+      ],
       order: [["dataOcorrencia", "DESC"]],
     });
 
-    const data = ocorrencias.map((ocorrencia) => {
-      const fotos = normalizeFotosField(ocorrencia.foto).map((foto) => foto.url);
-      return {
-        ...ocorrencia.toJSON(),
-        foto: buildFotosComIndice(fotos),
-      };
-    });
-
-    res.json(data);
+    res.json(mapOcorrenciasWithFotos(ocorrencias));
   } catch (error) {
     next(genericError("Error fetching ocorrencias for worker home"));
   }
