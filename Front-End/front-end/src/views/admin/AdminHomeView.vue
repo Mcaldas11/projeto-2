@@ -313,31 +313,114 @@ function drawOccurrenceMarkers() {
   occurrenceLayer.clearLayers()
   const bounds = []
 
+  // Agrupar ocorrências por coordenadas exatas
+  const grouped = new Map()
   occurrenceMarkers.value.forEach((m) => {
-    const rawKey = m.typeKey != null ? String(m.typeKey) : null
-    const rawLabel = m.tipo != null ? String(m.tipo) : rawKey || 'outro'
-    const key = String(rawKey || rawLabel).trim()
-    if (selectedTypeFilter.value && selectedTypeFilter.value !== key) return
     if (m.latitude == null || m.longitude == null) return
+    const key = `${Number(m.latitude).toFixed(6)},${Number(m.longitude).toFixed(6)}`
+    if (!grouped.has(key)) grouped.set(key, [])
+    grouped.get(key).push(m)
+  })
 
-    const color = typeColorByKey.value.get(key) || colorForType(key)
-    const meta = getOccurrenceTypeMeta(m.tipo || key)
-    const pinIcon = createPinIcon(color, meta.icon)
+  grouped.forEach((occs, coords) => {
+    const [lat, lng] = coords.split(',').map(Number)
+    const count = occs.length
+    
+    // Usamos os dados da primeira ocorrência para o ícone, ou um ícone genérico se forem várias
+    const first = occs[0]
+    const rawKey = first.typeKey != null ? String(first.typeKey) : null
+    const rawLabel = first.tipo != null ? String(first.tipo) : rawKey || 'outro'
+    const typeKey = String(rawKey || rawLabel).trim()
+    
+    // Se houver filtro de tipo e nenhuma ocorrência do grupo corresponder, ignoramos
+    if (selectedTypeFilter.value) {
+      const hasMatch = occs.some(o => {
+        const oKey = String(o.typeKey || o.tipo || 'outro').trim()
+        return oKey === selectedTypeFilter.value
+      })
+      if (!hasMatch) return
+    }
 
-    const marker = L.marker([Number(m.latitude), Number(m.longitude)], { icon: pinIcon })
-    marker.bindPopup(`
-      <div style="min-width:140px;">
-        <strong style="font-size:13px;">${m.tipo || ''}</strong><br/>
-        <span style="font-size:12px;">${m.detalhes || ''}</span>
-      </div>
-    `)
+    const color = typeColorByKey.value.get(typeKey) || colorForType(typeKey)
+    const meta = getOccurrenceTypeMeta(first.tipo || typeKey)
+    
+    // Se houver mais de uma, adicionamos um badge com o número
+    const pinIcon = createPinIconWithCount(color, meta.icon, count)
+
+    const marker = L.marker([lat, lng], { icon: pinIcon })
+    
+    let popupContent = `<div style="min-width:160px; max-height: 200px; overflow-y: auto;">`
+    if (count > 1) {
+      popupContent += `<strong style="color: #730000; font-size: 14px;">${count} Ocorrências neste local</strong><hr style="margin: 8px 0; border: 0; border-top: 1px solid #eee;"/>`
+    }
+    
+    occs.forEach((o, idx) => {
+      popupContent += `
+        <div style="margin-bottom: ${idx === occs.length - 1 ? '0' : '10px'};">
+          <strong style="font-size:13px;">${o.tipo || ''}</strong><br/>
+          <span style="font-size:12px; color: #64748b;">${o.detalhes || ''}</span>
+        </div>
+      `
+    })
+    popupContent += `</div>`
+
+    marker.bindPopup(popupContent)
     marker.addTo(occurrenceLayer)
-    bounds.push([Number(m.latitude), Number(m.longitude)])
+    bounds.push([lat, lng])
   })
 
   if (bounds.length) {
     mapInstance.fitBounds(bounds, { padding: [30, 30] })
   }
+}
+
+function createPinIconWithCount(color, iconUrl, count) {
+  const img = iconUrl
+    ? `<img src="${iconUrl}" style="width:16px;height:16px;object-fit:contain;filter:brightness(0) invert(1);margin-bottom:2px;" />`
+    : ''
+  
+  const badge = count > 1 
+    ? `<div style="
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background: #730000;
+        color: white;
+        border-radius: 10px;
+        padding: 2px 6px;
+        font-size: 11px;
+        font-weight: bold;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        transform: rotate(45deg);
+      ">${count}</div>` 
+    : ''
+
+  return L.divIcon({
+    className: '',
+    iconSize: [32, 40],
+    iconAnchor: [16, 40],
+    popupAnchor: [0, -42],
+    html: `
+      <div style="
+        width:32px;
+        height:32px;
+        border-radius:50% 50% 50% 0;
+        transform:rotate(-45deg);
+        background:${color};
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        box-shadow:0 2px 6px rgba(0,0,0,0.3);
+        position: relative;
+      ">
+        <div style="transform:rotate(45deg);display:flex;align-items:center;justify-content:center;">
+          ${img}
+        </div>
+        ${badge}
+      </div>
+    `,
+  })
 }
 
 onBeforeUnmount(() => {
