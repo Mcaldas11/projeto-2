@@ -176,6 +176,24 @@ async function listResources() {
   return fetchJson('/recursos')
 }
 
+async function createTeam(payload) {
+  if (!API_BASE_URL) {
+    throw new Error('Define VITE_API_URL para criar equipas na base de dados.')
+  }
+
+  return fetchJson(
+    '/equipas',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    },
+    true,
+  )
+}
+
 async function createWorker(payload) {
   if (!API_BASE_URL) {
     throw new Error('Define VITE_API_URL para criar trabalhadores na base de dados.')
@@ -289,6 +307,7 @@ export {
   listTeams,
   listWorkers,
   createWorker,
+  createTeam,
   assignWorkerToTeam,
   unassignWorkerFromTeam,
   deleteWorker,

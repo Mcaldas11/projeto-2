@@ -8,17 +8,16 @@
         </router-link>
       </div>
       <div class="nav-right">
-        
         <span class="icon menu-trigger" @click="toggleMenu">☰</span>
 
         <ResponsavelSidebarMenu v-model="showMenu" />
-
       </div>
     </nav>
 
     <main class="main-content" v-if="selectedFreguesiaId">
       <div class="title-filter">
         <h1 class="page-title">Equipas</h1>
+        <button class="btn-create-worker" @click="openCreateTeamModal">+ Adicionar Equipa</button>
       </div>
 
       <div v-if="loadError" class="load-error">
@@ -102,6 +101,34 @@
       </div>
     </main>
 
+    <!-- Create Team Modal -->
+    <div v-if="showCreateTeamModal" class="modal-overlay" @click.self="closeCreateTeamModal">
+      <div class="modal-card">
+        <h3>Criar nova equipa</h3>
+        <p class="modal-subtitle">A equipa será associada a: {{ selectedFreguesia }}</p>
+        <div class="modal-form">
+          <div class="form-row">
+            <label class="modal-label">Especialização</label>
+            <select v-model="newTeamEspecializacao" class="modal-select">
+              <option value="" disabled>Selecionar especialização</option>
+              <option v-for="esp in ESPECIALIZACOES" :key="esp" :value="esp">
+                {{ esp }}
+              </option>
+            </select>
+          </div>
+        </div>
+        <p v-if="createTeamError" class="modal-error">{{ createTeamError }}</p>
+        <div class="modal-actions">
+          <button class="modal-btn cancel" @click="closeCreateTeamModal" :disabled="isCreatingTeam">
+            Cancelar
+          </button>
+          <button class="modal-btn confirm" @click="handleCreateTeam" :disabled="isCreatingTeam">
+            {{ isCreatingTeam ? 'A criar...' : 'Criar Equipa' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div v-if="showWorkerModal" class="modal-overlay" @click.self="closeWorkerModal">
       <div class="worker-modal">
         <div class="worker-modal-header">
@@ -156,8 +183,17 @@ import {
   assignWorkerToTeam,
   listTeams,
   listWorkers,
+  createTeam,
   unassignWorkerFromTeam,
 } from '@/services/teamService'
+
+const ESPECIALIZACOES = [
+  'Estradas e passeios',
+  'Sinalização de trânsito',
+  'Iluminação',
+  'Higiene e limpeza',
+  'Parques e jardins',
+]
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 
@@ -179,10 +215,55 @@ const workerNotice = ref('')
 const isLoading = ref(true)
 const loadError = ref('')
 
+// Team creation state
+const showCreateTeamModal = ref(false)
+const isCreatingTeam = ref(false)
+const createTeamError = ref('')
+const newTeamEspecializacao = ref('')
+
+const openCreateTeamModal = () => {
+  newTeamEspecializacao.value = ''
+  createTeamError.value = ''
+  showCreateTeamModal.value = true
+}
+
+const closeCreateTeamModal = () => {
+  showCreateTeamModal.value = false
+}
+
+const handleCreateTeam = async () => {
+  if (!newTeamEspecializacao.value.trim()) {
+    createTeamError.value = 'A especialização é obrigatória.'
+    return
+  }
+
+  if (!selectedFreguesiaId.value) {
+    createTeamError.value = 'Erro: Freguesia não identificada.'
+    return
+  }
+
+  isCreatingTeam.value = true
+  createTeamError.value = ''
+
+  try {
+    await createTeam({
+      especializacao: newTeamEspecializacao.value.trim(),
+      fregEquipa: selectedFreguesiaId.value,
+    })
+
+    alert('Equipa criada com sucesso!')
+    await loadInitialTeamsAndWorkers()
+    closeCreateTeamModal()
+  } catch (error) {
+    createTeamError.value = error.message || 'Erro ao criar equipa.'
+  } finally {
+    isCreatingTeam.value = false
+  }
+}
+
 let storagePollInterval = null
 let storageHandler = null
 let lastRawProfile = localStorage.getItem('userProfile')
-
 
 const toggleMenu = (e) => {
   e.stopPropagation()
@@ -339,9 +420,7 @@ async function loadInitialTeamsAndWorkers() {
   }
 }
 
-function handleDocClick(e) {
-  
-}
+function handleDocClick(e) {}
 
 onMounted(async () => {
   await loadResponsibleParish()
@@ -551,6 +630,17 @@ async function confirmRemoval() {
   font-size: 36px;
   font-weight: 800;
   margin: 0 0 30px 0;
+}
+
+.btn-create-worker {
+  background: #22c55e;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .title-filter {
@@ -926,6 +1016,37 @@ async function confirmRemoval() {
   font-weight: 700;
   color: #1e293b;
 }
+.modal-subtitle {
+  color: #64748b;
+  margin: -15px 0 25px 0;
+  font-size: 14px;
+}
+.modal-form {
+  margin-bottom: 25px;
+}
+.modal-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.modal-input {
+  width: 100%;
+  border: 2px solid #f1f5f9;
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-sizing: border-box;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 15px;
+  color: #1e293b;
+  background: #f8fafc;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
 .modal-actions {
   display: flex;
   justify-content: space-between;
@@ -940,6 +1061,21 @@ async function confirmRemoval() {
   border: none;
   cursor: pointer;
 }
+
+.modal-btn.confirm {
+  background: #22c55e;
+  color: #fff;
+  padding: 14px 32px;
+  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+  transition: all 0.2s ease;
+}
+
+.modal-btn.confirm:hover:not(:disabled) {
+  background: #16a34a;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(34, 197, 94, 0.45);
+}
+
 .confirmation-card {
   text-align: center;
 }

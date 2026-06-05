@@ -7,18 +7,16 @@
         </router-link>
       </div>
       <div class="nav-right">
-        
         <span class="icon menu-trigger" @click="toggleMenu">☰</span>
 
         <AdminSidebarMenu v-model="showMenu" />
-
-        
       </div>
     </nav>
 
     <main class="main-content">
       <div class="title-filter">
         <h1 class="page-title">Equipas</h1>
+        <button class="btn-create-team" @click="openCreateTeamModal">+ Adicionar Equipa</button>
         <div class="filter-select">
           <label>Freguesia</label>
           <select v-model="selectedFreguesia">
@@ -78,6 +76,46 @@
       </div>
     </main>
 
+    <!-- Modal de Criação de Equipa -->
+    <div v-if="showCreateTeamModal" class="modal-overlay" @click.self="closeCreateTeamModal">
+      <div class="modal-card">
+        <h3>Criar nova equipa</h3>
+        <div class="modal-form">
+          <div class="form-row">
+            <label class="modal-label">Freguesia</label>
+            <select v-model="newTeamFreguesiaId" class="modal-select">
+              <option :value="null" disabled>Selecionar freguesia</option>
+              <option
+                v-for="freg in allFreguesiasRaw"
+                :key="freg.idFreguesia || freg.idMunicipio"
+                :value="freg.idFreguesia || freg.idMunicipio"
+              >
+                {{ freg.nome }}
+              </option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label class="modal-label">Especialização</label>
+            <select v-model="newTeamEspecializacao" class="modal-select">
+              <option value="" disabled>Selecionar especialização</option>
+              <option v-for="esp in ESPECIALIZACOES" :key="esp" :value="esp">
+                {{ esp }}
+              </option>
+            </select>
+          </div>
+        </div>
+        <p v-if="createTeamError" class="modal-error">{{ createTeamError }}</p>
+        <div class="modal-actions">
+          <button class="modal-btn cancel" @click="closeCreateTeamModal" :disabled="isCreatingTeam">
+            Cancelar
+          </button>
+          <button class="modal-btn confirm" @click="handleCreateTeam" :disabled="isCreatingTeam">
+            {{ isCreatingTeam ? 'A criar...' : 'Criar Equipa' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div v-if="showWorkerModal" class="modal-overlay" @click.self="closeWorkerModal">
       <div class="worker-modal">
         <div class="worker-modal-header">
@@ -126,12 +164,22 @@ import Footer from '@/components/footer.vue'
 import AdminSidebarMenu from '@/components/AdminSidebarMenu.vue'
 import adminFooterLogo from '@/assets/logo_footer.png'
 import { FREGUESIAS } from '@/utils/freguesias'
+import { listFreguesias } from '@/services/municipalityService'
 import {
   assignWorkerToTeam,
   listTeams,
   listWorkers,
+  createTeam,
   unassignWorkerFromTeam,
 } from '@/services/teamService'
+
+const ESPECIALIZACOES = [
+  'Estradas e passeios',
+  'Sinalização de trânsito',
+  'Iluminação',
+  'Higiene e limpeza',
+  'Parques e jardins',
+]
 
 const adminFooterColumns = [
   [
@@ -155,6 +203,57 @@ const workerNotice = ref('')
 const isLoading = ref(true)
 const loadError = ref('')
 
+const allFreguesiasRaw = ref([])
+const showCreateTeamModal = ref(false)
+const isCreatingTeam = ref(false)
+const createTeamError = ref('')
+const newTeamEspecializacao = ref('')
+const newTeamFreguesiaId = ref(null)
+
+const openCreateTeamModal = () => {
+  newTeamEspecializacao.value = ''
+
+  // Tenta pré-selecionar com base no filtro atual de visualização
+  const currentFreg = allFreguesiasRaw.value.find((f) => f.nome === selectedFreguesia.value)
+  newTeamFreguesiaId.value = currentFreg ? currentFreg.idFreguesia || currentFreg.idMunicipio : null
+
+  createTeamError.value = ''
+  showCreateTeamModal.value = true
+}
+
+const closeCreateTeamModal = () => {
+  showCreateTeamModal.value = false
+}
+
+const handleCreateTeam = async () => {
+  if (!newTeamEspecializacao.value.trim()) {
+    createTeamError.value = 'A especialização é obrigatória.'
+    return
+  }
+
+  if (!newTeamFreguesiaId.value) {
+    createTeamError.value = 'A seleção da freguesia é obrigatória.'
+    return
+  }
+
+  isCreatingTeam.value = true
+  createTeamError.value = ''
+
+  try {
+    await createTeam({
+      especializacao: newTeamEspecializacao.value.trim(),
+      fregEquipa: newTeamFreguesiaId.value,
+    })
+
+    alert('Equipa criada com sucesso!')
+    await loadInitialTeamsAndWorkers()
+    closeCreateTeamModal()
+  } catch (error) {
+    createTeamError.value = error.message || 'Erro ao criar equipa.'
+  } finally {
+    isCreatingTeam.value = false
+  }
+}
 
 const toggleMenu = (e) => {
   e.stopPropagation()
@@ -244,9 +343,14 @@ async function loadInitialTeamsAndWorkers() {
   loadError.value = ''
 
   try {
-    const [loadedTeams, loadedWorkers] = await Promise.all([listTeams(), listWorkers()])
+    const [loadedTeams, loadedWorkers, loadedFreguesias] = await Promise.all([
+      listTeams(),
+      listWorkers(),
+      listFreguesias(),
+    ])
     teams.value = loadedTeams
     workers.value = loadedWorkers
+    allFreguesiasRaw.value = loadedFreguesias
   } catch (error) {
     loadError.value = error?.message || 'Não foi possível carregar os dados da base de dados.'
   } finally {
@@ -406,6 +510,18 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   font-size: 36px;
   font-weight: 800;
   margin: 0 0 30px 0;
+}
+
+.btn-create-team {
+  background: #22c55e;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
+  margin-right: auto;
 }
 
 .title-filter {
@@ -598,6 +714,114 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   justify-content: center;
   z-index: 120;
   padding: 24px;
+}
+
+.modal-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 40px;
+  max-width: 440px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  font-family: 'Montserrat', sans-serif;
+  text-align: left;
+}
+
+.modal-card h3 {
+  font-size: 26px;
+  margin: 0 0 20px 0;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.modal-subtitle {
+  color: #64748b;
+  margin: -15px 0 25px 0;
+  font-size: 14px;
+}
+
+.modal-form {
+  margin-bottom: 25px;
+}
+
+.modal-label {
+  padding-top: 10px;
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.modal-select {
+  width: 100%;
+  border: 2px solid #f1f5f9;
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-sizing: border-box;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 15px;
+  color: #1e293b;
+  background: #f8fafc;
+  outline: none;
+}
+
+.modal-input {
+  width: 100%;
+  border: 2px solid #f1f5f9;
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-sizing: border-box;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 15px;
+  color: #1e293b;
+  background: #f8fafc;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-btn {
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+}
+
+.modal-btn.cancel {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.modal-btn.confirm {
+  background: #22c55e;
+  color: #fff;
+  padding: 14px 32px;
+  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+  transition: all 0.2s ease;
+}
+
+.modal-btn.confirm:hover:not(:disabled) {
+  background: #16a34a;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(34, 197, 94, 0.45);
+}
+
+.modal-error {
+  color: #b91c1c;
+  font-size: 13px;
+  margin-top: -15px;
+  margin-bottom: 15px;
 }
 
 .worker-modal {
