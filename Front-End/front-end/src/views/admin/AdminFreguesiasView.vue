@@ -32,7 +32,6 @@
               <th>Nome</th>
               <th>Nr Trabalhadores</th>
               <th>Equipas</th>
-              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -48,22 +47,6 @@
                 >
                   {{ team.name }}
                 </span>
-              </td>
-              <td class="actions-cell">
-                <img
-                  src="@/assets/edit_btn_icon.svg"
-                  alt="edit"
-                  class="btn-icon"
-                  title="Editar"
-                  @click="editFreguesia(f)"
-                />
-                <img
-                  src="@/assets/delete_icon.svg"
-                  alt="delete"
-                  class="btn-icon"
-                  title="Eliminar"
-                  @click="deleteFreguesia(f)"
-                />
               </td>
             </tr>
           </tbody>
@@ -205,13 +188,6 @@ const paginatedFreguesias = computed(() => {
 const visiblePages = computed(() => {
   return Array.from({ length: totalPages.value }, (_, index) => index + 1)
 })
-
-const deleteFreguesia = (freguesia) => {
-  console.log('Delete freguesia:', freguesia.idFreguesia)
-}
-const editFreguesia = (freguesia) => {
-  console.log('Edit freguesia:', freguesia.idFreguesia)
-}
 
 async function loadFreguesiasFromBackend() {
   if (!API_BASE_URL) {

@@ -123,10 +123,7 @@ O sistema utiliza **JWT (JSON Web Token)**. O token deve ser enviado no header d
 | Método | Rota | Descrição | Acesso |
 | :--- | :--- | :--- | :--- |
 | `GET` | `/municipios` | Listar todas as freguesias. | Público |
-| `POST` | `/municipios` | Adicionar nova freguesia. | **Admin** |
 | `GET` | `/municipios/:id` | Ver detalhes da freguesia. | Público |
-| `PUT` | `/municipios/:id` | Editar nome/dados da freguesia. | **Admin** |
-| `DELETE` | `/municipios/:id` | Remover freguesia. | **Admin** |
 
 ---
 
