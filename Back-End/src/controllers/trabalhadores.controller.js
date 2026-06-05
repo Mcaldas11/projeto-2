@@ -471,6 +471,12 @@ export const updateTrabalhador = async (req, res, next) => {
 
     const isAdmin = await isRequesterAdmin(req);
     const isResponsavel = req.userData.userType === "trabalhador_responsavel";
+    const isOwner = Number(req.userData.userId) === Number(id);
+
+    // Proteção da foto de perfil: apenas o dono pode alterar
+    if (Object.prototype.hasOwnProperty.call(req.body, "fotoPerfil") && !isOwner) {
+      delete req.body.fotoPerfil;
+    }
 
     // Se for responsável, precisamos verificar se ele pertence à mesma freguesia do trabalhador
     if (isResponsavel && !isAdmin) {
@@ -599,9 +605,17 @@ export const updateTrabalhadorFoto = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const canManage = await canManageWorkerAccount(req, id);
-    if (!canManage) {
-      return res.status(403).json({ message: "Forbidden" });
+    if (!req.userData) {
+      return res
+        .status(401)
+        .json({ message: "Authentication failed! Sessão inválida." });
+    }
+
+    const isOwner = Number(req.userData.userId) === Number(id);
+    if (!isOwner) {
+      return res.status(403).json({
+        message: "Forbidden: Only the worker can update their own photo.",
+      });
     }
 
     if (!req.file) {
