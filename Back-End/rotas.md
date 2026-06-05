@@ -55,7 +55,7 @@ O sistema utiliza **JWT (JSON Web Token)**. O token deve ser enviado no header d
 | `GET` | `/trabalhadores/me/freguesia/ocorrencias` | Listar **todas** as ocorrências da sua freguesia. | Trabalhador |
 | `GET` | `/trabalhadores/me/ocorrencias/resolvidas` | Ocorrências resolvidas pela sua equipa. | Trabalhador |
 | `GET` | `/trabalhadores/me/ocorrencias/em-resolucao` | Ocorrências que a sua equipa está a tratar. | Trabalhador |
-| `GET` | `/trabalhadores/me/ocorrencias/home` | Feed misto (pendentes + atribuídas à equipa). | Trabalhador |
+| `GET` | `/trabalhadores/me/ocorrencias/pendentes` | Feed misto (pendentes + atribuídas à equipa). | Trabalhador |
 | `GET` | `/trabalhadores/:id` | Ver detalhes de um trabalhador. | Público |
 | `PUT` | `/trabalhadores/:id` | Editar trabalhador (Admin ou Resp. da mesma freguesia). | **Resp. / Admin** |
 | `PATCH` | `/trabalhadores/:id/foto` | Atualizar foto de perfil (multipart/form-data: `file`). | Próprio / Admin |

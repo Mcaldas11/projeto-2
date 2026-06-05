@@ -66,7 +66,7 @@ router.get(
   ocorrenciasControllers.getOcorrenciasEmResolucaoForTrabalhador,
 );
 router.get(
-  "/me/ocorrencias/home",
+  "/me/ocorrencias/pendentes",
   authMiddleware,
   ocorrenciasControllers.getOcorrenciasHomeForTrabalhador,
 );

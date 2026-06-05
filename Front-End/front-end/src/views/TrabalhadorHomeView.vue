@@ -150,7 +150,7 @@ import Footer from '@/components/footer.vue'
 import SidebarMenu from '@/components/SidebarMenu.vue'
 import defaultAvatar from '@/assets/avatar.png'
 import workerFooterLogo from '@/assets/logoP.png'
-import { API_BASE_URL, listWorkerHomeOccurrences } from '@/services/occurrenceService'
+import { API_BASE_URL, listWorkerPendingOccurrences } from '@/services/occurrenceService'
 import { getAuthToken } from '@/utils/auth'
 import { resolveOccurrenceCoordinates } from '@/utils/occurrenceStorage'
 import {
@@ -314,7 +314,7 @@ onMounted(async () => {
     const token = getAuthToken()
     const headers = token ? { Authorization: `Bearer ${token}` } : {}
 
-    const workerOccurrences = await listWorkerHomeOccurrences()
+    const workerOccurrences = await listWorkerPendingOccurrences()
     tasks.value = Array.isArray(workerOccurrences) ? workerOccurrences : []
     drawAcceptedOccurrencesOnMap()
 
