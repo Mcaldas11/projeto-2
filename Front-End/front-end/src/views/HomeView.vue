@@ -14,7 +14,9 @@
             
             <span class="icon" ref="menuIcon" @click="toggleMenu">☰</span>
 
-            <SidebarMenu v-model="showMenu" />
+            <AdminSidebarMenu v-if="userRole === 'admin'" v-model="showMenu" />
+            <ResponsavelSidebarMenu v-else-if="userRole === 'responsavel'" v-model="showMenu" />
+            <SidebarMenu v-else v-model="showMenu" />
 
             
           </div>
@@ -619,6 +621,8 @@
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import FooterHome from '@/components/FooterHome.vue'
 import SidebarMenu from '@/components/SidebarMenu.vue'
+import AdminSidebarMenu from '@/components/AdminSidebarMenu.vue'
+import ResponsavelSidebarMenu from '@/components/ResponsavelSidebarMenu.vue'
 import { getNewOccurrenceRoute } from '@/utils/auth'
 import { listAllOccurrences } from '@/services/occurrenceService'
 import { listFreguesias } from '@/services/municipalityService'
@@ -626,6 +630,7 @@ import { listFreguesias } from '@/services/municipalityService'
 const showMenu = ref(false)
 const menuPanel = ref(null)
 const menuIcon = ref(null)
+const userRole = computed(() => localStorage.getItem('role'))
 const newOccurrenceRoute = computed(() => getNewOccurrenceRoute())
 
 

@@ -8,7 +8,9 @@
         
         <span class="icon menu-trigger" @click="toggleMenu($event)" ref="menuIcon">☰</span>
 
-        <SidebarMenu v-model="showMenu" />
+        <AdminSidebarMenu v-if="userRole === 'admin'" v-model="showMenu" />
+        <ResponsavelSidebarMenu v-else-if="userRole === 'responsavel'" v-model="showMenu" />
+        <SidebarMenu v-else v-model="showMenu" />
 
         
       </div>
@@ -148,6 +150,8 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import Footer from '@/components/footer.vue'
 import SidebarMenu from '@/components/SidebarMenu.vue'
+import AdminSidebarMenu from '@/components/AdminSidebarMenu.vue'
+import ResponsavelSidebarMenu from '@/components/ResponsavelSidebarMenu.vue'
 import defaultAvatar from '@/assets/avatar.png'
 import workerFooterLogo from '@/assets/logoP.png'
 import { API_BASE_URL, listWorkerPendingOccurrences } from '@/services/occurrenceService'
@@ -175,6 +179,8 @@ const teamMates = ref([])
 const mapElement = ref(null)
 const mapInstance = ref(null)
 const acceptedLayer = ref(null)
+
+const userRole = computed(() => localStorage.getItem('role'))
 
 const acceptedTypeSummary = computed(() => {
   const summary = new Map()
