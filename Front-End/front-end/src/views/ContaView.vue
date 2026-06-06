@@ -295,9 +295,6 @@ function validarEmail(email) {
 }
 
 
-const toggleMenu = () => {
-  showMenu.value = !showMenu.value
-}
 // const removeNotif = (i) => notifications.value.splice(i, 1)
 
 const reviewOcorrencia = () => {
