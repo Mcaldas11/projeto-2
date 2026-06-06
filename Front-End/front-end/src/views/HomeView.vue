@@ -196,6 +196,7 @@
   font-weight: 700;
   font-size: 16px;
   line-height: 1;
+  text-decoration: none;
 }
 
 .nav-icons .icon.notification {
