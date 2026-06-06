@@ -47,13 +47,12 @@
                   <td>
                     <div v-if="task.mensagens && task.mensagens.length > 0" class="worker-eval-info">
                       <span class="stars">⭐ {{ task.mensagens[0].classificacao }}/5</span>
-                      <p class="eval-preview" :title="task.mensagens[0].texto">{{ task.mensagens[0].texto }}</p>
                     </div>
                     <span v-else class="no-eval">-</span>
                   </td>
                   <td class="action-cell">
-                    <router-link :to="`/ocorrencia/${task.id}`">
-                      <img src="@/assets/detalhes.png" alt="Ver" class="info-btn" />
+                    <router-link :to="`/ocorrencia/${task.id}`" class="details-link-btn">
+                      Ver detalhes
                     </router-link>
                   </td>
                 </tr>
@@ -537,12 +536,15 @@ h2 {
   text-align: left;
   padding: 15px;
   background: #fcfcfc;
-  color: #888;
+  color: #64748b;
   font-size: 14px;
+  font-weight: 600;
+  border-bottom: 1px solid #eee;
 }
 .worker-table td {
   padding: 15px;
-  border-top: 1px solid #eee;
+  border-bottom: 1px solid #f8fafc;
+  font-size: 14px;
 }
 
 .worker-table tbody tr {
@@ -555,7 +557,7 @@ h2 {
 
 .worker-table th:last-child,
 .worker-table td:last-child {
-  width: 56px;
+  width: 140px;
   text-align: center;
 }
 .info-circle {
@@ -607,6 +609,23 @@ h2 {
   color: #c92a2a;
 }
 
+/* Botao detalhes */
+.details-link-btn {
+  display: inline-block;
+  background-color: #b1ffb1;
+  color: #0b2b2b;
+  padding: 8px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.85rem;
+  transition: background-color 0.2s;
+}
+
+.details-link-btn:hover {
+  background-color: #98fb98;
+}
+
 .info-btn {
   width: 28px;
   height: 28px;
@@ -622,15 +641,6 @@ h2 {
   font-weight: 700;
   color: #166534;
   font-size: 13px;
-}
-.eval-preview {
-  margin: 0;
-  font-size: 12px;
-  color: #64748b;
-  max-width: 200px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 .no-eval {
   color: #cbd5e1;

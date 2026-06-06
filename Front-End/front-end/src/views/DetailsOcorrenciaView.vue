@@ -154,7 +154,7 @@
           </section>
         </div>
 
-        <section v-if="podeAvaliar" class="citizen-evaluation-section">
+        <section v-if="jaAvaliado || podeAvaliar" class="citizen-evaluation-section">
           <div class="section-title">
             <h3>Avaliação da Resolução</h3>
           </div>
@@ -170,9 +170,10 @@
               </span>
             </div>
             <p class="eval-text">
-              <strong>O seu comentário:</strong> {{ avaliacaoExistente.texto }}
+              <strong>O comentário do cidadão:</strong> {{ avaliacaoExistente.texto }}
             </p>
             <div
+              v-if="isCitizen"
               class="eval-footer-actions"
               style="
                 margin-top: 15px;
@@ -190,7 +191,7 @@
             </div>
           </div>
 
-          <div v-else class="evaluation-form-box">
+          <div v-else-if="podeAvaliar" class="evaluation-form-box">
             <p class="instruction-text">
               A ocorrência encontra-se concluída. Por favor, deixe o seu comentário e classificação:
             </p>
@@ -376,10 +377,13 @@ async function loadOccurrence() {
 
   // Tentar carregar avaliação existente para esta ocorrência
   try {
-    const currentUserId = getAuthUserId()
-    const mensagens = await getMensagensByOcorrencia(selectedOccurrence.value.id, currentUserId)
+    // Se for cidadão, filtramos pela sua própria ID para edição.
+    // Se for trabalhador/admin, queremos ver qualquer avaliação que exista para esta ocorrência.
+    const filterId = isCitizen.value ? getAuthUserId() : null
+    const mensagens = await getMensagensByOcorrencia(selectedOccurrence.value.id, filterId)
+    
     if (mensagens && mensagens.length > 0) {
-      // Assumimos que a última mensagem é a avaliação mais recente do utilizador
+      // Assumimos que a última mensagem é a avaliação mais recente
       const ultimaAvaliacao = mensagens[mensagens.length - 1]
       avaliacaoExistente.value = ultimaAvaliacao
       citizenForm.value.texto = ultimaAvaliacao.texto
