@@ -77,9 +77,9 @@ const router = useRouter()
 
 const resolveLoginRoute = (userType) => {
   if (userType === 'trabalhador_admin') return { name: 'admin-home' }
-  if (userType === 'trabalhador_responsavel') return { name: 'responsavel-profile' }
-  if (userType === 'trabalhador') return { name: 'trabalhador-profile' }
-  return { name: 'conta' }
+  if (userType === 'trabalhador_responsavel') return { name: 'responsavel-ocorrencias' }
+  if (userType === 'trabalhador') return { name: 'trabalhador-home' }
+  return { name: 'home' }
 }
 
 const splitName = (fullName = '') => {
