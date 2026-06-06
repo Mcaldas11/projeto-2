@@ -37,7 +37,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="task in tasks" :key="task.id">
+                <tr v-for="task in paginatedTasks" :key="task.id">
                   <td>
                     <span :class="['status-badge', task.statusClass]">{{ task.situacao }}</span>
                   </td>
@@ -61,6 +61,29 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="pagination" v-if="totalPages > 1">
+            <button class="page-btn nav-btn" :disabled="currentPage === 1" @click="prevPage">
+              &larr; Previous
+            </button>
+
+            <div class="page-numbers">
+              <button
+                v-for="page in totalPages"
+                :key="page"
+                class="page-btn"
+                :class="{ active: page === currentPage }"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+            </div>
+
+            <button class="page-btn nav-btn" :disabled="currentPage === totalPages" @click="nextPage">
+              Next &rarr;
+            </button>
           </div>
 
           <div class="quick-stats">
@@ -173,6 +196,28 @@ const workerFooterColumns = [
 const showMenu = ref(false)
 
 const tasks = ref([])
+const currentPage = ref(1)
+const itemsPerPage = 3
+
+const paginatedTasks = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  return tasks.value.slice(start, start + itemsPerPage)
+})
+
+const totalPages = computed(() => Math.max(1, Math.ceil(tasks.value.length / itemsPerPage)))
+
+const goToPage = (page) => {
+  currentPage.value = page
+}
+
+const prevPage = () => {
+  if (currentPage.value > 1) currentPage.value--
+}
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) currentPage.value++
+}
+
 const teamResources = ref([])
 const teamMates = ref([])
 const mapElement = ref(null)
@@ -651,6 +696,52 @@ h2 {
   text-align: center;
   color: #6b7280;
   font-weight: 600;
+}
+
+/* PAGINATION */
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding: 10px 0;
+}
+.page-numbers {
+  display: flex;
+  gap: 4px;
+}
+.page-btn {
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  color: #475569;
+  transition: all 0.15s;
+}
+.page-btn:hover:not(:disabled):not(.active) {
+  background: #f8fafc;
+}
+.page-btn.active {
+  background: #730000;
+  color: #fff;
+  border-color: #730000;
+}
+.page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.page-btn.ellipsis {
+  border: none;
+  cursor: default;
+  background: none;
+}
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .quick-stats {
