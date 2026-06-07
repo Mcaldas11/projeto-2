@@ -9,7 +9,9 @@
         
         <span class="icon menu-hamburger" @click="toggleMenu">☰</span>
 
-        <SidebarMenu v-model="showMenu" />
+        <AdminSidebarMenu v-if="userRole === 'admin'" v-model="showMenu" />
+        <ResponsavelSidebarMenu v-else-if="userRole === 'responsavel'" v-model="showMenu" />
+        <SidebarMenu v-else v-model="showMenu" />
 
         
       </div>
@@ -179,10 +181,12 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import Footer from '@/components/footer.vue'
 import SidebarMenu from '@/components/SidebarMenu.vue'
+import AdminSidebarMenu from '@/components/AdminSidebarMenu.vue'
+import ResponsavelSidebarMenu from '@/components/ResponsavelSidebarMenu.vue'
 import avatarImg from '@/assets/avatar.png'
 import { getAuthToken, getAuthUserId } from '@/utils/auth'
 import { listFreguesias } from '@/services/municipalityService'
@@ -206,6 +210,7 @@ const router = useRouter()
 // Sistema de Notificações e Menu
 const showNotif = ref(false)
 const showMenu = ref(false)
+const userRole = computed(() => localStorage.getItem('role'))
 
 const toggleMenu = () => {
   showMenu.value = !showMenu.value

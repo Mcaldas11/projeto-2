@@ -8,7 +8,9 @@
         
         <span class="icon menu-trigger" @click="toggleMenu($event)" ref="menuIcon">☰</span>
 
-        <SidebarMenu v-model="showMenu" />
+        <AdminSidebarMenu v-if="userRole === 'admin'" v-model="showMenu" />
+        <ResponsavelSidebarMenu v-else-if="userRole === 'responsavel'" v-model="showMenu" />
+        <SidebarMenu v-else v-model="showMenu" />
 
         
       </div>
@@ -35,7 +37,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="task in tasks" :key="task.id">
+                <tr v-for="task in paginatedTasks" :key="task.id">
                   <td>
                     <span :class="['status-badge', task.statusClass]">{{ task.situacao }}</span>
                   </td>
@@ -45,13 +47,12 @@
                   <td>
                     <div v-if="task.mensagens && task.mensagens.length > 0" class="worker-eval-info">
                       <span class="stars">⭐ {{ task.mensagens[0].classificacao }}/5</span>
-                      <p class="eval-preview" :title="task.mensagens[0].texto">{{ task.mensagens[0].texto }}</p>
                     </div>
                     <span v-else class="no-eval">-</span>
                   </td>
                   <td class="action-cell">
-                    <router-link :to="`/ocorrencia/${task.id}`">
-                      <img src="@/assets/detalhes.png" alt="Ver" class="info-btn" />
+                    <router-link :to="`/ocorrencia/${task.id}`" class="details-link-btn">
+                      Ver detalhes
                     </router-link>
                   </td>
                 </tr>
@@ -60,6 +61,29 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="pagination" v-if="totalPages > 1">
+            <button class="page-btn nav-btn" :disabled="currentPage === 1" @click="prevPage">
+              &larr; Previous
+            </button>
+
+            <div class="page-numbers">
+              <button
+                v-for="page in totalPages"
+                :key="page"
+                class="page-btn"
+                :class="{ active: page === currentPage }"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+            </div>
+
+            <button class="page-btn nav-btn" :disabled="currentPage === totalPages" @click="nextPage">
+              Next &rarr;
+            </button>
           </div>
 
           <div class="quick-stats">
@@ -148,6 +172,8 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import Footer from '@/components/footer.vue'
 import SidebarMenu from '@/components/SidebarMenu.vue'
+import AdminSidebarMenu from '@/components/AdminSidebarMenu.vue'
+import ResponsavelSidebarMenu from '@/components/ResponsavelSidebarMenu.vue'
 import defaultAvatar from '@/assets/avatar.png'
 import workerFooterLogo from '@/assets/logoP.png'
 import { API_BASE_URL, listWorkerPendingOccurrences } from '@/services/occurrenceService'
@@ -170,11 +196,35 @@ const workerFooterColumns = [
 const showMenu = ref(false)
 
 const tasks = ref([])
+const currentPage = ref(1)
+const itemsPerPage = 3
+
+const paginatedTasks = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  return tasks.value.slice(start, start + itemsPerPage)
+})
+
+const totalPages = computed(() => Math.max(1, Math.ceil(tasks.value.length / itemsPerPage)))
+
+const goToPage = (page) => {
+  currentPage.value = page
+}
+
+const prevPage = () => {
+  if (currentPage.value > 1) currentPage.value--
+}
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) currentPage.value++
+}
+
 const teamResources = ref([])
 const teamMates = ref([])
 const mapElement = ref(null)
 const mapInstance = ref(null)
 const acceptedLayer = ref(null)
+
+const userRole = computed(() => localStorage.getItem('role'))
 
 const acceptedTypeSummary = computed(() => {
   const summary = new Map()
@@ -531,12 +581,15 @@ h2 {
   text-align: left;
   padding: 15px;
   background: #fcfcfc;
-  color: #888;
+  color: #64748b;
   font-size: 14px;
+  font-weight: 600;
+  border-bottom: 1px solid #eee;
 }
 .worker-table td {
   padding: 15px;
-  border-top: 1px solid #eee;
+  border-bottom: 1px solid #f8fafc;
+  font-size: 14px;
 }
 
 .worker-table tbody tr {
@@ -549,7 +602,7 @@ h2 {
 
 .worker-table th:last-child,
 .worker-table td:last-child {
-  width: 56px;
+  width: 140px;
   text-align: center;
 }
 .info-circle {
@@ -601,6 +654,23 @@ h2 {
   color: #c92a2a;
 }
 
+/* Botao detalhes */
+.details-link-btn {
+  display: inline-block;
+  background-color: #b1ffb1;
+  color: #0b2b2b;
+  padding: 8px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.85rem;
+  transition: background-color 0.2s;
+}
+
+.details-link-btn:hover {
+  background-color: #98fb98;
+}
+
 .info-btn {
   width: 28px;
   height: 28px;
@@ -617,15 +687,6 @@ h2 {
   color: #166534;
   font-size: 13px;
 }
-.eval-preview {
-  margin: 0;
-  font-size: 12px;
-  color: #64748b;
-  max-width: 200px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 .no-eval {
   color: #cbd5e1;
   font-size: 12px;
@@ -635,6 +696,52 @@ h2 {
   text-align: center;
   color: #6b7280;
   font-weight: 600;
+}
+
+/* PAGINATION */
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding: 10px 0;
+}
+.page-numbers {
+  display: flex;
+  gap: 4px;
+}
+.page-btn {
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  color: #475569;
+  transition: all 0.15s;
+}
+.page-btn:hover:not(:disabled):not(.active) {
+  background: #f8fafc;
+}
+.page-btn.active {
+  background: #730000;
+  color: #fff;
+  border-color: #730000;
+}
+.page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.page-btn.ellipsis {
+  border: none;
+  cursor: default;
+  background: none;
+}
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .quick-stats {

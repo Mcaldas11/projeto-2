@@ -144,7 +144,7 @@ const handleFinish = async () => {
   )
 
   sessionStorage.removeItem(STORAGE_KEY)
-  router.push({ name: 'conta' })
+  router.push({ name: 'home' })
 }
 </script>
 
