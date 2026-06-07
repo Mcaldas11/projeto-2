@@ -1,0 +1,15 @@
+$kind: http-request
+url: http://localhost:3000/equipas/:id
+method: PUT
+headers:
+  Content-Type: application/json
+pathVariables:
+  id: ""
+body:
+  type: json
+  content: |-
+    {
+      "especializacao": "Limpeza Urbana",
+      "fregEquipa": 1
+    }
+order: 2000

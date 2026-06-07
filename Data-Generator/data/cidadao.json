@@ -1,5 +1,11 @@
 [
   {
+    "nome": "Test Citizen",
+    "email": "test_cidadao@example.pt",
+    "nrTelemovel": "910000000",
+    "freguesias": "Vila do Conde"
+  },
+  {
     "nome": "Rúben Soares",
     "email": "rúben.soares@example.pt",
     "nrTelemovel": "910139234",

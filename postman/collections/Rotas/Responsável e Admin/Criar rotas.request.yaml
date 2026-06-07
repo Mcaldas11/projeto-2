@@ -1,0 +1,22 @@
+$kind: http-request
+url: http://localhost:3000/rotas
+method: POST
+body:
+  type: json
+  content: |-
+    {
+      "nome": "Rota de recolha - Centro",
+      "idFreguesia": "{{idFreguesia}}",
+      "waypoints": [
+        { "type": "Point", "coordinates": [-8.6291, 41.1579] },
+        { "type": "Point", "coordinates": [-8.6100, 41.1500] },
+        { "type": "Point", "coordinates": [-8.6000, 41.1450] }
+      ],
+      "geometry": [
+        [-8.6291, 41.1579],
+        [-8.6100, 41.1500],
+        [-8.6000, 41.1450]
+      ],
+      "cor": "#FF5733"
+    }
+order: 1000

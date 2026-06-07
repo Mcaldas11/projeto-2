@@ -1,0 +1,17 @@
+$kind: http-request
+url: http://localhost:3000/recursos
+method: POST
+body:
+  type: json
+  content: |-
+    {
+      "tipo": "Camião",
+      "estado": "disponivel",
+      "especificacoes": "Camião de recolha de resíduos com capacidade de 10 toneladas",
+      "localizacao": {
+        "type": "Point",
+        "coordinates": [-8.6291, 41.1579]
+      },
+      "equipaResponsavel": "{{idEquipa}}"
+    }
+order: 1000

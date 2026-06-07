@@ -1,0 +1,7 @@
+$kind: http-request
+url: http://localhost:3000/equipas
+method: GET
+body:
+  type: json
+  content: ""
+order: 2000

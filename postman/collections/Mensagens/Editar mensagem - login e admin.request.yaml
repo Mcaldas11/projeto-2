@@ -1,0 +1,13 @@
+$kind: http-request
+url: http://localhost:3000/mensagens/:id
+method: PUT
+pathVariables:
+  id: ""
+body:
+  type: json
+  content: |-
+    {
+      "texto": "Mensagem atualizada com nova informação.",
+      "classificacao": "importante"
+    }
+order: 3000

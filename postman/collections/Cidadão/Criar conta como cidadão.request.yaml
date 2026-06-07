@@ -1,0 +1,19 @@
+$kind: http-request
+url: http://localhost:3000/cidadaos
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"nome\": \"Jorge Lima\",\r
+
+    \  \"email\": \"jorge@gmail.com\",\r
+
+    \  \"password\": \"Jorge1#\",\r
+
+    \  \"nrTelemovel\": \"912345678\",\r
+
+    \  \"fregCidadao\": 13  // idda freguesia/município\r
+
+    }\r\n"
+order: 6000

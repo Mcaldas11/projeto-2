@@ -1,0 +1,24 @@
+workspace:
+  id: 5cc768b5-9fdd-4fde-9a6b-6c18123d3160
+localResources:
+  collections:
+    - ../postman/collections/Ocorrências
+    - ../postman/collections/Geral
+    - ../postman/collections/Recursos
+    - ../postman/collections/Equipas
+    - ../postman/collections/Mensagens
+    - ../postman/collections/Município
+    - ../postman/collections/Rotas
+    - ../postman/collections/Trabalhador
+    - ../postman/collections/Cidadão
+cloudResources:
+  collections:
+    ../postman/collections/Ocorrências: 44154022-06492d45-bd9d-42e7-bf49-c04981bf237d
+    ../postman/collections/Geral: 44154022-4dca1df0-a52a-41f5-ac02-86b3854e1e08
+    ../postman/collections/Recursos: 44154022-6cbdd904-df82-4c94-b025-7b7677a35d14
+    ../postman/collections/Equipas: 44154022-741b9edc-a791-4cfb-be42-2f7a668e183e
+    ../postman/collections/Mensagens: 44154022-7f9b35c7-7e4b-4f9c-8b17-8005762f2e5b
+    ../postman/collections/Município: 44154022-861e5311-c490-4046-aede-cf924829013e
+    ../postman/collections/Rotas: 44154022-a1821343-412a-4ba0-b520-6c08a6b037cf
+    ../postman/collections/Trabalhador: 44154022-a62b4947-36f2-4e20-a45c-2f7250d8228c
+    ../postman/collections/Cidadão: 44154022-eba44b77-0055-4c2b-9e8b-6dafc0800508

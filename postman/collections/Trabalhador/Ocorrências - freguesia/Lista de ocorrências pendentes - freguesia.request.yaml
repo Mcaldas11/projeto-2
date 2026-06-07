@@ -1,0 +1,4 @@
+$kind: http-request
+url: http://localhost:3000/trabalhadores/me/ocorrencias
+method: GET
+order: 1000

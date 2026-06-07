@@ -1,0 +1,15 @@
+$kind: http-request
+url: http://localhost:3000/trabalhadores
+method: POST
+body:
+  type: json
+  content: |-
+    {
+      "nomeTrabalhador": "João Silva",
+      "emailTrabalhador": "joao.silva@municipio.pt",
+      "telemovelTrabalhador": "912345678",
+      "idEquipa": "{{idEquipa}}",
+      "idFreguesia": "{{idFreguesia}}",
+      "credenciaisTrabalhadores": "PasswordSegura123"
+    }
+order: 1000

@@ -1,0 +1,16 @@
+$kind: http-request
+url: http://localhost:3000/recursos/:id
+method: PUT
+pathVariables:
+  id: ""
+body:
+  type: json
+  content: |-
+    {
+      "estado": "em_uso",
+      "localizacao": {
+        "type": "Point",
+        "coordinates": [-8.6100, 41.1500]
+      }
+    }
+order: 2000

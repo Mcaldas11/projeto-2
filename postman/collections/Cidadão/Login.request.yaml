@@ -1,0 +1,13 @@
+$kind: http-request
+url: http://localhost:3000/cidadaos/login
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"email\": \"mariana@gmail.com\",\r
+
+    \  \"password\": \"Mariana123#\"\r
+
+    }\r\n"
+order: 5000

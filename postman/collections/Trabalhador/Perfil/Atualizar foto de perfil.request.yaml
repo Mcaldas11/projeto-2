@@ -1,0 +1,9 @@
+$kind: http-request
+url: http://localhost:3000/trabalhadores/:id/foto
+method: PATCH
+pathVariables:
+  id: ""
+body:
+  type: formdata
+  content: []
+order: 3000

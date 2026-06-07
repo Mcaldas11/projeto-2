@@ -1,0 +1,4 @@
+$kind: http-request
+url: http://localhost:3000/cidadaos/me/freguesia/ocorrencias
+method: GET
+order: 2000

@@ -1,0 +1,14 @@
+$kind: http-request
+url: http://localhost:3000/trabalhadores/:id
+method: PUT
+pathVariables:
+  id: ""
+body:
+  type: json
+  content: |-
+    {
+      "nomeTrabalhador": "João Silva Santos",
+      "telemovelTrabalhador": "913333333",
+      "idEquipa": "{{idEquipa}}"
+    }
+order: 2000

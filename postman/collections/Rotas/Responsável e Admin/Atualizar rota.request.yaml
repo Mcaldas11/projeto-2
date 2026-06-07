@@ -1,0 +1,17 @@
+$kind: http-request
+url: http://localhost:3000/rotas/:id
+method: PATCH
+pathVariables:
+  id: ""
+body:
+  type: json
+  content: |-
+    {
+      "nome": "Rota de recolha - Centro (atualizada)",
+      "waypoints": [
+        { "type": "Point", "coordinates": [-8.6291, 41.1579] },
+        { "type": "Point", "coordinates": [-8.5900, 41.1400] }
+      ],
+      "cor": "#33A1FF"
+    }
+order: 2000
