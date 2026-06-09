@@ -1,4 +1,6 @@
-# projeto-2
+<p align="center">
+  <img src="Front-End/front-end/src/assets/logo.png" alt="VC Comunica Logo" width="200">
+</p>
 
 ![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Faker pt_PT](https://img.shields.io/badge/Faker-pt_PT-0A84FF?style=for-the-badge)
