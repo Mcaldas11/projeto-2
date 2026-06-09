@@ -360,7 +360,47 @@ const paginatedWorkers = computed(() => {
 })
 
 const visiblePages = computed(() => {
-  return Array.from({ length: totalPages.value }, (_, index) => index + 1)
+  const total = totalPages.value
+  const current = currentPage.value
+  const pages = []
+
+  if (total <= 7) {
+    for (let i = 1; i <= total; i++) pages.push(i)
+    return pages
+  }
+
+  // Sempre mostrar a primeira página
+  pages.push(1)
+
+  if (current > 4) {
+    pages.push('...')
+  }
+
+  // Determinar o intervalo central
+  let start = Math.max(2, current - 2)
+  let end = Math.min(total - 1, current + 2)
+
+  // Ajustes para garantir que mostramos 5 números se possível
+  if (current <= 4) {
+    start = 2
+    end = 5
+  } else if (current >= total - 3) {
+    start = total - 4
+    end = total - 1
+  }
+
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
+  }
+
+  if (current < total - 3) {
+    pages.push('...')
+  }
+
+  // Sempre mostrar a última página
+  pages.push(total)
+
+  return pages
 })
 
 const deleteWorker = async (id) => {
@@ -705,10 +745,12 @@ watch(selectedFreguesia, () => {
 /* PAGINATION */
 .pagination {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 12px;
   align-items: center;
-  margin-top: 20px;
+  margin-top: 30px;
   padding: 10px 0;
+  flex-wrap: wrap;
 }
 .page-numbers {
   display: flex;
