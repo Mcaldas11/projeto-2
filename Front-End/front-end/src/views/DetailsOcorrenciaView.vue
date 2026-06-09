@@ -8,12 +8,10 @@
         <router-link v-if="newOccurrenceRoute" :to="newOccurrenceRoute" class="icon add"
           >+</router-link
         >
-        
+
         <span class="icon" ref="menuIcon" @click="toggleMenu">☰</span>
 
         <SidebarMenu v-model="showMenu" />
-
-        
       </div>
     </nav>
 
@@ -91,7 +89,12 @@
                 <p><strong>Reportado por:</strong></p>
                 <div class="user-chip">
                   <img :src="reporterAvatar" class="avatar-xs" alt="Reportado por" />
-                  <span>{{ selectedOccurrence.nome }}</span>
+                  <div class="user-chip-info">
+                    <span>{{ selectedOccurrence.nome }}</span>
+                    <span v-if="selectedOccurrence.nrTelemovelAutor" class="contact-small">
+                      {{ selectedOccurrence.nrTelemovelAutor }}
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -259,6 +262,9 @@
                     :alt="worker.nomeTrabalhador"
                   />
                   <span>{{ worker.nomeTrabalhador }}</span>
+                  <span v-if="worker.telemovelTrabalhador" class="worker-contact">
+                    {{ worker.telemovelTrabalhador }}
+                  </span>
                 </div>
               </div>
               <p v-else class="team-placeholder">
@@ -381,7 +387,7 @@ async function loadOccurrence() {
     // Se for trabalhador/admin, queremos ver qualquer avaliação que exista para esta ocorrência.
     const filterId = isCitizen.value ? getAuthUserId() : null
     const mensagens = await getMensagensByOcorrencia(selectedOccurrence.value.id, filterId)
-    
+
     if (mensagens && mensagens.length > 0) {
       // Assumimos que a última mensagem é a avaliação mais recente
       const ultimaAvaliacao = mensagens[mensagens.length - 1]
@@ -569,7 +575,6 @@ async function submitResolution() {
   }
 }
 
-
 const toggleMenu = (e) => {
   e.stopPropagation()
   showMenu.value = !showMenu.value
@@ -585,7 +590,6 @@ watch(
 )
 
 function handleDocClick(e) {
-  
   if (
     showMenu.value &&
     menuPanel.value &&
@@ -845,6 +849,14 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   gap: 8px;
   margin-top: 5px;
 }
+.user-chip-info {
+  display: flex;
+  flex-direction: column;
+}
+.contact-small {
+  font-size: 12px;
+  color: #64748b;
+}
 .avatar-xs {
   width: 40px;
   height: 40px;
@@ -904,6 +916,11 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   height: 60px;
   border-radius: 50%;
   object-fit: cover;
+}
+.worker-contact {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
 }
 .team-placeholder {
   color: #64748b;
