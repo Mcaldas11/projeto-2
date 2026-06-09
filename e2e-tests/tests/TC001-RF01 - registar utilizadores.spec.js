@@ -54,6 +54,7 @@ describe('TC001-RF01 - registar utilizadores', function () {
         // Based on RegisterMunicipio.vue, it redirects to 'home' which is '/'
         await test.waitForUrl('/');
         const url = await test.getCurrentUrl();
+
         expect(url).to.contain('/');
     });
 });
