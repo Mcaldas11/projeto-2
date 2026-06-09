@@ -28,7 +28,7 @@ describe('TC008-RF06 - atribuir equipa', function () {
         await test.waitAndClick('.btn-icon'); // First edit icon
 
         // Select a team
-        const select = await test.driver.wait(until.elementLocated({ css: '.edit-input' }), 10000);
+        const select = await test.driver.wait(until.elementLocated({ css: '.modal-select' }), 10000);
         await test.type(select, 'Equipa 1'); // Assuming 'Equipa 1' exists from setup script
 
         // Save

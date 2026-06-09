@@ -11,10 +11,9 @@ describe('TC008-RF06 - atribuir equipa a ocorrencia', function () {
         
         // Login as admin
         await test.get('/login');
-        await test.type(await test.findById('email'), 'admin@vcc.pt');
-        const pwd = await test.findById('password');
-        await test.type(pwd, 'adminVCC');
-        await pwd.sendKeys(Key.ENTER);
+        await test.waitAndType('#email', 'admin@vcc.pt');
+        await test.waitAndType('#password', 'Password123!');
+        await test.waitAndClick('.btn-sign-in');
         await test.driver.wait(until.urlContains('/admin'), 10000);
     });
 
@@ -30,15 +29,15 @@ describe('TC008-RF06 - atribuir equipa a ocorrencia', function () {
             until.elementLocated(By.css('.details-link-btn')), 
             10000
         );
-        await test.click(detailsBtn);
+        await test.waitAndClick(detailsBtn);
 
         // Wait for details page
         await test.driver.wait(until.urlContains('/ocorrencia/'), 10000);
         const url = await test.getCurrentUrl();
         expect(url).to.contain('/ocorrencia/');
         
-        // Verify we are on the admin detail view (contains breadcrumb-current)
-        const breadcrumb = await test.driver.findElement(By.css('.breadcrumb-current'));
+        // Verify we are on the details view (contains breadcrumb-header)
+        const breadcrumb = await test.driver.wait(until.elementLocated(By.css('.breadcrumb-header')), 10000);
         expect(breadcrumb).to.exist;
     });
 });

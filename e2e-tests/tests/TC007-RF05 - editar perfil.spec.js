@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const { until } = require('selenium-webdriver');
+const { until, By } = require('selenium-webdriver');
 const BaseTest = require('./base');
 
 describe('TC007-RF05 - editar perfil', function () {
@@ -26,11 +26,25 @@ describe('TC007-RF05 - editar perfil', function () {
         
         await test.waitAndClick('.btn-edit');
 
-        const phoneInput = await test.waitAndType('input[type="tel"]', '912345678');
+        // The phone input is the one after the "Telemóvel:" label
+        const phoneInput = await test.driver.wait(
+            until.elementLocated(By.xpath("//label[contains(text(), 'Telemóvel')]/following-sibling::input")), 
+            10000
+        );
+        
+        // Use waitAndType but with the element directly
+        await test.waitAndType(phoneInput, '912345678');
+        
         await test.waitAndClick('.modal-btn.confirm');
 
         // Wait for modal to close and update to reflect
         await test.driver.sleep(2000); 
-        expect(await phoneInput.getAttribute('value')).to.equal('912345678');
+        
+        // Check the value in the profile header
+        const displayedPhone = await test.driver.wait(
+            until.elementLocated(By.xpath("//div[@class='user-text']/p[last()]")),
+            10000
+        );
+        expect(await displayedPhone.getText()).to.equal('912345678');
     });
 });
