@@ -29,12 +29,11 @@
             <span class="sidebar-label">Freguesias</span>
             <img src="@/assets/workers_icon.svg" alt="Freguesias" class="sidebar-icon" />
           </router-link>
-
         </div>
 
         <div class="sidebar-bottom">
           <button type="button" class="sidebar-item sidebar-logout" @click="showLogoutModal = true">
-            <span class="sidebar-label">Terminar Sessão  X</span>
+            <span class="sidebar-label">Terminar Sessão X</span>
           </button>
         </div>
       </div>
@@ -99,7 +98,7 @@ function handleLogout() {
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.3);
-  z-index: 90;
+  z-index: 9999;
 }
 
 .sidebar-menu {
@@ -110,7 +109,7 @@ function handleLogout() {
   height: 100vh;
   background: #ffffff;
   color: #0b2b2b;
-  z-index: 100;
+  z-index: 10000;
   display: flex;
   flex-direction: column;
   padding: 30px 24px;
@@ -202,7 +201,7 @@ function handleLogout() {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 140;
+  z-index: 10001; /* Garante que o modal fique acima do menu lateral */
 }
 
 .modal-card {

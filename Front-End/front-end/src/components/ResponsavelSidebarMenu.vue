@@ -94,7 +94,7 @@ function handleLogout() {
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.3);
-  z-index: 90;
+  z-index: 9999;
 }
 
 .sidebar-menu {
@@ -105,7 +105,7 @@ function handleLogout() {
   height: 100vh;
   background: #ffffff;
   color: #0b2b2b;
-  z-index: 100;
+  z-index: 10000; /* Garante que o menu esteja acima do overlay e de todos os elementos */
   display: flex;
   flex-direction: column;
   padding: 30px 24px;
@@ -197,7 +197,7 @@ function handleLogout() {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 140;
+  z-index: 10001; /* Garante que o modal fique acima do menu lateral */
 }
 
 .modal-card {
