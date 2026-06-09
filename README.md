@@ -54,6 +54,7 @@ flowchart LR
 - Recurso: meios e estado associados a uma equipa.
 - Ocorrencia: descricao, localizacao, estado, fotos e relacoes principais.
 - Mensagem: comunicacao ligada a cidadao e ocorrencia.
+- Rota: trajetos definidos para manutencao ou recolha numa freguesia.
 
 ### Relacoes
 
@@ -61,6 +62,7 @@ flowchart LR
 - Municipio 1..N Equipa (fregEquipa)
 - Municipio 1..N Trabalhador (idFreguesia)
 - Municipio 1..N Ocorrencia (idFreguesia)
+- Municipio 1..N Rota (idFreguesia)
 - Equipa 1..N Trabalhador (idEquipa)
 - Equipa 1..N Recurso (equipaResponsavel)
 - Equipa 1..N Ocorrencia (idEquipa)
@@ -74,6 +76,7 @@ erDiagram
 	MUNICIPIO ||--o{ EQUIPA : fregEquipa
 	MUNICIPIO ||--o{ TRABALHADOR : idFreguesia
 	MUNICIPIO ||--o{ OCORRENCIA : idFreguesia
+	MUNICIPIO ||--o{ ROTA : idFreguesia
 	EQUIPA ||--o{ TRABALHADOR : idEquipa
 	EQUIPA ||--o{ RECURSO : equipaResponsavel
 	EQUIPA ||--o{ OCORRENCIA : idEquipa
