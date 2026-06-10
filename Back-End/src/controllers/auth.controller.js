@@ -10,7 +10,7 @@ const getAdminEmails = () =>
     .map((email) => email.trim())
     .filter(Boolean);
 
-// Validate admin status Authorization
+// Validate admin status Authorization 
 const isAdminEmail = (email) => getAdminEmails().includes((email || "").trim());
 
 // Retrieve manager list Configuration
