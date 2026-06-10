@@ -200,6 +200,25 @@ export const updateCidadaoMe = async (req, res, next) => {
   }
 };
 
+// General update citizen profile Update
+export const updateCidadao = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const cidadao = await Cidadao.findByPk(id);
+
+    if (!cidadao) {
+      return next(notFoundError("cidadao", id));
+    }
+
+    await cidadao.update(req.body);
+    const updated = await Cidadao.findByPk(id);
+    res.json(updated);
+  } catch (error) {
+    if (handleSequelizeValidation(error, next)) return;
+    next(genericError("Error updating cidadao"));
+  }
+};
+
 // Create new account Hashing
 export const createCidadao = async (req, res, next) => {
   try {
