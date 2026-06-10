@@ -5,6 +5,7 @@ import {
   sequelizeValidationError,
 } from "../utils/error.utils.js";
 
+// Handle DB errors Validation
 const handleSequelizeValidation = (error, next) => {
   if (
     error?.name === "SequelizeValidationError" ||
@@ -13,10 +14,10 @@ const handleSequelizeValidation = (error, next) => {
     next(sequelizeValidationError(error.errors || []));
     return true;
   }
-
   return false;
 };
 
+// List all teams Read
 export const getAllEquipas = async (req, res, next) => {
   try {
     const equipas = await Equipa.findAll();
@@ -26,6 +27,7 @@ export const getAllEquipas = async (req, res, next) => {
   }
 };
 
+// Find team by ID Read
 export const getEquipaById = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -41,6 +43,7 @@ export const getEquipaById = async (req, res, next) => {
   }
 };
 
+// Register new team Database Update
 export const createEquipa = async (req, res, next) => {
   try {
     const equipa = await Equipa.create(req.body);
@@ -49,11 +52,11 @@ export const createEquipa = async (req, res, next) => {
     if (handleSequelizeValidation(error, next)) {
       return;
     }
-
     next(genericError("Error creating equipa"));
   }
 };
 
+// Edit team info Database Update
 export const updateEquipa = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -69,11 +72,11 @@ export const updateEquipa = async (req, res, next) => {
     if (handleSequelizeValidation(error, next)) {
       return;
     }
-
     next(genericError("Error updating equipa"));
   }
 };
 
+// Remove team Database Cleanup
 export const deleteEquipa = async (req, res, next) => {
   try {
     const { id } = req.params;

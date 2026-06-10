@@ -5,6 +5,7 @@ import {
   sequelizeValidationError,
 } from "../utils/error.utils.js";
 
+// Handle DB errors Validation
 const handleSequelizeValidation = (error, next) => {
   if (
     error?.name === "SequelizeValidationError" ||
@@ -16,14 +17,17 @@ const handleSequelizeValidation = (error, next) => {
   return false;
 };
 
+// Get admin list Configuration
 const getAdminEmails = () =>
   (process.env.ADMIN_EMAILS || "admin@vcc.pt,admin.geral@example.pt")
     .split(",")
     .map((email) => email.trim())
     .filter(Boolean);
 
+// Validate admin status Authorization
 const isAdminEmail = (email) => getAdminEmails().includes((email || "").trim());
 
+// Check admin role Authorization
 const isRequesterAdmin = async (req) => {
   if (!req.userData || !req.userData.userType) return false;
   if (req.userData.userType === "trabalhador_admin") return true;
@@ -32,6 +36,7 @@ const isRequesterAdmin = async (req) => {
   return Boolean(requesterTrab && isAdminEmail(requesterTrab.emailTrabalhador));
 };
 
+// List paths and coords Deserialization
 export const getAllRotas = async (req, res, next) => {
   try {
     const isAdmin = await isRequesterAdmin(req);
@@ -57,6 +62,7 @@ export const getAllRotas = async (req, res, next) => {
   }
 };
 
+// Find path by ID Deserialization
 export const getRotaById = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -83,6 +89,7 @@ export const getRotaById = async (req, res, next) => {
   }
 };
 
+// Store path and coords Serialization
 export const createRota = async (req, res, next) => {
   try {
     const { nome, idFreguesia, waypoints, geometry, cor } = req.body;
@@ -95,7 +102,6 @@ export const createRota = async (req, res, next) => {
     if (isResponsavel && !isAdmin) {
       const requester = await Trabalhador.findByPk(req.userData.userId);
       if (!requester) return res.status(403).json({ message: "Requester not found" });
-      // Enforce the requester's parish
       targetIdFreguesia = requester.idFreguesia;
     }
 
@@ -121,6 +127,7 @@ export const createRota = async (req, res, next) => {
   }
 };
 
+// Edit path and coords Serialization
 export const updateRota = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -138,7 +145,6 @@ export const updateRota = async (req, res, next) => {
     }
 
     const updates = { ...req.body };
-    // Prevent changing parish if not admin
     if (!isAdmin) delete updates.idFreguesia;
 
     if (updates.waypoints) updates.waypoints = JSON.stringify(updates.waypoints);
@@ -156,6 +162,7 @@ export const updateRota = async (req, res, next) => {
   }
 };
 
+// Wipe path record Database Cleanup
 export const deleteRota = async (req, res, next) => {
   try {
     const { id } = req.params;

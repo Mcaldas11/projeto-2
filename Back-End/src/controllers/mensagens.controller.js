@@ -5,6 +5,7 @@ import {
   sequelizeValidationError,
 } from "../utils/error.utils.js";
 
+// Handle DB errors Validation
 const handleSequelizeValidation = (error, next) => {
   if (
     error?.name === "SequelizeValidationError" ||
@@ -13,10 +14,10 @@ const handleSequelizeValidation = (error, next) => {
     next(sequelizeValidationError(error.errors || []));
     return true;
   }
-
   return false;
 };
 
+// List filtered messages Read
 export const getAllMensagens = async (req, res, next) => {
   try {
     const { idOcorrencia, idCidadao } = req.query;
@@ -31,6 +32,7 @@ export const getAllMensagens = async (req, res, next) => {
   }
 };
 
+// Find message by ID Read
 export const getMensagemById = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -46,6 +48,7 @@ export const getMensagemById = async (req, res, next) => {
   }
 };
 
+// Create feedback entry Database Update
 export const createMensagem = async (req, res, next) => {
   try {
     const mensagem = await Mensagem.create(req.body);
@@ -54,11 +57,11 @@ export const createMensagem = async (req, res, next) => {
     if (handleSequelizeValidation(error, next)) {
       return;
     }
-
     next(genericError("Error creating mensagem"));
   }
 };
 
+// Edit message entry Authorization
 export const updateMensagem = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -72,7 +75,6 @@ export const updateMensagem = async (req, res, next) => {
       return res.status(401).json({ message: "Authentication required" });
     }
 
-    // admin check
     let isAdmin = false;
     if (req.userData.userType === "trabalhador_admin") {
       isAdmin = true;
@@ -84,6 +86,7 @@ export const updateMensagem = async (req, res, next) => {
       }
     }
 
+    // Ownership verification Authorization
     if (!isAdmin) {
       if (req.userData.userType !== "cidadao" || Number(req.userData.userId) !== Number(mensagem.idCidadao)) {
         return res.status(403).json({ message: "Forbidden" });
@@ -96,11 +99,11 @@ export const updateMensagem = async (req, res, next) => {
     if (handleSequelizeValidation(error, next)) {
       return;
     }
-
     next(genericError("Error updating mensagem"));
   }
 };
 
+// Remove message entry Authorization
 export const deleteMensagem = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -114,7 +117,6 @@ export const deleteMensagem = async (req, res, next) => {
       return res.status(401).json({ message: "Authentication required" });
     }
 
-    // admin check
     let isAdmin = false;
     if (req.userData.userType === "trabalhador_admin") {
       isAdmin = true;
@@ -126,6 +128,7 @@ export const deleteMensagem = async (req, res, next) => {
       }
     }
 
+    // Ownership verification Authorization
     if (!isAdmin) {
       if (req.userData.userType !== "cidadao" || Number(req.userData.userId) !== Number(mensagem.idCidadao)) {
         return res.status(403).json({ message: "Forbidden" });
