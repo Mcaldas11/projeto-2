@@ -7,13 +7,9 @@
         </router-link>
       </div>
       <div class="nav-right">
-        
-        
         <span class="icon menu-trigger" @click="toggleMenu">☰</span>
 
         <AdminSidebarMenu v-model="showMenu" />
-
-        
       </div>
     </nav>
 
@@ -27,7 +23,7 @@
             <img src="@/assets/ocorrencias.png" class="indicator-icon" />
           </div>
           <div class="indicator-info">
-            <span class="indicator-value">{{ routes.length }}</span>
+            <span class="indicator-value">{{ allRoutes.length }}</span>
             <span class="indicator-label">Rotas Ativas</span>
           </div>
         </div>
@@ -41,13 +37,15 @@
           </div>
 
           <div class="rotas-legend">
-
             <h3 class="legend-title legend-title-secondary">Ocorrências Ativas nas Rotas</h3>
             <div class="occ-legend-grid">
               <div
                 v-for="type in activeOccurrenceTypes"
                 :key="type.key"
-                :class="['occ-legend-item', { 'occ-legend-item--active': selectedOccurrenceType === type.key }]"
+                :class="[
+                  'occ-legend-item',
+                  { 'occ-legend-item--active': selectedOccurrenceType === type.key },
+                ]"
                 @click="toggleOccurrenceFilter(type.key)"
               >
                 <div class="occ-legend-bar" :style="{ background: type.color }"></div>
@@ -70,7 +68,7 @@
         <p class="espera-label">Rotas ativas em todas as freguesias</p>
         <div class="category-cards">
           <div
-            v-for="route in routes"
+            v-for="route in allRoutes"
             :key="route.idRota || route.id"
             :class="['category-card', { selected: isSelectedRoute(route) }]"
           >
@@ -79,15 +77,15 @@
               <strong>{{ route.nome }}</strong>
               <span>{{ route.waypoints?.length || 0 }} pontos</span>
             </div>
-            <img 
-              src="@/assets/delete_icon.svg" 
-              class="delete-route-icon" 
+            <img
+              src="@/assets/delete_icon.svg"
+              class="delete-route-icon"
               title="Apagar rota"
-              @click.stop="apagarRota(route.idRota || route.id)" 
+              @click.stop="apagarRota(route.idRota || route.id)"
             />
           </div>
         </div>
-        <p v-if="routes.length === 0" class="no-routes-msg">Nenhuma rota guardada no sistema.</p>
+        <p v-if="allRoutes.length === 0" class="no-routes-msg">Nenhuma rota guardada no sistema.</p>
       </section>
     </main>
 
@@ -125,8 +123,9 @@ const mapElement = ref(null)
 const mapInstance = ref(null)
 const routeLayer = ref(null)
 const occurrenceLayer = ref(null)
-const occurrenceMarkers = ref([])
-const routes = ref([])
+const occurrenceMarkers = ref([]) // Todos os marcadores de ocorrência
+const allRoutes = ref([]) // Todas as rotas carregadas do backend
+const displayedRoutes = ref([]) // Rotas atualmente visíveis no mapa
 const currentRoute = useRoute()
 const selectedRouteId = computed(() =>
   Number(currentRoute.query.routeId || currentRoute.query.selectedRoute || 0),
@@ -137,7 +136,7 @@ const OCC_PALETTE = ['#06b6d4', '#7c3aed', '#ef4444', '#f59e0b', '#10b981', '#ef
 
 const totalOccurrencesInRoutes = computed(() => {
   // Somar todos os waypoints (excluindo o ponto de partida na junta, que é o index 0)
-  return routes.value.reduce((acc, route) => {
+  return allRoutes.value.reduce((acc, route) => {
     const waypoints = Array.isArray(route.waypoints) ? route.waypoints : []
     return acc + Math.max(0, waypoints.length - 1)
   }, 0)
@@ -145,13 +144,13 @@ const totalOccurrencesInRoutes = computed(() => {
 
 const activeOccurrenceTypes = computed(() => {
   const summary = new Map()
-  
+
   // Criar um set de coordenadas únicas que estão presentes em TODAS as rotas
   const routePointsSet = new Set()
-  routes.value.forEach(route => {
+  allRoutes.value.forEach((route) => {
     const waypoints = Array.isArray(route.waypoints) ? route.waypoints : []
     // Ignoramos o waypoint[0] porque é a Junta de Freguesia
-    waypoints.slice(1).forEach(wp => {
+    waypoints.slice(1).forEach((wp) => {
       routePointsSet.add(`${wp.latitude.toFixed(6)},${wp.longitude.toFixed(6)}`)
     })
   })
@@ -191,7 +190,41 @@ const activeOccurrenceTypes = computed(() => {
 const selectedOccurrenceType = ref(null)
 
 function toggleOccurrenceFilter(key) {
-  selectedOccurrenceType.value = selectedOccurrenceType.value === key ? null : key
+  if (selectedOccurrenceType.value === key) {
+    selectedOccurrenceType.value = null
+    displayedRoutes.value = allRoutes.value // Mostrar todas as rotas
+    fitMapToContent() // Ajustar zoom para todas as rotas
+    return
+  }
+
+  selectedOccurrenceType.value = key
+
+  const filtered = allRoutes.value.filter((route) => {
+    const waypoints = Array.isArray(route.waypoints) ? route.waypoints : []
+    // Ignoramos o waypoint[0] (Junta) e verificamos os restantes
+    return waypoints.slice(1).some((wp) => {
+      return occurrenceMarkers.value.some((m) => {
+        const isSameLoc =
+          Math.abs(Number(m.latitude) - wp.latitude) < 0.0001 &&
+          Math.abs(Number(m.longitude) - wp.longitude) < 0.0001
+        return isSameLoc && normalizeTypeKey(m.tipo || '') === key
+      })
+    })
+  })
+
+  displayedRoutes.value = filtered // Atualizar rotas exibidas
+
+  // Se encontramos rotas filtradas, fazemos zoom nelas
+  if (filtered.length > 0 && mapInstance.value) {
+    const allPoints = filtered.flatMap((r) => formatRoutePoints(r))
+    mapInstance.value.fitBounds(allPoints, {
+      padding: [50, 50],
+      maxZoom: 16,
+    })
+  } else {
+    // Se não houver rotas para o tipo selecionado, ajustar para a vista padrão
+    fitMapToContent()
+  }
 }
 
 const toggleMenu = (e) => {
@@ -201,25 +234,19 @@ const toggleMenu = (e) => {
 }
 
 function formatRoutePoints(route) {
-  const points = route.geometry && route.geometry.length > 0 
-    ? route.geometry 
-    : (route.waypoints || [])
+  const points =
+    route.geometry && route.geometry.length > 0 ? route.geometry : route.waypoints || []
 
-  return points.map((point) => [
-    point.latitude,
-    point.longitude,
-  ])
+  return points.map((point) => [point.latitude, point.longitude])
 }
 
 function drawRoutes() {
+  // Não recebe mais argumentos, usa displayedRoutes.value
   if (!mapInstance.value || !routeLayer.value) return
 
   routeLayer.value.clearLayers()
 
-  const bounds = []
-  const selectedRoute = routes.value.find((route) => isSelectedRoute(route))
-
-  routes.value.forEach((route) => {
+  displayedRoutes.value.forEach((route) => {
     const points = formatRoutePoints(route)
     if (points.length < 2) return
 
@@ -231,13 +258,12 @@ function drawRoutes() {
     })
 
     polyline.addTo(routeLayer.value)
-    bounds.push(...points)
 
-    const originalPoints = (route.waypoints || []).map(wp => [wp.latitude, wp.longitude])
+    const originalPoints = (route.waypoints || []).map((wp) => [wp.latitude, wp.longitude])
     if (originalPoints.length >= 2) {
       const startPoint = originalPoints[0]
       const endPoint = originalPoints[originalPoints.length - 1]
-      
+
       L.circleMarker(startPoint, {
         radius: 6,
         color: route.color || route.cor || '#3b82f6',
@@ -256,7 +282,7 @@ function drawRoutes() {
     }
   })
 
-  fitMapToContent(selectedRoute)
+  fitMapToContent() // Ajustar o mapa para o conteúdo atual
 }
 
 function isSelectedRoute(route) {
@@ -264,17 +290,20 @@ function isSelectedRoute(route) {
   return selectedRouteId.value > 0 && String(rid) === String(selectedRouteId.value)
 }
 
-function fitMapToContent(selectedRoute = null) {
+function fitMapToContent() {
   if (!mapInstance.value) return
 
-  const routePoints = selectedRoute
-    ? formatRoutePoints(selectedRoute)
-    : routes.value.flatMap((route) => formatRoutePoints(route))
-  
-  const bounds = [...routePoints]
+  let pointsToFit = []
 
-  if (bounds.length > 0) {
-    mapInstance.value.fitBounds(bounds, { padding: [28, 28] })
+  const selectedRoute = allRoutes.value.find((route) => isSelectedRoute(route))
+  if (selectedRoute) {
+    pointsToFit = formatRoutePoints(selectedRoute)
+  } else if (displayedRoutes.value.length > 0) {
+    pointsToFit = displayedRoutes.value.flatMap((route) => formatRoutePoints(route))
+  }
+
+  if (pointsToFit.length > 0) {
+    mapInstance.value.fitBounds(pointsToFit, { padding: [28, 28] })
   }
 }
 
@@ -283,7 +312,8 @@ async function initMap() {
 
   mapInstance.value = L.map(mapElement.value, { zoomControl: true }).setView([41.3649, -8.7389], 14)
 
-  const TILE_URL = import.meta.env.VITE_MAP_TILES_URL || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+  const TILE_URL =
+    import.meta.env.VITE_MAP_TILES_URL || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
   const TILE_ATTR = import.meta.env.VITE_MAP_TILES_ATTR || '&copy; OpenStreetMap contributors'
 
   L.tileLayer(TILE_URL, {
@@ -308,11 +338,12 @@ async function loadOccurrences() {
 
 async function loadRoutes() {
   const existingRoutes = await listRoutesWithGeometry()
-  routes.value = existingRoutes.map((r, i) => ({
+  allRoutes.value = existingRoutes.map((r) => ({
     ...r,
-    color: r.color || r.cor || OCC_PALETTE[i % OCC_PALETTE.length],
   }))
+  displayedRoutes.value = allRoutes.value // Inicialmente, exibir todas as rotas
   drawRoutes()
+  fitMapToContent()
 }
 
 async function apagarRota(id) {
@@ -320,8 +351,10 @@ async function apagarRota(id) {
 
   try {
     await deleteRota(id)
-    routes.value = routes.value.filter(r => (r.idRota || r.id) !== id)
+    allRoutes.value = allRoutes.value.filter((r) => (r.idRota || r.id) !== id)
+    displayedRoutes.value = displayedRoutes.value.filter((r) => (r.idRota || r.id) !== id)
     drawRoutes()
+    fitMapToContent()
   } catch (error) {
     console.error('Erro ao apagar rota:', error)
     alert('Não foi possível apagar a rota.')
@@ -348,13 +381,37 @@ onMounted(async () => {
     // ignore
   }
 
+  await loadOccurrences() // Carregar ocorrências primeiro, pois as cores das rotas dependem delas
   loadRoutes().catch(() => {})
-  loadOccurrences().catch(() => {})
 })
 
-watch([routes, selectedRouteId], () => {
-  drawRoutes()
-})
+watch(
+  [allRoutes, occurrenceMarkers, selectedRouteId, selectedOccurrenceType],
+  () => {
+    // Se um filtro de tipo estiver ativo, reaplicá-lo
+    if (selectedOccurrenceType.value) {
+      const key = selectedOccurrenceType.value
+      const filtered = allRoutes.value.filter((route) => {
+        const waypoints = Array.isArray(route.waypoints) ? route.waypoints : []
+        return waypoints.slice(1).some((wp) => {
+          return occurrenceMarkers.value.some((m) => {
+            const isSameLoc =
+              Math.abs(Number(m.latitude) - wp.latitude) < 0.00001 &&
+              Math.abs(Number(m.longitude) - wp.longitude) < 0.00001
+            return isSameLoc && normalizeTypeKey(m.tipo || '') === key
+          })
+        })
+      })
+      displayedRoutes.value = filtered
+    } else {
+      // Caso contrário, exibir todas as rotas
+      displayedRoutes.value = allRoutes.value
+    }
+    drawRoutes()
+    fitMapToContent()
+  },
+  { deep: true },
+) // Observar profundamente allRoutes e occurrenceMarkers
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleDocClick)
@@ -423,8 +480,12 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
 }
-.indicator-icon-bg.pending { background: #fee2e2; }
-.indicator-icon-bg.progress { background: #fef9c3; }
+.indicator-icon-bg.pending {
+  background: #fee2e2;
+}
+.indicator-icon-bg.progress {
+  background: #fef9c3;
+}
 .indicator-icon {
   width: 28px;
   height: 28px;
@@ -597,7 +658,9 @@ onBeforeUnmount(() => {
   height: 18px;
   cursor: pointer;
   opacity: 0.6;
-  transition: opacity 0.2s, transform 0.2s;
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
 }
 .delete-route-icon:hover {
   opacity: 1;

@@ -74,7 +74,7 @@ function navigateHome() {
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.3);
-  z-index: 90;
+  z-index: 9999; /* Garante que a sombra cubra os controles do mapa (z-index 1000) */
 }
 
 .sidebar-menu {
@@ -85,7 +85,7 @@ function navigateHome() {
   height: 100vh;
   background: #ffffff;
   color: #0b2b2b;
-  z-index: 100;
+  z-index: 10000;
   display: flex;
   flex-direction: column;
   padding: 30px 24px;
