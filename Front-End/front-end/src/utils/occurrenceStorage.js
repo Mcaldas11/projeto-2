@@ -18,6 +18,7 @@ const STATUS_CLASS_BY_STATE = {
   emresolucao: 'em-resolucao',
   espera: 'espera',
   aesperadaequipa: 'espera',
+  aesperadeequipa: 'espera',
   naoresolvido: 'nao-resolvido',
   naoresolvida: 'nao-resolvido',
 }

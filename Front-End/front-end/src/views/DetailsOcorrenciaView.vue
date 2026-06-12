@@ -99,9 +99,14 @@
               </div>
 
               <div v-if="isWorker" class="worker-actions">
-                <button class="report-btn" @click="reportError">Reportar Erro</button>
                 <button class="report-btn report-btn-secondary" @click="toggleResolveForm">
-                  {{ resolveFormOpen ? 'Fechar resolução' : 'Resolver Ocorrência' }}
+                  {{
+                    resolveFormOpen
+                      ? 'Fechar resolução'
+                      : selectedOccurrence.idEquipa
+                        ? 'Resolver Ocorrência'
+                        : 'Aceitar Ocorrência'
+                  }}
                 </button>
               </div>
 
@@ -157,7 +162,14 @@
           </section>
         </div>
 
-        <section v-if="jaAvaliado || podeAvaliar" class="citizen-evaluation-section">
+        <section
+          v-if="
+            (jaAvaliado || podeAvaliar) &&
+            (selectedOccurrence.situacao === 'Resolvido' ||
+              selectedOccurrence.situacao === 'Não resolvido')
+          "
+          class="citizen-evaluation-section"
+        >
           <div class="section-title">
             <h3>Avaliação da Resolução</h3>
           </div>
@@ -400,6 +412,19 @@ async function loadOccurrence() {
     console.error('Erro ao carregar avaliações:', error)
   }
 
+  const currentStatus = selectedOccurrence.value.situacao
+  const validStatusOptions = ['Em resolução', 'Resolvido', 'Não resolvido']
+  const initialFormEstado = validStatusOptions.includes(currentStatus)
+    ? currentStatus
+    : 'Em resolução'
+
+  resolveForm.value = {
+    estado: initialFormEstado,
+    dataAgendada: toLocalDateTimeInput(selectedOccurrence.value.dataAgendada),
+    dataResolucao: toLocalDateTimeInput(selectedOccurrence.value.dataResolucao),
+    feedback: selectedOccurrence.value.feedback || '',
+  }
+
   if (!selectedOccurrence.value?.idEquipa) {
     teamWorkers.value = []
     assignedTeamLabel.value = ''
@@ -407,12 +432,6 @@ async function loadOccurrence() {
   }
 
   await loadTeamDetails(selectedOccurrence.value.idEquipa)
-  resolveForm.value = {
-    estado: selectedOccurrence.value.situacao || 'Em resolução',
-    dataAgendada: toLocalDateTimeInput(selectedOccurrence.value.dataAgendada),
-    dataResolucao: toLocalDateTimeInput(selectedOccurrence.value.dataResolucao),
-    feedback: selectedOccurrence.value.feedback || '',
-  }
 }
 
 // ─── FUNÇÃO QUE GRAVA EXATAMENTE COMO NO TEU MODELO SEQUELIZE ───
@@ -608,9 +627,7 @@ const prevImg = () => {
   const idx = gallery.value.indexOf(activeImage.value)
   activeImage.value = gallery.value[(idx - 1 + gallery.value.length) % gallery.value.length]
 }
-const reportError = () => {
-  alert('Reportar Erro: acção simulada (só visível a trabalhadores)')
-}
+
 
 onMounted(() => document.addEventListener('click', handleDocClick))
 onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))

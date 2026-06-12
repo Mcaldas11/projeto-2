@@ -462,8 +462,8 @@ const showDeleteModal = ref(false)
 function normalizeOccurrenceRow(occurrence) {
   return {
     id: occurrence.id,
-    status: occurrence.situacao || 'Em resolução',
-    statusClass: occurrence.statusClass || 'em-resolucao',
+    status: occurrence.situacao || 'À espera de equipa',
+    statusClass: occurrence.statusClass || 'espera',
     tipo: occurrence.tipo || 'Ocorrência',
     local: occurrence.location || occurrence.detalhes || '-',
   }
