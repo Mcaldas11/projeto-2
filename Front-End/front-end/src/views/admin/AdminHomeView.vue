@@ -73,7 +73,7 @@
               <td>{{ occ.tipo }}</td>
               <td class="details-cell">{{ occ.detalhes }}</td>
               <td>
-                <router-link :to="`/ocorrencia/${occ.id}`" class="details-link-btn">
+                <router-link :to="`/admin/ocorrencia/${occ.id}`" class="details-link-btn">
                   Ver detalhes
                 </router-link>
               </td>

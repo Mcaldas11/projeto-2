@@ -4,7 +4,7 @@ import { Cidadao, Trabalhador } from "../config/db.config.js";
 import { genericError } from "../utils/error.utils.js";
 
 const getAdminEmails = () =>
-  (process.env.ADMIN_EMAILS || "admin@vcc.pt,admin.geral@example.pt")
+  (process.env.ADMIN_EMAILS || "admin@vcc.pt,admin.geral@example.pt,admin_e2e_test@vcc.pt")
     .split(",")
     .map((email) => email.trim())
     .filter(Boolean);

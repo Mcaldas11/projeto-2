@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const { until } = require('selenium-webdriver');
+const { until, By } = require('selenium-webdriver');
 const BaseTest = require('./base');
 
 describe('TC008-RF06 - atribuir equipa', function () {
@@ -10,11 +10,13 @@ describe('TC008-RF06 - atribuir equipa', function () {
         await test.setup();
         
         // Login as admin
-        await test.get('/login');
-        await test.waitAndType('#email', 'admin@vcc.pt');
-        await test.waitAndType('#password', 'Password123!');
-        await test.waitAndClick('.btn-sign-in');
-        await test.driver.wait(until.urlContains('/admin'), 15000);
+        await test.backgroundLogin('admin_e2e_test@vcc.pt', 'Password123!', '/admin');
+    });
+
+    afterEach(async function () {
+        if (test && test.driver) {
+            await test.takeScreenshot(this.currentTest.title);
+        }
     });
 
     after(async function () {
@@ -24,19 +26,32 @@ describe('TC008-RF06 - atribuir equipa', function () {
     it('deve atribuir um trabalhador a uma equipa com sucesso', async function () {
         await test.get('/admin/trabalhadores');
         
-        // Wait for workers table and click edit on first worker
-        await test.waitAndClick('.btn-icon'); // First edit icon
+        // Wait for workers table
+        await test.driver.wait(until.elementLocated(By.css('.workers-table')), 10000);
+
+        // Find the row for the responsavel worker we created
+        const workerEmail = 'responsavel._e2e_test@vcc.pt';
+        
+        // Wait and handle pagination if necessary
+        await test.driver.sleep(1000); 
+
+        const row = await test.findPaginatedElement(`//tr[td[contains(text(), '${workerEmail}')]]`, 20);
+
+        // Click edit on that specific row
+        const editBtn = await row.findElement(By.css('img[title="Editar"]'));
+        await test.waitAndClick(editBtn);
 
         // Select a team
-        const select = await test.driver.wait(until.elementLocated({ css: '.modal-select' }), 10000);
-        await test.type(select, 'Equipa 1'); // Assuming 'Equipa 1' exists from setup script
+        // We know we created 'Equipa Teste _e2e_test' in setup
+        await test.selectOptionByText('.modal-select', 'Equipa Teste _e2e_test');
 
         // Save
         await test.waitAndClick('.modal-btn.confirm');
 
-        // Check success message or just verify modal closed
-        await test.driver.sleep(2000);
-        const modal = await test.driver.findElements({ css: '.modal-overlay' });
-        expect(modal.length).to.equal(0);
+        // Verify modal closed
+        await test.driver.wait(until.stalenessOf(await test.driver.findElement(By.css('.modal-overlay'))), 10000);
+        
+        const modals = await test.driver.findElements({ css: '.modal-overlay' });
+        expect(modals.length).to.equal(0);
     });
 });

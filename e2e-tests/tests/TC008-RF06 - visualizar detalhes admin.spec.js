@@ -2,7 +2,7 @@ const { expect } = require('chai');
 const { By, until, Key } = require('selenium-webdriver');
 const BaseTest = require('./base');
 
-describe('TC008-RF06 - atribuir equipa a ocorrencia', function () {
+describe('TC008-RF06 - visualizar detalhes admin', function () {
     let test;
 
     before(async function () {
@@ -10,11 +10,13 @@ describe('TC008-RF06 - atribuir equipa a ocorrencia', function () {
         await test.setup();
         
         // Login as admin
-        await test.get('/login');
-        await test.waitAndType('#email', 'admin@vcc.pt');
-        await test.waitAndType('#password', 'Password123!');
-        await test.waitAndClick('.btn-sign-in');
-        await test.driver.wait(until.urlContains('/admin'), 10000);
+        await test.backgroundLogin('admin_e2e_test@vcc.pt', 'Password123!', '/admin');
+    });
+
+    afterEach(async function () {
+        if (test && test.driver) {
+            await test.takeScreenshot(this.currentTest.title);
+        }
     });
 
     after(async function () {

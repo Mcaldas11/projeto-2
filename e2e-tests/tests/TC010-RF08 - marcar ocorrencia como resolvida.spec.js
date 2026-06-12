@@ -10,11 +10,13 @@ describe('TC010-RF08 - marcar ocorrencia como resolvida', function () {
         await test.setup();
 
         // Login as worker (responsavel)
-        await test.get('/login');
-        await test.waitAndType('#email', 'responsavel.1@vcc.pt');
-        await test.waitAndType('#password', 'Password123!');
-        await test.waitAndClick('.btn-sign-in');
-        await test.driver.wait(until.urlContains('/perfil'), 15000);
+        await test.backgroundLogin('responsavel._e2e_test@vcc.pt', 'Password123!', '/perfil');
+    });
+
+    afterEach(async function () {
+        if (test && test.driver) {
+            await test.takeScreenshot(this.currentTest.title);
+        }
     });
 
     after(async function () {
@@ -32,22 +34,12 @@ describe('TC010-RF08 - marcar ocorrencia como resolvida', function () {
         await test.waitAndClick('.report-btn-secondary');
 
         // Select 'Resolvido'
-        const select = await test.driver.wait(until.elementLocated(By.css('select.resolve-input')), 10000);
-        await test.type(select, 'Resolvido');
-
-        // Fill dates (optional but good for testing)
-        const dateInputs = await test.driver.findElements(By.css('input[type="datetime-local"]'));
-        if (dateInputs.length >= 2) {
-            // Fill scheduled date
-            await test.waitAndType(dateInputs[0], '2026-06-10T10:00');
-            // Fill resolution date
-            await test.waitAndType(dateInputs[1], '2026-06-10T12:00');
-        }
+        await test.selectOptionByText('select.resolve-input', 'Resolvido');
 
         // Fill feedback
         await test.waitAndType('.resolve-textarea', 'Resolvido via teste automatizado Selenium.');
 
-        // Save - be more specific with the button
+        // Save
         await test.waitAndClick(By.xpath("//button[contains(text(), 'Guardar resolução')]"));
 
         // Verify success
@@ -56,8 +48,6 @@ describe('TC010-RF08 - marcar ocorrencia como resolvida', function () {
             20000
         );
         const text = await notice.getText();
-        console.log('Notice text:', text);
         expect(text.toLowerCase()).to.contain('sucesso');
     });
 });
-

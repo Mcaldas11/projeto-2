@@ -58,7 +58,7 @@ const uploadToCloudinary = (file, folder) =>
   });
 
 const getAdminEmails = () =>
-  (process.env.ADMIN_EMAILS || "admin@vcc.pt,admin.geral@example.pt")
+  (process.env.ADMIN_EMAILS || "admin@vcc.pt,admin.geral@example.pt,admin_e2e_test@vcc.pt")
     .split(",")
     .map((email) => email.trim())
     .filter(Boolean);

@@ -10,11 +10,13 @@ describe('TC009-RF07 - visualizar rotas', function () {
         await test.setup();
         
         // Login as worker (responsavel)
-        await test.get('/login');
-        await test.waitAndType('#email', 'responsavel.1@vcc.pt');
-        await test.waitAndType('#password', 'Password123!');
-        await test.waitAndClick('.btn-sign-in');
-        await test.driver.wait(until.urlContains('/perfil'), 15000);
+        await test.backgroundLogin('responsavel._e2e_test@vcc.pt', 'Password123!', '/perfil');
+    });
+
+    afterEach(async function () {
+        if (test && test.driver) {
+            await test.takeScreenshot(this.currentTest.title);
+        }
     });
 
     after(async function () {

@@ -10,6 +10,12 @@ describe('TC004-RF02 - login de administrador', function () {
         await test.setup();
     });
 
+    afterEach(async function () {
+        if (test && test.driver) {
+            await test.takeScreenshot(this.currentTest.title);
+        }
+    });
+
     after(async function () {
         await test.teardown();
     });
@@ -17,7 +23,7 @@ describe('TC004-RF02 - login de administrador', function () {
     it('deve fazer login com sucesso como administrador', async function () {
         await test.get('/login');
         
-        await test.waitAndType('#email', 'admin@vcc.pt');
+        await test.waitAndType('#email', 'admin_e2e_test@vcc.pt');
         await test.waitAndType('#password', 'Password123!');
         await test.waitAndClick('.btn-sign-in');
 

@@ -256,6 +256,14 @@ const handleLogin = async () => {
   text-align: center;
 }
 
+@media (max-width: 600px) {
+  .login-card {
+    padding: 30px 20px;
+    margin: 0 20px;
+    max-width: 100%;
+  }
+}
+
 h1 {
   font-size: 2rem;
   margin-bottom: 10px;

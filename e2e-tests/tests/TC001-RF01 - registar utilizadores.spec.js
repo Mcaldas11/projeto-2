@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const { until, Key, By } = require('selenium-webdriver');
+const { until, By } = require('selenium-webdriver');
 const BaseTest = require('./base');
 
 describe('TC001-RF01 - registar utilizadores', function () {
@@ -10,51 +10,55 @@ describe('TC001-RF01 - registar utilizadores', function () {
         await test.setup();
     });
 
+    afterEach(async function () {
+        if (test && test.driver) {
+            await test.takeScreenshot(this.currentTest.title);
+        }
+    });
+
     after(async function () {
         await test.teardown();
     });
 
     it('deve registar um novo cidadão com sucesso', async function () {
-        await test.get('/register/email');
+        await test.get('/login');
         
-        const randomSuffix = Math.floor(Math.random() * 1000000);
-        const testEmail = `user_${randomSuffix}@example.pt`;
-        const testPhone = `91${String(randomSuffix).padStart(7, '0')}`;
+        // 1. Ir para página de registo
+        await test.waitAndClick('.create-account');
+        await test.driver.wait(until.urlContains('/register/email'), 10000);
+        
+        const uniqueEmail = `user_${Date.now()}_e2e_test@example.pt`;
+        
+        // 2. Preencher dados de email e nome
+        await test.waitAndType('input[placeholder="Ex: João"]', 'Utilizador');
+        await test.waitAndType('input[placeholder="Ex: Silva"]', 'Teste E2E');
+        await test.waitAndType('input[placeholder="Introduz o teu email"]', uniqueEmail);
+        await test.waitAndType('input[placeholder="Ex: 912345678"]', '914455667');
+        
+        const continueBtn1 = await test.driver.wait(until.elementLocated(By.xpath("//button[contains(text(), 'Continuar')]")), 10000);
+        await test.waitAndClick(continueBtn1);
+        
+        await test.driver.wait(until.urlContains('/register-password'), 15000);
 
-        // Use more robust selectors and ensure they are ready
-        await test.waitAndType('input[placeholder*="João"]', 'Novo');
-        await test.waitAndType('input[placeholder*="Silva"]', 'Utilizador');
-        await test.waitAndType('input[type="email"]', testEmail);
-        await test.waitAndType('input[type="tel"]', testPhone);
+        // 3. Preencher passwords
+        await test.waitAndType('input[placeholder="Cria a tua password"]', 'Password123!');
+        await test.waitAndType('input[placeholder="Reescreve a tua password"]', 'Password123!');
         
-        // Wait for Vue and click
-        await test.waitAndClick('button[type="submit"]');
-        console.log('Submitted registration form with email:', testEmail);
+        const continueBtn2 = await test.driver.wait(until.elementLocated(By.xpath("//button[contains(text(), 'Continuar')]")), 10000);
+        await test.waitAndClick(continueBtn2);
+        
+        await test.driver.wait(until.urlContains('/register/municipio'), 15000);
 
-        // Should go to password page
-        await test.waitForUrl('/register-password');
+        // 4. Selecionar freguesia e terminar
+        // Use selectOptionByText instead of type to avoid ElementNotInteractableError
+        await test.selectOptionByText('select', 'Vila do Conde');
         
-        await test.waitAndType('input[placeholder*="Cria a tua password"]', 'Password123!');
-        await test.waitAndType('input[placeholder*="Reescreve a tua password"]', 'Password123!');
-        
-        await test.waitAndClick('button[type="submit"]');
-        console.log('Submitted password form');
+        const finishBtn = await test.driver.wait(until.elementLocated(By.xpath("//button[contains(text(), 'Começar')]")), 10000);
+        await test.waitAndClick(finishBtn);
 
-        // Should go to municipio page
-        await test.waitForUrl('/register/municipio');
-        
-        // Wait for select to be enabled (loading finished)
-        const select = await test.driver.wait(until.elementLocated(By.css('select')), 10000);
-        await test.driver.wait(until.elementIsEnabled(select), 10000);
-        await test.waitAndType('select', 'Vila do Conde');
-        
-        await test.waitAndClick('button[type="submit"]');
-
-        // Should redirect to login or home depending on app logic
-        // Based on RegisterMunicipio.vue, it redirects to 'home' which is '/'
-        await test.waitForUrl('/');
+        // Should redirect to home (/)
+        await test.driver.wait(until.urlIs(test.baseUrl + '/'), 20000);
         const url = await test.getCurrentUrl();
-
-        expect(url).to.contain('/');
+        expect(url).to.equal(test.baseUrl + '/');
     });
 });

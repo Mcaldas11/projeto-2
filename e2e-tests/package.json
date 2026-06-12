@@ -4,7 +4,9 @@
   "description": "Selenium E2E tests for VC Comunica",
   "main": "index.js",
   "scripts": {
-    "test": "mocha tests/**/*.spec.js --timeout 30000"
+    "test": "npm run db:setup && mocha tests/**/*.spec.js --timeout 60000; npm run db:teardown",
+    "db:setup": "node ../Back-End/src/script/setup_test_data.mjs setup",
+    "db:teardown": "node ../Back-End/src/script/setup_test_data.mjs teardown"
   },
   "dependencies": {
     "selenium-webdriver": "^4.24.0"

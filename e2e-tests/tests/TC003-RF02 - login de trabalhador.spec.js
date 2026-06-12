@@ -10,6 +10,12 @@ describe('TC003-RF02 - login de trabalhador', function () {
         await test.setup();
     });
 
+    afterEach(async function () {
+        if (test && test.driver) {
+            await test.takeScreenshot(this.currentTest.title);
+        }
+    });
+
     after(async function () {
         await test.teardown();
     });
@@ -17,7 +23,7 @@ describe('TC003-RF02 - login de trabalhador', function () {
     it('deve fazer login com sucesso como trabalhador', async function () {
         await test.get('/login');
         
-        await test.waitAndType('#email', 'responsavel.1@vcc.pt');
+        await test.waitAndType('#email', 'responsavel._e2e_test@vcc.pt');
         await test.waitAndType('#password', 'Password123!');
         await test.waitAndClick('.btn-sign-in');
 
