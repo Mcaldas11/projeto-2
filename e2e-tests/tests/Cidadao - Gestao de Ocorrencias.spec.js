@@ -50,6 +50,9 @@ describe('Cidadao - Gestao de Ocorrencias', function () {
         await test.driver.wait(until.urlIs(test.baseUrl + '/'), 20000);
         expect(await test.getCurrentUrl()).to.equal(test.baseUrl + '/');
 
+        // Give it a moment to ensure session is settled
+        await test.driver.sleep(1000);
+
         // Logout
         await test.logout();
     });

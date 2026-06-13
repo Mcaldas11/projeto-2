@@ -9,7 +9,8 @@ const imgDir = path.join(__dirname, '..', 'img', runTimestamp);
 
 class BaseTest {
     constructor() {
-        this.baseUrl = (process.env.BASE_URL || 'http://127.0.0.1:5176').replace(/\/$/, '');
+        // Use 127.0.0.1 consistently to avoid localhost IPv6 resolution issues on macOS
+        this.baseUrl = (process.env.BASE_URL || 'http://127.0.0.1:5173').replace(/\/$/, '');
         this.apiUrl = (process.env.API_URL || 'http://127.0.0.1:3000').replace(/\/$/, '');
         this.driver = null;
     }
@@ -136,17 +137,27 @@ class BaseTest {
     }
 
     async logout() {
+        // Wait for any pending actions
+        await this.driver.sleep(500);
+        
         const role = await this.driver.executeScript("return localStorage.getItem('role')");
         
         if (role === 'admin' || role === 'responsavel') {
             // Open sidebar menu if not already open
             try {
-                const sidebar = await this.driver.findElement(By.css('.sidebar-menu'));
-                if (!await sidebar.isDisplayed()) {
+                const sidebars = await this.driver.findElements(By.css('.sidebar-menu'));
+                let sidebarVisible = false;
+                if (sidebars.length > 0) {
+                    sidebarVisible = await sidebars[0].isDisplayed();
+                }
+                
+                if (!sidebarVisible) {
                     await this.waitAndClick('.menu-hamburger, .menu-trigger');
+                    await this.driver.sleep(500);
                 }
             } catch (e) {
                 await this.waitAndClick('.menu-hamburger, .menu-trigger');
+                await this.driver.sleep(500);
             }
             
             // Click logout in sidebar
@@ -154,15 +165,17 @@ class BaseTest {
         } else {
             // Citizen logout is only in /conta
             const url = await this.getCurrentUrl();
-            if (!url.endsWith('/conta')) {
+            if (!url.includes('/conta')) {
                 await this.get('/conta');
             }
+            // Wait for page to load
+            await this.driver.wait(until.elementLocated(By.css('.btn-logout')), 10000);
             await this.waitAndClick('.btn-logout');
         }
         
         // Handle confirmation modal
         const confirmBtn = await this.driver.wait(
-            until.elementLocated(By.css('.modal-card .modal-btn.confirm, .modal-card .confirm')), 
+            until.elementLocated(By.css('.modal-card .modal-btn.confirm, .modal-card .confirm, .modal-btn.confirm')), 
             5000
         );
         await this.waitAndClick(confirmBtn);
@@ -245,17 +258,20 @@ class BaseTest {
     async findPaginatedElement(xpathLocator, maxPages = 10) {
         for (let i = 0; i < maxPages; i++) {
             try {
-                const element = await this.driver.wait(until.elementLocated(By.xpath(xpathLocator)), 2000);
+                const element = await this.driver.wait(until.elementLocated(By.xpath(xpathLocator)), 3000);
                 return element;
             } catch (e) {
                 try {
-                    const nextBtn = await this.driver.findElement(By.xpath("//button[contains(text(), 'Next')]"));
+                    // Try different forms of "Next" button
+                    const nextBtn = await this.driver.wait(until.elementLocated(By.xpath("//button[contains(., 'Next') or contains(., 'Seguinte')]")), 1000).catch(() => null);
+                    if (!nextBtn) break;
+                    
                     const isDisabled = await nextBtn.getAttribute('disabled');
-                    if (isDisabled === 'true' || isDisabled === 'disabled' || isDisabled === '') {
+                    if (isDisabled === 'true' || isDisabled === 'disabled') {
                         break;
                     }
                     await this.waitAndClick(nextBtn, 2000);
-                    await this.driver.sleep(500);
+                    await this.driver.sleep(800);
                 } catch (btnErr) {
                     break;
                 }

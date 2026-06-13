@@ -37,8 +37,18 @@ describe('Responsavel - Gestao de Equipas e Trabalhadores', function () {
         await alert.accept();
 
         // The teams are listed as "Higiene e limpeza" or "Equipa X"
-        const row = await test.driver.wait(until.elementLocated(By.xpath("//div[contains(@class, 'team-card')]//h2[contains(text(), 'Higiene e limpeza')]")), 10000);
-        expect(row).to.exist;
+        // Wait for the teams list to refresh
+        await test.driver.sleep(1000);
+        const teamNames = await test.driver.wait(until.elementsLocated(By.css('.team-name, .team-card h2')), 15000);
+        let found = false;
+        for (const teamNameEl of teamNames) {
+            const text = await teamNameEl.getText();
+            if (text.includes('Higiene e limpeza')) {
+                found = true;
+                break;
+            }
+        }
+        expect(found, "Team 'Higiene e limpeza' not found in the list").to.be.true;
     });
 
     it('[RF04] deve registar um novo trabalhador com sucesso', async function () {

@@ -61,7 +61,7 @@ describe('Responsavel - Gestao de Recursos', function () {
         } catch (e) {}
         
         // 2. Verificar na tabela
-        const row = await test.findPaginatedElement(`//tr[td[contains(., '${resourceName}')]]`, 10);
+        let row = await test.findPaginatedElement(`//tr[td[contains(., '${resourceName}')]]`, 10);
         expect(row).to.exist;
         
         // 3. Editar estado
@@ -77,7 +77,9 @@ describe('Responsavel - Gestao de Recursos', function () {
             await test.driver.switchTo().alert().accept();
         } catch (e) {}
         
-        await test.driver.sleep(1000);
+        await test.driver.sleep(1500);
+        // Re-find the row to avoid StaleElementReferenceError
+        row = await test.findPaginatedElement(`//tr[td[contains(., '${resourceName}')]]`, 10);
         const statusCell = await row.findElement(By.xpath("./td[2]"));
         expect(await statusCell.getText()).to.equal('Manutenção');
     });
