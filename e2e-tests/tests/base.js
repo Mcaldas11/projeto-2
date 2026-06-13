@@ -135,6 +135,42 @@ class BaseTest {
         }
     }
 
+    async logout() {
+        const role = await this.driver.executeScript("return localStorage.getItem('role')");
+        
+        if (role === 'admin' || role === 'responsavel') {
+            // Open sidebar menu if not already open
+            try {
+                const sidebar = await this.driver.findElement(By.css('.sidebar-menu'));
+                if (!await sidebar.isDisplayed()) {
+                    await this.waitAndClick('.menu-hamburger, .menu-trigger');
+                }
+            } catch (e) {
+                await this.waitAndClick('.menu-hamburger, .menu-trigger');
+            }
+            
+            // Click logout in sidebar
+            await this.waitAndClick('.sidebar-logout, .btn-logout');
+        } else {
+            // Citizen logout is only in /conta
+            const url = await this.getCurrentUrl();
+            if (!url.endsWith('/conta')) {
+                await this.get('/conta');
+            }
+            await this.waitAndClick('.btn-logout');
+        }
+        
+        // Handle confirmation modal
+        const confirmBtn = await this.driver.wait(
+            until.elementLocated(By.css('.modal-card .modal-btn.confirm, .modal-card .confirm')), 
+            5000
+        );
+        await this.waitAndClick(confirmBtn);
+        
+        // Wait for redirect to login
+        await this.driver.wait(until.urlContains('/login'), 10000);
+    }
+
     async waitAndClick(selector, timeout = 15000) {
         let element;
         if (selector instanceof WebElement) {
