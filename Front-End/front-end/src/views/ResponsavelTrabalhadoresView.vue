@@ -7,12 +7,9 @@
         </router-link>
       </div>
       <div class="nav-right">
-        
         <span class="icon menu-trigger" @click="toggleMenu">☰</span>
 
         <ResponsavelSidebarMenu v-model="showMenu" />
-
-        
       </div>
     </nav>
 
@@ -37,6 +34,7 @@
             <tr>
               <th>Nome</th>
               <th>Email</th>
+              <th>Telemóvel</th>
               <th>Equipa</th>
               <th></th>
             </tr>
@@ -48,6 +46,7 @@
                 {{ worker.nome }}
               </td>
               <td class="desc-cell">{{ worker.email }}</td>
+              <td class="desc-cell">{{ worker.phone }}</td>
               <td class="teams-cell">
                 <span
                   v-for="(team, idx) in worker.teams"
@@ -217,7 +216,6 @@ const loadError = ref('')
 const responsibleFreguesiaId = ref(null)
 const responsibleWorkerId = ref(null)
 const responsibleFreguesiaName = ref('')
-
 
 const toggleMenu = (e) => {
   e.stopPropagation()
@@ -468,6 +466,7 @@ function buildWorkerCards(workers, teams) {
       id: worker.id,
       nome: worker.name || worker.nome, // Fix: use worker.name from normalizeWorker
       email: worker.email,
+      phone: worker.telemovelTrabalhador || worker.nrTelemovel || '-',
       avatar: worker.avatar || avatarImg,
       freguesia: worker.freguesia || 'Sem freguesia',
       idFreguesia: workerFregId,

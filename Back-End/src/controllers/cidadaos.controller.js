@@ -15,6 +15,7 @@ import {
   sequelizeValidationError,
 } from "../utils/error.utils.js";
 
+// Handle DB errors Validation
 const handleSequelizeValidation = (error, next) => {
   if (
     error?.name === "SequelizeValidationError" ||
@@ -23,10 +24,10 @@ const handleSequelizeValidation = (error, next) => {
     next(sequelizeValidationError(error.errors || []));
     return true;
   }
-
   return false;
 };
 
+// Resolve image key Cloudinary Utility
 const extractPublicIdFromUrl = (url) => {
   if (!url || typeof url !== "string") return null;
 
@@ -46,6 +47,7 @@ const extractPublicIdFromUrl = (url) => {
   return publicPath || null;
 };
 
+// Upload file stream Cloudinary Utility
 const uploadToCloudinary = (file, folder) =>
   new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
@@ -62,6 +64,7 @@ const uploadToCloudinary = (file, folder) =>
     Readable.from(file.buffer).pipe(stream);
   });
 
+// List all citizens Read
 export const getAllCidadaos = async (req, res, next) => {
   try {
     const cidadaos = await Cidadao.findAll();
@@ -71,6 +74,7 @@ export const getAllCidadaos = async (req, res, next) => {
   }
 };
 
+// Find citizen by ID Read
 export const getCidadaoById = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -86,6 +90,7 @@ export const getCidadaoById = async (req, res, next) => {
   }
 };
 
+// Get profile from token Authentication
 export const getCidadaoMe = async (req, res, next) => {
   try {
     if (!req.userData || req.userData.userType !== "cidadao") {
@@ -113,6 +118,7 @@ export const getCidadaoMe = async (req, res, next) => {
   }
 };
 
+// Update profile fields Sanitization
 export const updateCidadaoMe = async (req, res, next) => {
   try {
     if (!req.userData || req.userData.userType !== "cidadao") {
@@ -194,6 +200,26 @@ export const updateCidadaoMe = async (req, res, next) => {
   }
 };
 
+// General update citizen profile Update
+export const updateCidadao = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const cidadao = await Cidadao.findByPk(id);
+
+    if (!cidadao) {
+      return next(notFoundError("cidadao", id));
+    }
+
+    await cidadao.update(req.body);
+    const updated = await Cidadao.findByPk(id);
+    res.json(updated);
+  } catch (error) {
+    if (handleSequelizeValidation(error, next)) return;
+    next(genericError("Error updating cidadao"));
+  }
+};
+
+// Create new account Hashing
 export const createCidadao = async (req, res, next) => {
   try {
     const { password, ...rest } = req.body;
@@ -216,7 +242,6 @@ export const createCidadao = async (req, res, next) => {
       userType: "cidadao",
     });
   } catch (error) {
-    console.error("DEBUG:", error);
     if (error?.name === "SequelizeUniqueConstraintError") {
       return next(
         conflictError(
@@ -233,6 +258,7 @@ export const createCidadao = async (req, res, next) => {
   }
 };
 
+// Citizen login Authentication
 export const loginCidadao = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -274,44 +300,15 @@ export const loginCidadao = async (req, res, next) => {
   }
 };
 
-export const updateCidadao = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const cidadao = await Cidadao.findByPk(id);
-
-    if (!cidadao) {
-      return next(notFoundError("cidadao", id));
-    }
-
-    await cidadao.update(req.body);
-    res.json(cidadao);
-  } catch (error) {
-    if (error?.name === "SequelizeUniqueConstraintError") {
-      return next(
-        conflictError(
-          { email: ["Email already in use"] },
-          "Conflict: Email already in use.",
-        ),
-      );
-    }
-    if (handleSequelizeValidation(error, next)) {
-      return;
-    }
-
-    next(genericError("Error updating cidadao"));
-  }
-};
-
+// Wipe account and assets Cascading Cleanup
 export const deleteCidadao = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    // TT_ desnecessário
     if (!req.userData) {
       return res.status(401).json({ message: "Authentication required" });
     }
 
-    // determine if requester is admin (configured via env or fallback emails)
     let isAdmin = false;
     if (req.userData.userType === "trabalhador_admin") {
       isAdmin = true;
@@ -331,7 +328,7 @@ export const deleteCidadao = async (req, res, next) => {
       }
     }
 
-    // only admin or the user themself can delete account
+    // Role check Authorization
     if (!isAdmin) {
       if (
         req.userData.userType !== "cidadao" ||
@@ -346,7 +343,7 @@ export const deleteCidadao = async (req, res, next) => {
       return next(notFoundError("cidadao", id));
     }
 
-    // remove profile photo from Cloudinary before deleting the account
+    // Delete profile photo Cloudinary Utility
     const oldFotoPerfil = cidadao.fotoPerfil;
     const oldPublicId = extractPublicIdFromUrl(oldFotoPerfil);
     if (oldPublicId) {
@@ -356,27 +353,18 @@ export const deleteCidadao = async (req, res, next) => {
           invalidate: true,
         });
       } catch (err) {
-        console.warn(
-          "Cloudinary destroy failed for fotoPerfil",
-          oldPublicId,
-          err?.message || err,
-        );
+        console.warn("Cloudinary cleanup failed");
       }
     }
 
-    // delete mensagens by this cidadao
+    // Delete linked messages Database Cleanup
     try {
       await Mensagem.destroy({ where: { idCidadao: id } });
     } catch (e) {
-      // ignore failures but log
-      console.warn(
-        "Failed to delete mensagens for cidadao",
-        id,
-        e.message || e,
-      );
+      console.warn("Message cleanup failed");
     }
 
-    // delete ocorrencias AND their fotos from Cloudinary
+    // Delete reports and photos Cascading Cleanup
     try {
       const ocorrencias = await Ocorrencia.findAll({
         where: { idCidadao: id },
@@ -398,19 +386,8 @@ export const deleteCidadao = async (req, res, next) => {
             fotosArr
               .map((f) => {
                 if (!f) return null;
-                if (typeof f === "object")
-                  return f.publicId || f.public_id || null;
-                if (typeof f === "string") {
-                  const cleanUrl = f.split("?")[0];
-                  const marker = "/upload/";
-                  const markerIndex = cleanUrl.indexOf(marker);
-                  if (markerIndex === -1) return null;
-                  let publicPath = cleanUrl.slice(markerIndex + marker.length);
-                  publicPath = publicPath.replace(/^v\d+\//, "");
-                  const lastDot = publicPath.lastIndexOf(".");
-                  if (lastDot > -1) publicPath = publicPath.slice(0, lastDot);
-                  return publicPath || null;
-                }
+                if (typeof f === "object") return f.publicId || f.public_id || null;
+                if (typeof f === "string") return extractPublicIdFromUrl(f);
                 return null;
               })
               .filter(Boolean),
@@ -424,30 +401,14 @@ export const deleteCidadao = async (req, res, next) => {
               invalidate: true,
             });
           } catch (err) {
-            console.warn(
-              "Cloudinary destroy failed for",
-              pid,
-              err?.message || err,
-            );
+            console.warn("Cloudinary photo cleanup failed");
           }
         }
 
-        try {
-          await occ.destroy();
-        } catch (e) {
-          console.warn(
-            "Failed to destroy ocorrencia",
-            occ.idOcorrencia,
-            e?.message || e,
-          );
-        }
+        await occ.destroy();
       }
     } catch (e) {
-      console.warn(
-        "Failed to cleanup ocorrencias for cidadao",
-        id,
-        e?.message || e,
-      );
+      console.warn("Occurrence cleanup failed");
     }
 
     await cidadao.destroy();
@@ -457,6 +418,7 @@ export const deleteCidadao = async (req, res, next) => {
   }
 };
 
+// Update profile photo Cloudinary Utility
 export const updateCidadaoFoto = async (req, res, next) => {
   try {
     const { id } = req.params;

@@ -5,6 +5,7 @@ import {
   sequelizeValidationError,
 } from "../utils/error.utils.js";
 
+// List parishes Normalization
 export const getAllMunicipios = async (req, res, next) => {
   try {
     const municipios = await Municipio.findAll();
@@ -14,6 +15,7 @@ export const getAllMunicipios = async (req, res, next) => {
   }
 };
 
+// Find parish by ID Read
 export const getMunicipioById = async (req, res, next) => {
   try {
     const { id } = req.params;

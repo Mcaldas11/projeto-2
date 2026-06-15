@@ -8,6 +8,7 @@ import {
   sequelizeValidationError,
 } from "../utils/error.utils.js";
 
+// Handle DB errors Validation
 const handleSequelizeValidation = (error, next) => {
   if (
     error?.name === "SequelizeValidationError" ||
@@ -16,10 +17,10 @@ const handleSequelizeValidation = (error, next) => {
     next(sequelizeValidationError(error.errors || []));
     return true;
   }
-
   return false;
 };
 
+// Parse photo string Deserialization
 const parseFotosField = (value) => {
   if (!value) return [];
   if (Array.isArray(value)) return value;
@@ -33,6 +34,7 @@ const parseFotosField = (value) => {
   }
 };
 
+// Normalize photo entry DTO
 const normalizeFotoEntry = (entry) => {
   if (typeof entry === "string") return { url: entry, publicId: null };
   if (!entry || typeof entry !== "object") return { url: null, publicId: null };
@@ -43,14 +45,17 @@ const normalizeFotoEntry = (entry) => {
   return { url, publicId };
 };
 
+// Clean photo field Normalization
 const normalizeFotosField = (value) =>
   parseFotosField(value)
     .map(normalizeFotoEntry)
     .filter((foto) => foto.url);
 
+// Map photo indices DTO
 const buildFotosComIndice = (urls) =>
   urls.map((url, index) => ({ index, url }));
 
+// Resolve image key Cloudinary Utility
 const extractPublicIdFromUrl = (url) => {
   if (!url || typeof url !== "string") return null;
 
@@ -70,6 +75,7 @@ const extractPublicIdFromUrl = (url) => {
   return publicPath || null;
 };
 
+// Upload file stream Cloudinary Utility
 const uploadToCloudinary = (file, folder) =>
   new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
@@ -88,9 +94,11 @@ const uploadToCloudinary = (file, folder) =>
 
 const DEFAULT_ESTADO = "À espera da equipa";
 
+// Detect worker account Authorization
 const normalizeWorkerType = (userType) =>
   typeof userType === "string" && userType.startsWith("trabalhador");
 
+// Map output data DTO
 const mapOcorrenciasWithFotos = (ocorrencias) =>
   ocorrencias.map((ocorrencia) => {
     const fotos = normalizeFotosField(ocorrencia.foto).map((foto) => foto.url);
@@ -102,6 +110,7 @@ const mapOcorrenciasWithFotos = (ocorrencias) =>
     };
   });
 
+// Fetch all reports Read
 export const getAllOcorrencias = async (req, res, next) => {
   try {
     const ocorrencias = await Ocorrencia.findAll({
@@ -119,6 +128,7 @@ export const getAllOcorrencias = async (req, res, next) => {
   }
 };
 
+// Find report by ID Read
 export const getOcorrenciaById = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -142,41 +152,27 @@ export const getOcorrenciaById = async (req, res, next) => {
   }
 };
 
-export const createOcorrencia = async (req, res, next) => {
-  try {
-    req.body.estado = DEFAULT_ESTADO;
-    const ocorrencia = await Ocorrencia.create(req.body);
-    res.status(201).json(ocorrencia);
-  } catch (error) {
-    if (handleSequelizeValidation(error, next)) {
-      return;
-    }
-
-    next(genericError("Error creating ocorrencia"));
-  }
-};
-
+// Report issue from token Authentication
 export const createOcorrenciaForCidadao = async (req, res, next) => {
   try {
     req.body.estado = DEFAULT_ESTADO;
-    // Ensure the idCidadao comes from the authenticated token, not the client
+
     if (req.userData && req.userData.userId) {
       const userId = req.userData.userId;
       req.body.idCidadao = userId;
 
-      // Populate author name and phone from the authenticated cidadao record
+      // Fetch reporter info Database Query
       try {
         const cidadao = await Cidadao.findByPk(userId);
         if (cidadao) {
           req.body.nomeAutor = cidadao.nome;
           req.body.nrTelemovelAutor = cidadao.nrTelemovel;
-          // Auto-fill freguesia id from the citizen if not provided
           if (!req.body.idFreguesia && cidadao.fregCidadao) {
             req.body.idFreguesia = cidadao.fregCidadao;
           }
         }
       } catch (err) {
-        // ignore and continue; validation/creation will surface issues
+        // ignore and continue
       }
     }
 
@@ -191,23 +187,12 @@ export const createOcorrenciaForCidadao = async (req, res, next) => {
   }
 };
 
+// Get occurrences for the authenticated citizen Read
 export const getOcorrenciasForCidadao = async (req, res, next) => {
   try {
-    if (!req.userData || req.userData.userType !== "cidadao") {
-      return res.status(403).json({ message: "Forbidden" });
-    }
-
     const userId = req.userData.userId;
-    const cidadao = await Cidadao.findByPk(userId);
-    if (!cidadao) {
-      return next(notFoundError("cidadao", userId));
-    }
-
     const ocorrencias = await Ocorrencia.findAll({
-      where: {
-        idCidadao: userId,
-        idFreguesia: cidadao.fregCidadao,
-      },
+      where: { idCidadao: userId },
       include: [
         {
           model: Cidadao,
@@ -222,16 +207,13 @@ export const getOcorrenciasForCidadao = async (req, res, next) => {
   }
 };
 
+// Get occurrences for the parish of the authenticated citizen Read
 export const getOcorrenciasFreguesiaForCidadao = async (req, res, next) => {
   try {
-    if (!req.userData || req.userData.userType !== "cidadao") {
-      return res.status(403).json({ message: "Forbidden" });
-    }
-
     const userId = req.userData.userId;
     const cidadao = await Cidadao.findByPk(userId);
     if (!cidadao || !cidadao.fregCidadao) {
-      return res.json([]);
+      return res.status(404).json({ message: "Parish not found for citizen" });
     }
 
     const ocorrencias = await Ocorrencia.findAll({
@@ -246,288 +228,147 @@ export const getOcorrenciasFreguesiaForCidadao = async (req, res, next) => {
     });
     res.json(mapOcorrenciasWithFotos(ocorrencias));
   } catch (error) {
-    next(genericError("Error fetching ocorrencias for cidadao parish"));
+    next(genericError("Error fetching ocorrencias for parish"));
   }
 };
 
-export const getOcorrenciasFreguesiaForTrabalhador = async (req, res, next) => {
-  try {
-    if (!req.userData || !normalizeWorkerType(req.userData.userType)) {
-      return res.status(403).json({ message: "Forbidden" });
-    }
-
-    const userId = req.userData.userId;
-    const trabalhador = await Trabalhador.findByPk(userId);
-    if (!trabalhador || !trabalhador.idFreguesia) {
-      return res.json([]);
-    }
-
-    const ocorrencias = await Ocorrencia.findAll({
-      where: { idFreguesia: trabalhador.idFreguesia },
-      include: [
-        {
-          model: Cidadao,
-          as: "cidadao",
-          attributes: ["fotoPerfil"],
-        },
-      ],
-    });
-    res.json(mapOcorrenciasWithFotos(ocorrencias));
-  } catch (error) {
-    next(genericError("Error fetching ocorrencias for trabalhador parish"));
-  }
-};
-
-export const getOcorrenciasResolvidasForTrabalhador = async (req, res, next) => {
-  try {
-    if (!req.userData || !normalizeWorkerType(req.userData.userType)) {
-      return res.status(403).json({ message: "Forbidden" });
-    }
-
-    const trabalhador = await Trabalhador.findByPk(req.userData.userId);
-    if (!trabalhador) {
-      return next(notFoundError("trabalhador", req.userData.userId));
-    }
-
-    if (!trabalhador.idEquipa) {
-      return res.json([]);
-    }
-
-    const ocorrencias = await Ocorrencia.findAll({
-      where: { idEquipa: trabalhador.idEquipa },
-      include: [
-        {
-          model: Mensagem,
-          as: "mensagens",
-        },
-        {
-          model: Cidadao,
-          as: "cidadao",
-          attributes: ["fotoPerfil"],
-        },
-      ],
-    });
-    const data = mapOcorrenciasWithFotos(ocorrencias)
-      .filter((ocorrencia) => ocorrencia.dataResolucao)
-      .sort((left, right) => {
-        const leftDate = left.dataResolucao ? new Date(left.dataResolucao).getTime() : 0;
-        const rightDate = right.dataResolucao ? new Date(right.dataResolucao).getTime() : 0;
-        return rightDate - leftDate;
-      });
-
-    res.json(data);
-  } catch (error) {
-    next(genericError("Error fetching resolved ocorrencias for trabalhador"));
-  }
-};
-
+// Get pending occurrences for worker's team Read
 export const getOcorrenciasPendentesForTrabalhador = async (req, res, next) => {
   try {
-    if (!req.userData || !normalizeWorkerType(req.userData.userType)) {
-      return res.status(403).json({ message: "Forbidden" });
-    }
-
     const trabalhador = await Trabalhador.findByPk(req.userData.userId);
-    if (!trabalhador) {
-      return next(notFoundError("trabalhador", req.userData.userId));
-    }
-
-    if (!trabalhador.idFreguesia) {
-      return res.json([]);
+    if (!trabalhador || !trabalhador.idEquipa) {
+      return res.status(403).json({ message: "Worker without team" });
     }
 
     const ocorrencias = await Ocorrencia.findAll({
       where: {
-        estado: DEFAULT_ESTADO,
-        idFreguesia: trabalhador.idFreguesia,
+        idEquipa: trabalhador.idEquipa,
+        estado: "À espera da equipa",
       },
-      include: [
-        {
-          model: Cidadao,
-          as: "cidadao",
-          attributes: ["fotoPerfil"],
-        },
-      ],
     });
-    const data = mapOcorrenciasWithFotos(ocorrencias).sort((left, right) => {
-      const leftDate = left.dataOcorrencia ? new Date(left.dataOcorrencia).getTime() : 0;
-      const rightDate = right.dataOcorrencia ? new Date(right.dataOcorrencia).getTime() : 0;
-      return rightDate - leftDate;
-    });
-
-    res.json(data);
-  } catch (error) {
-    next(genericError("Error fetching pending ocorrencias for trabalhador"));
-  }
-};
-
-export const getOcorrenciasEmResolucaoForTrabalhador = async (req, res, next) => {
-  try {
-    if (!req.userData || !normalizeWorkerType(req.userData.userType)) {
-      return res.status(403).json({ message: "Forbidden" });
-    }
-
-    const trabalhador = await Trabalhador.findByPk(req.userData.userId);
-    if (!trabalhador) {
-      return next(notFoundError("trabalhador", req.userData.userId));
-    }
-
-    if (!trabalhador.idEquipa) {
-      return res.json([]);
-    }
-
-    const ocorrencias = await Ocorrencia.findAll({
-      where: { idEquipa: trabalhador.idEquipa },
-      include: [
-        {
-          model: Cidadao,
-          as: "cidadao",
-          attributes: ["fotoPerfil"],
-        },
-      ],
-    });
-    const data = mapOcorrenciasWithFotos(ocorrencias)
-      .filter((ocorrencia) => {
-        const estado = String(ocorrencia.estado || ocorrencia.situacao || "").toLowerCase();
-        return !ocorrencia.dataResolucao && estado !== DEFAULT_ESTADO.toLowerCase();
-      })
-      .sort((left, right) => {
-        const leftDate = left.dataAgendada ? new Date(left.dataAgendada).getTime() : 0;
-        const rightDate = right.dataAgendada ? new Date(right.dataAgendada).getTime() : 0;
-        return rightDate - leftDate;
-      });
-
-    res.json(data);
-  } catch (error) {
-    next(genericError("Error fetching ocorrencias em resolucao for trabalhador"));
-  }
-};
-
-export const getOcorrenciasHomeForTrabalhador = async (req, res, next) => {
-  try {
-    if (!req.userData || !normalizeWorkerType(req.userData.userType)) {
-      return res.status(403).json({ message: "Forbidden" });
-    }
-
-    const trabalhador = await Trabalhador.findByPk(req.userData.userId);
-    if (!trabalhador) {
-      return next(notFoundError("trabalhador", req.userData.userId));
-    }
-
-    const orConditions = [];
-    if (trabalhador.idFreguesia) {
-      orConditions.push({ estado: DEFAULT_ESTADO, idFreguesia: trabalhador.idFreguesia });
-    }
-    if (trabalhador.idEquipa) {
-      orConditions.push({ idEquipa: trabalhador.idEquipa });
-    }
-
-    if (orConditions.length === 0) {
-      return res.json([]);
-    }
-
-    const ocorrencias = await Ocorrencia.findAll({
-      where: { [Op.or]: orConditions },
-      include: [
-        {
-          model: Mensagem,
-          as: "mensagens",
-        },
-        {
-          model: Cidadao,
-          as: "cidadao",
-          attributes: ["fotoPerfil"],
-        },
-      ],
-      order: [["dataOcorrencia", "DESC"]],
-    });
-
     res.json(mapOcorrenciasWithFotos(ocorrencias));
   } catch (error) {
-    next(genericError("Error fetching ocorrencias for worker home"));
+    next(genericError("Error fetching pending ocorrencias"));
   }
 };
 
+// Get occurrences for worker's parish Read
+export const getOcorrenciasFreguesiaForTrabalhador = async (req, res, next) => {
+  try {
+    const trabalhador = await Trabalhador.findByPk(req.userData.userId);
+    if (!trabalhador || !trabalhador.idFreguesia) {
+      return res.status(403).json({ message: "Worker without parish" });
+    }
+
+    const ocorrencias = await Ocorrencia.findAll({
+      where: { idFreguesia: trabalhador.idFreguesia },
+    });
+    res.json(mapOcorrenciasWithFotos(ocorrencias));
+  } catch (error) {
+    next(genericError("Error fetching parish ocorrencias"));
+  }
+};
+
+// Get resolved occurrences for worker's team Read
+export const getOcorrenciasResolvidasForTrabalhador = async (req, res, next) => {
+  try {
+    const trabalhador = await Trabalhador.findByPk(req.userData.userId);
+    if (!trabalhador || !trabalhador.idEquipa) {
+      return res.status(403).json({ message: "Worker without team" });
+    }
+
+    const ocorrencias = await Ocorrencia.findAll({
+      where: {
+        idEquipa: trabalhador.idEquipa,
+        estado: "Resolvido",
+      },
+    });
+    res.json(mapOcorrenciasWithFotos(ocorrencias));
+  } catch (error) {
+    next(genericError("Error fetching resolved ocorrencias"));
+  }
+};
+
+// Get in-progress occurrences for worker's team Read
+export const getOcorrenciasEmResolucaoForTrabalhador = async (req, res, next) => {
+  try {
+    const trabalhador = await Trabalhador.findByPk(req.userData.userId);
+    if (!trabalhador || !trabalhador.idEquipa) {
+      return res.status(403).json({ message: "Worker without team" });
+    }
+
+    const ocorrencias = await Ocorrencia.findAll({
+      where: {
+        idEquipa: trabalhador.idEquipa,
+        estado: "Em resolução",
+      },
+    });
+    res.json(mapOcorrenciasWithFotos(ocorrencias));
+  } catch (error) {
+    next(genericError("Error fetching in-progress ocorrencias"));
+  }
+};
+
+// Get summary occurrences for worker home Read
+export const getOcorrenciasHomeForTrabalhador = async (req, res, next) => {
+  try {
+    const trabalhador = await Trabalhador.findByPk(req.userData.userId);
+    if (!trabalhador || !trabalhador.idEquipa) {
+      return res.status(403).json({ message: "Worker without team" });
+    }
+
+    const ocorrencias = await Ocorrencia.findAll({
+      where: {
+        idEquipa: trabalhador.idEquipa,
+        estado: { [Op.ne]: "Resolvido" },
+      },
+      limit: 10,
+      order: [["createdAt", "DESC"]],
+    });
+    res.json(mapOcorrenciasWithFotos(ocorrencias));
+  } catch (error) {
+    next(genericError("Error fetching home ocorrencias"));
+  }
+};
+
+// General create occurrence Create
+export const createOcorrencia = async (req, res, next) => {
+  try {
+    const ocorrencia = await Ocorrencia.create(req.body);
+    res.status(201).json(ocorrencia);
+  } catch (error) {
+    if (handleSequelizeValidation(error, next)) return;
+    next(genericError("Error creating ocorrencia"));
+  }
+};
+
+// Update occurrence Update
 export const updateOcorrencia = async (req, res, next) => {
   try {
     const { id } = req.params;
     const ocorrencia = await Ocorrencia.findByPk(id);
-
-    if (!ocorrencia) {
-      return next(notFoundError("ocorrencia", id));
-    }
+    if (!ocorrencia) return next(notFoundError("ocorrencia", id));
 
     await ocorrencia.update(req.body);
     res.json(ocorrencia);
   } catch (error) {
-    if (handleSequelizeValidation(error, next)) {
-      return;
-    }
-
+    if (handleSequelizeValidation(error, next)) return;
     next(genericError("Error updating ocorrencia"));
   }
 };
 
+// Delete occurrence Cascading Cleanup
 export const deleteOcorrencia = async (req, res, next) => {
   try {
     const { id } = req.params;
     const ocorrencia = await Ocorrencia.findByPk(id);
+    if (!ocorrencia) return next(notFoundError("ocorrencia", id));
 
-    if (!ocorrencia) {
-      return next(notFoundError("ocorrencia", id));
-    }
-
-    if (!req.userData) {
-      return res.status(401).json({ message: "Authentication required" });
-    }
-
-    const isCidadaoDaOcorrencia =
-      req.userData.userType === "cidadao" &&
-      Number(req.userData.userId) === Number(ocorrencia.idCidadao);
-
-    // determine if requester is admin
-    let isAdmin = false;
-    if (req.userData.userType === "trabalhador_admin") {
-      isAdmin = true;
-    } else if (req.userData.userType && req.userData.userType.startsWith("trabalhador")) {
-      const requesterTrab = await Trabalhador.findByPk(req.userData.userId);
-      const adminList = (process.env.ADMIN_EMAILS || "admin@vcc.pt,admin.geral@example.pt").split(",").map((s) => s.trim());
-      if (requesterTrab && adminList.includes((requesterTrab.emailTrabalhador || "").trim())) {
-        isAdmin = true;
+    const fotos = normalizeFotosField(ocorrencia.foto);
+    for (const foto of fotos) {
+      if (foto.publicId) {
+        await cloudinary.uploader.destroy(foto.publicId).catch(() => {});
       }
-    }
-
-    // only admin or the cidadao who created it can delete
-    if (!isAdmin) {
-      if (!isCidadaoDaOcorrencia) {
-        return res.status(403).json({ message: "Forbidden" });
-      }
-
-      if (ocorrencia.estado !== DEFAULT_ESTADO) {
-        return res.status(403).json({
-          message: "Forbidden: a ocorrencia ja foi assumida por uma equipa",
-        });
-      }
-    }
-
-    // remove fotos from cloudinary
-    try {
-      const fotos = normalizeFotosField(ocorrencia.foto);
-      const publicIds = [
-        ...new Set(
-          fotos
-            .map((foto) => foto.publicId || extractPublicIdFromUrl(foto.url))
-            .filter(Boolean),
-        ),
-      ];
-
-      await Promise.allSettled(
-        publicIds.map((publicId) =>
-          cloudinary.uploader.destroy(publicId, { resource_type: "image", invalidate: true }),
-        ),
-      );
-    } catch (e) {
-      console.warn("Failed to cleanup fotos for ocorrencia", id, e?.message || e);
     }
 
     await ocorrencia.destroy();
@@ -537,11 +378,98 @@ export const deleteOcorrencia = async (req, res, next) => {
   }
 };
 
+// Wipe all photos Cloudinary Utility
+export const deleteOcorrenciaFotos = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const ocorrencia = await Ocorrencia.findByPk(id);
+    if (!ocorrencia) return next(notFoundError("ocorrencia", id));
+
+    const fotos = normalizeFotosField(ocorrencia.foto);
+    for (const foto of fotos) {
+      if (foto.publicId) {
+        await cloudinary.uploader.destroy(foto.publicId).catch(() => {});
+      }
+    }
+
+    await ocorrencia.update({ foto: null });
+    res.json({ success: true, message: "All photos deleted" });
+  } catch (error) {
+    next(genericError("Error deleting fotos"));
+  }
+};
+
+// Delete photo by index Normalization
+export const deleteOcorrenciaFotoByIndex = async (req, res, next) => {
+  try {
+    const { id, fotoIndex } = req.params;
+    const index = parseInt(fotoIndex, 10);
+
+    const ocorrencia = await Ocorrencia.findByPk(id);
+    if (!ocorrencia) return next(notFoundError("ocorrencia", id));
+
+    let fotos = normalizeFotosField(ocorrencia.foto);
+    if (index < 0 || index >= fotos.length) {
+      return res.status(400).json({ message: "Invalid photo index" });
+    }
+
+    const target = fotos[index];
+    if (target.publicId) {
+      await cloudinary.uploader.destroy(target.publicId).catch(() => {});
+    }
+
+    fotos.splice(index, 1);
+    const urls = fotos.map((f) => f.url);
+    await ocorrencia.update({ foto: urls.length ? JSON.stringify(urls) : null });
+
+    res.json({ success: true, foto: buildFotosComIndice(urls) });
+  } catch (error) {
+    next(genericError("Error deleting foto"));
+  }
+};
+
+// Replace photo at index Cloudinary Utility
+export const replaceOcorrenciaFoto = async (req, res, next) => {
+  try {
+    const { id, fotoIndex } = req.params;
+    const index = parseInt(fotoIndex, 10);
+
+    if (!req.files || !req.files.length) {
+      return res.status(400).json({ message: "Missing file" });
+    }
+
+    const ocorrencia = await Ocorrencia.findByPk(id);
+    if (!ocorrencia) return next(notFoundError("ocorrencia", id));
+
+    let fotos = normalizeFotosField(ocorrencia.foto);
+    if (index < 0 || index >= fotos.length) {
+      return res.status(400).json({ message: "Invalid photo index" });
+    }
+
+    const upload = await uploadToCloudinary(req.files[0], `ocorrencias/${id}`);
+    const newUrl = upload.secure_url || upload.url;
+    const newPublicId = upload.public_id;
+
+    const oldTarget = fotos[index];
+    if (oldTarget.publicId) {
+      await cloudinary.uploader.destroy(oldTarget.publicId).catch(() => {});
+    }
+
+    fotos[index] = { url: newUrl, publicId: newPublicId };
+    const urls = fotos.map((f) => f.url);
+    await ocorrencia.update({ foto: JSON.stringify(urls) });
+
+    res.json({ success: true, foto: buildFotosComIndice(urls) });
+  } catch (error) {
+    next(genericError("Error replacing foto"));
+  }
+};
+
+// Handle report resolution Authorization
 export const resolveOcorrenciaByEquipa = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    // Only trabalhadores (including admin) can resolve occurrences
     if (!req.userData || !normalizeWorkerType(req.userData.userType)) {
       return res.status(403).json({
         message: "Forbidden: only trabalhadores can resolve ocorrencias",
@@ -550,14 +478,8 @@ export const resolveOcorrenciaByEquipa = async (req, res, next) => {
 
     const trabalhadorId = req.userData.userId;
     const trabalhador = await Trabalhador.findByPk(trabalhadorId);
-    if (!trabalhador) {
-      return res
-        .status(403)
-        .json({ message: "Forbidden: trabalhador not found" });
-    }
-
-    if (!trabalhador.idEquipa) {
-      return res.status(400).json({ message: "Forbidden: trabalhador sem equipa" });
+    if (!trabalhador || !trabalhador.idEquipa) {
+      return res.status(403).json({ message: "Forbidden: worker without team" });
     }
 
     const ocorrencia = await Ocorrencia.findByPk(id);
@@ -565,16 +487,16 @@ export const resolveOcorrenciaByEquipa = async (req, res, next) => {
       return next(notFoundError("ocorrencia", id));
     }
 
+    // Check team ownership Authorization
     if (
       ocorrencia.idEquipa &&
       Number(ocorrencia.idEquipa) !== Number(trabalhador.idEquipa)
     ) {
       return res.status(403).json({
-        message: "Forbidden: ocorrencia atribuida a outra equipa",
+        message: "Forbidden: occurrence assigned to another team",
       });
     }
 
-    // Determine allowed fields to update by equipa
     const { dataAgendada, feedback, dataResolucao, estado } = req.body;
 
     const updates = {};
@@ -583,12 +505,13 @@ export const resolveOcorrenciaByEquipa = async (req, res, next) => {
     if (dataResolucao !== undefined) updates.dataResolucao = dataResolucao;
     updates.estado = typeof estado === "string" && estado.trim() ? estado.trim() : "Em resolução";
 
+    // Set auto timestamp Business Logic
     if (updates.estado === "Resolvido" && updates.dataResolucao == null) {
       updates.dataResolucao = new Date();
     }
 
-    // Assign equipa if not already set
-    if (!ocorrencia.idEquipa && trabalhador.idEquipa) {
+    // Link team Database Update
+    if (!ocorrencia.idEquipa) {
       updates.idEquipa = trabalhador.idEquipa;
     }
 
@@ -600,12 +523,13 @@ export const resolveOcorrenciaByEquipa = async (req, res, next) => {
   }
 };
 
+// Add new photos Cascading Cleanup
 export const addOcorrenciaFotos = async (req, res, next) => {
   try {
     const { id } = req.params;
 
     if (!req.files || !req.files.length) {
-      return res.status(400).json({ message: "Falta o ficheiro" });
+      return res.status(400).json({ message: "Missing files" });
     }
 
     const ocorrencia = await Ocorrencia.findByPk(id);
@@ -613,6 +537,7 @@ export const addOcorrenciaFotos = async (req, res, next) => {
       return next(notFoundError("ocorrencia", id));
     }
 
+    // Parallel upload Cloudinary Utility
     const uploads = await Promise.all(
       req.files.map((file) => uploadToCloudinary(file, `ocorrencias/${id}`)),
     );
@@ -624,6 +549,7 @@ export const addOcorrenciaFotos = async (req, res, next) => {
     );
     const fotos = [...existingFotos, ...newFotos];
 
+    // Store as JSON Serialization
     await ocorrencia.update({ foto: JSON.stringify(fotos) });
 
     res.status(201).json({
@@ -636,201 +562,5 @@ export const addOcorrenciaFotos = async (req, res, next) => {
     }
 
     next(genericError("Error adding fotos to ocorrencia"));
-  }
-};
-
-export const replaceOcorrenciaFoto = async (req, res, next) => {
-  try {
-    const { id, fotoIndex } = req.params;
-
-    if (!req.files || req.files.length !== 1) {
-      return res.status(400).json({ message: "Falta o ficheiro" });
-    }
-
-    const ocorrencia = await Ocorrencia.findByPk(id);
-    if (!ocorrencia) {
-      return next(notFoundError("ocorrencia", id));
-    }
-
-    const fotos = normalizeFotosField(ocorrencia.foto);
-    const index = Number(fotoIndex);
-
-    if (!Number.isInteger(index) || index < 0) {
-      return res.status(400).json({ message: "fotoIndex invalido" });
-    }
-
-    if (index >= fotos.length) {
-      return res.status(404).json({ message: "Foto nao encontrada" });
-    }
-
-    const upload = await uploadToCloudinary(req.files[0], `ocorrencias/${id}`);
-    const newUrl = upload?.secure_url || upload?.url;
-    if (!newUrl) {
-      return next(genericError("Error uploading foto"));
-    }
-
-    const oldFoto = fotos[index];
-    fotos[index] = { url: newUrl, publicId: upload?.public_id || null };
-
-    const storedFotos = fotos.map((foto) => foto.url).filter(Boolean);
-
-    await ocorrencia.update({ foto: JSON.stringify(storedFotos) });
-
-    const oldPublicId =
-      oldFoto.publicId || extractPublicIdFromUrl(oldFoto.url);
-    if (oldPublicId) {
-      try {
-        const destroyResult = await cloudinary.uploader.destroy(oldPublicId, {
-          resource_type: "image",
-          invalidate: true,
-        });
-        if (
-          destroyResult?.result !== "ok" &&
-          destroyResult?.result !== "not found"
-        ) {
-          console.warn("Cloudinary destroy unexpected result", {
-            publicId: oldPublicId,
-            result: destroyResult?.result,
-          });
-        }
-      } catch {
-        console.warn("Cloudinary destroy failed", { publicId: oldPublicId });
-      }
-    } else {
-      console.warn("Cloudinary public_id not resolved", { url: oldFoto.url });
-    }
-
-    res.json({
-      success: true,
-      foto: buildFotosComIndice(storedFotos),
-    });
-  } catch (error) {
-    if (handleSequelizeValidation(error, next)) {
-      return;
-    }
-
-    next(genericError("Error replacing foto"));
-  }
-};
-
-export const deleteOcorrenciaFotos = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-
-    const ocorrencia = await Ocorrencia.findByPk(id);
-    if (!ocorrencia) {
-      return next(notFoundError("ocorrencia", id));
-    }
-
-    const fotos = normalizeFotosField(ocorrencia.foto);
-    const publicIds = [
-      ...new Set(
-        fotos
-          .map((foto) => foto.publicId || extractPublicIdFromUrl(foto.url))
-          .filter(Boolean),
-      ),
-    ];
-
-    if (publicIds.length > 0) {
-      const results = await Promise.allSettled(
-        publicIds.map((publicId) =>
-          cloudinary.uploader.destroy(publicId, {
-            resource_type: "image",
-            invalidate: true,
-          }),
-        ),
-      );
-
-      results.forEach((result, index) => {
-        if (result.status === "fulfilled") {
-          const destroyResult = result.value;
-          if (
-            destroyResult?.result !== "ok" &&
-            destroyResult?.result !== "not found"
-          ) {
-            console.warn("Cloudinary destroy unexpected result", {
-              publicId: publicIds[index],
-              result: destroyResult?.result,
-            });
-          }
-        } else {
-          console.warn("Cloudinary destroy failed", {
-            publicId: publicIds[index],
-          });
-        }
-      });
-    }
-
-    await ocorrencia.update({ foto: JSON.stringify([]) });
-
-    res.json({ success: true, foto: [] });
-  } catch (error) {
-    if (handleSequelizeValidation(error, next)) {
-      return;
-    }
-
-    next(genericError("Error deleting fotos"));
-  }
-};
-
-export const deleteOcorrenciaFotoByIndex = async (req, res, next) => {
-  try {
-    const { id, fotoIndex } = req.params;
-
-    const ocorrencia = await Ocorrencia.findByPk(id);
-    if (!ocorrencia) {
-      return next(notFoundError("ocorrencia", id));
-    }
-
-    const fotos = normalizeFotosField(ocorrencia.foto);
-    const index = Number(fotoIndex);
-
-    if (!Number.isInteger(index) || index < 0) {
-      return res.status(400).json({ message: "fotoIndex invalido" });
-    }
-
-    if (index >= fotos.length) {
-      return res.status(404).json({ message: "Foto nao encontrada" });
-    }
-
-    const [removed] = fotos.splice(index, 1);
-    const storedFotos = fotos.map((foto) => foto.url).filter(Boolean);
-
-    await ocorrencia.update({ foto: JSON.stringify(storedFotos) });
-
-    const oldPublicId =
-      removed.publicId || extractPublicIdFromUrl(removed.url);
-    if (oldPublicId) {
-      try {
-        const destroyResult = await cloudinary.uploader.destroy(oldPublicId, {
-          resource_type: "image",
-          invalidate: true,
-        });
-        if (
-          destroyResult?.result !== "ok" &&
-          destroyResult?.result !== "not found"
-        ) {
-          console.warn("Cloudinary destroy unexpected result", {
-            publicId: oldPublicId,
-            result: destroyResult?.result,
-          });
-        }
-      } catch {
-        console.warn("Cloudinary destroy failed", { publicId: oldPublicId });
-      }
-    } else {
-      console.warn("Cloudinary public_id not resolved", { url: removed.url });
-    }
-
-    res.json({
-      success: true,
-      foto: buildFotosComIndice(storedFotos),
-    });
-  } catch (error) {
-    if (handleSequelizeValidation(error, next)) {
-      return;
-    }
-
-    next(genericError("Error deleting foto"));
   }
 };

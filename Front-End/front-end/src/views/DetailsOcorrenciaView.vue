@@ -8,12 +8,10 @@
         <router-link v-if="newOccurrenceRoute" :to="newOccurrenceRoute" class="icon add"
           >+</router-link
         >
-        
+
         <span class="icon" ref="menuIcon" @click="toggleMenu">☰</span>
 
         <SidebarMenu v-model="showMenu" />
-
-        
       </div>
     </nav>
 
@@ -91,14 +89,24 @@
                 <p><strong>Reportado por:</strong></p>
                 <div class="user-chip">
                   <img :src="reporterAvatar" class="avatar-xs" alt="Reportado por" />
-                  <span>{{ selectedOccurrence.nome }}</span>
+                  <div class="user-chip-info">
+                    <span>{{ selectedOccurrence.nome }}</span>
+                    <span v-if="selectedOccurrence.nrTelemovelAutor" class="contact-small">
+                      {{ selectedOccurrence.nrTelemovelAutor }}
+                    </span>
+                  </div>
                 </div>
               </div>
 
               <div v-if="isWorker" class="worker-actions">
-                <button class="report-btn" @click="reportError">Reportar Erro</button>
                 <button class="report-btn report-btn-secondary" @click="toggleResolveForm">
-                  {{ resolveFormOpen ? 'Fechar resolução' : 'Resolver Ocorrência' }}
+                  {{
+                    resolveFormOpen
+                      ? 'Fechar resolução'
+                      : selectedOccurrence.idEquipa
+                        ? 'Resolver Ocorrência'
+                        : 'Aceitar Ocorrência'
+                  }}
                 </button>
                 <p v-if="resolveNotice" class="resolve-notice">{{ resolveNotice }}</p>
               </div>
@@ -154,7 +162,14 @@
           </section>
         </div>
 
-        <section v-if="jaAvaliado || podeAvaliar" class="citizen-evaluation-section">
+        <section
+          v-if="
+            (jaAvaliado || podeAvaliar) &&
+            (selectedOccurrence.situacao === 'Resolvido' ||
+              selectedOccurrence.situacao === 'Não resolvido')
+          "
+          class="citizen-evaluation-section"
+        >
           <div class="section-title">
             <h3>Avaliação da Resolução</h3>
           </div>
@@ -259,6 +274,9 @@
                     :alt="worker.nomeTrabalhador"
                   />
                   <span>{{ worker.nomeTrabalhador }}</span>
+                  <span v-if="worker.telemovelTrabalhador" class="worker-contact">
+                    {{ worker.telemovelTrabalhador }}
+                  </span>
                 </div>
               </div>
               <p v-else class="team-placeholder">
@@ -381,7 +399,7 @@ async function loadOccurrence() {
     // Se for trabalhador/admin, queremos ver qualquer avaliação que exista para esta ocorrência.
     const filterId = isCitizen.value ? getAuthUserId() : null
     const mensagens = await getMensagensByOcorrencia(selectedOccurrence.value.id, filterId)
-    
+
     if (mensagens && mensagens.length > 0) {
       // Assumimos que a última mensagem é a avaliação mais recente
       const ultimaAvaliacao = mensagens[mensagens.length - 1]
@@ -394,6 +412,19 @@ async function loadOccurrence() {
     console.error('Erro ao carregar avaliações:', error)
   }
 
+  const currentStatus = selectedOccurrence.value.situacao
+  const validStatusOptions = ['Em resolução', 'Resolvido', 'Não resolvido']
+  const initialFormEstado = validStatusOptions.includes(currentStatus)
+    ? currentStatus
+    : 'Em resolução'
+
+  resolveForm.value = {
+    estado: initialFormEstado,
+    dataAgendada: toLocalDateTimeInput(selectedOccurrence.value.dataAgendada),
+    dataResolucao: toLocalDateTimeInput(selectedOccurrence.value.dataResolucao),
+    feedback: selectedOccurrence.value.feedback || '',
+  }
+
   if (!selectedOccurrence.value?.idEquipa) {
     teamWorkers.value = []
     assignedTeamLabel.value = ''
@@ -401,12 +432,6 @@ async function loadOccurrence() {
   }
 
   await loadTeamDetails(selectedOccurrence.value.idEquipa)
-  resolveForm.value = {
-    estado: selectedOccurrence.value.situacao || 'Em resolução',
-    dataAgendada: toLocalDateTimeInput(selectedOccurrence.value.dataAgendada),
-    dataResolucao: toLocalDateTimeInput(selectedOccurrence.value.dataResolucao),
-    feedback: selectedOccurrence.value.feedback || '',
-  }
 }
 
 // ─── FUNÇÃO QUE GRAVA EXATAMENTE COMO NO TEU MODELO SEQUELIZE ───
@@ -569,7 +594,6 @@ async function submitResolution() {
   }
 }
 
-
 const toggleMenu = (e) => {
   e.stopPropagation()
   showMenu.value = !showMenu.value
@@ -585,7 +609,6 @@ watch(
 )
 
 function handleDocClick(e) {
-  
   if (
     showMenu.value &&
     menuPanel.value &&
@@ -604,9 +627,7 @@ const prevImg = () => {
   const idx = gallery.value.indexOf(activeImage.value)
   activeImage.value = gallery.value[(idx - 1 + gallery.value.length) % gallery.value.length]
 }
-const reportError = () => {
-  alert('Reportar Erro: acção simulada (só visível a trabalhadores)')
-}
+
 
 onMounted(() => document.addEventListener('click', handleDocClick))
 onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
@@ -845,6 +866,14 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   gap: 8px;
   margin-top: 5px;
 }
+.user-chip-info {
+  display: flex;
+  flex-direction: column;
+}
+.contact-small {
+  font-size: 12px;
+  color: #64748b;
+}
 .avatar-xs {
   width: 40px;
   height: 40px;
@@ -904,6 +933,11 @@ onBeforeUnmount(() => document.removeEventListener('click', handleDocClick))
   height: 60px;
   border-radius: 50%;
   object-fit: cover;
+}
+.worker-contact {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
 }
 .team-placeholder {
   color: #64748b;

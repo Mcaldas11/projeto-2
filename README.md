@@ -1,4 +1,6 @@
-# projeto-2
+<p align="center">
+  <img src="Front-End/front-end/src/assets/logo.png" alt="VC Comunica Logo" width="200">
+</p>
 
 ![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Faker pt_PT](https://img.shields.io/badge/Faker-pt_PT-0A84FF?style=for-the-badge)
@@ -54,6 +56,7 @@ flowchart LR
 - Recurso: meios e estado associados a uma equipa.
 - Ocorrencia: descricao, localizacao, estado, fotos e relacoes principais.
 - Mensagem: comunicacao ligada a cidadao e ocorrencia.
+- Rota: trajetos definidos para manutencao ou recolha numa freguesia.
 
 ### Relacoes
 
@@ -61,6 +64,7 @@ flowchart LR
 - Municipio 1..N Equipa (fregEquipa)
 - Municipio 1..N Trabalhador (idFreguesia)
 - Municipio 1..N Ocorrencia (idFreguesia)
+- Municipio 1..N Rota (idFreguesia)
 - Equipa 1..N Trabalhador (idEquipa)
 - Equipa 1..N Recurso (equipaResponsavel)
 - Equipa 1..N Ocorrencia (idEquipa)
@@ -74,6 +78,7 @@ erDiagram
 	MUNICIPIO ||--o{ EQUIPA : fregEquipa
 	MUNICIPIO ||--o{ TRABALHADOR : idFreguesia
 	MUNICIPIO ||--o{ OCORRENCIA : idFreguesia
+	MUNICIPIO ||--o{ ROTA : idFreguesia
 	EQUIPA ||--o{ TRABALHADOR : idEquipa
 	EQUIPA ||--o{ RECURSO : equipaResponsavel
 	EQUIPA ||--o{ OCORRENCIA : idEquipa

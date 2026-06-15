@@ -71,11 +71,12 @@
 
             <div class="page-numbers">
               <button
-                v-for="page in totalPages"
+                v-for="page in visiblePages"
                 :key="page"
                 class="page-btn"
-                :class="{ active: page === currentPage }"
-                @click="goToPage(page)"
+                :class="{ active: page === currentPage, ellipsis: page === '...' }"
+                :disabled="page === '...'"
+                @click="page !== '...' && goToPage(page)"
               >
                 {{ page }}
               </button>
@@ -205,6 +206,46 @@ const paginatedTasks = computed(() => {
 })
 
 const totalPages = computed(() => Math.max(1, Math.ceil(tasks.value.length / itemsPerPage)))
+
+const visiblePages = computed(() => {
+  const total = totalPages.value
+  const current = currentPage.value
+  const pages = []
+
+  if (total <= 7) {
+    for (let i = 1; i <= total; i++) pages.push(i)
+    return pages
+  }
+
+  pages.push(1)
+
+  if (current > 4) {
+    pages.push('...')
+  }
+
+  let start = Math.max(2, current - 2)
+  let end = Math.min(total - 1, current + 2)
+
+  if (current <= 4) {
+    start = 2
+    end = 5
+  } else if (current >= total - 3) {
+    start = total - 4
+    end = total - 1
+  }
+
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
+  }
+
+  if (current < total - 3) {
+    pages.push('...')
+  }
+
+  pages.push(total)
+
+  return pages
+})
 
 const goToPage = (page) => {
   currentPage.value = page
@@ -701,10 +742,12 @@ h2 {
 /* PAGINATION */
 .pagination {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 12px;
   align-items: center;
-  margin-top: 20px;
+  margin-top: 30px;
   padding: 10px 0;
+  flex-wrap: wrap;
 }
 .page-numbers {
   display: flex;

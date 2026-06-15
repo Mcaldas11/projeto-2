@@ -6,14 +6,11 @@
         <img src="@/assets/logoP.png" alt="VC Comunica Logo" class="logo-img" />
       </div>
       <div class="nav-icons">
-        
         <span class="icon menu-hamburger" @click="toggleMenu">☰</span>
 
         <AdminSidebarMenu v-if="userRole === 'admin'" v-model="showMenu" />
         <ResponsavelSidebarMenu v-else-if="userRole === 'responsavel'" v-model="showMenu" />
         <SidebarMenu v-else v-model="showMenu" />
-
-        
       </div>
     </nav>
 
@@ -43,6 +40,7 @@
           <div class="user-text">
             <h2>{{ worker.nome }} {{ worker.apelido }}</h2>
             <p>{{ worker.email }}</p>
+            <p>{{ worker.phone }}</p>
           </div>
         </div>
         <button @click="openEditModal" class="btn-edit">Editar</button>
@@ -59,6 +57,11 @@
           <div class="detail-field">
             <label>Freguesia de Atuação</label>
             <div class="display-box disabled-box">{{ worker.freguesia }}</div>
+          </div>
+
+          <div class="detail-field">
+            <label>Telemóvel</label>
+            <div class="display-box disabled-box">{{ worker.phone }}</div>
           </div>
 
           <div class="detail-field">
@@ -123,12 +126,15 @@
       </section>
 
       <div class="account-actions-row">
-        <button class="btn-logout half-button" @click="showLogoutModal = true">Terminar Sessão</button>
-        <button class="btn-delete-account half-button" @click="showDeleteModal = true">Apagar conta</button>
+        <button class="btn-logout half-button" @click="showLogoutModal = true">
+          Terminar Sessão
+        </button>
+        <button class="btn-delete-account half-button" @click="showDeleteModal = true">
+          Apagar conta
+        </button>
       </div>
     </main>
 
-    <!-- MODAL: EDITAR PERFIL (MATRICULADO NO SEU DESIGN NOVO) -->
     <div v-if="showEditModal" class="modal-overlay" @click.self="showEditModal = false">
       <div class="modal-card">
         <h3>Editar Perfil</h3>
@@ -223,6 +229,7 @@ const worker = ref({
   nome: storedProfile?.firstName || '',
   apelido: storedProfile?.lastName || '',
   email: storedProfile?.email || '',
+  phone: storedProfile?.phone || '',
   equipa: '',
   idEquipa: storedProfile?.idEquipa || null,
   freguesia: '',
@@ -265,6 +272,7 @@ const syncWorkerProfileFromBackend = async () => {
   worker.value.nome = firstName
   worker.value.apelido = lastName
   worker.value.email = profile.emailTrabalhador || profile.email || worker.value.email
+  worker.value.phone = profile.telemovelTrabalhador || profile.nrTelemovel || worker.value.phone
   worker.value.avatar = profile.fotoPerfil || worker.value.avatar
   worker.value.idFreguesia = profile.idFreguesia || profile.fregCidadao || worker.value.idFreguesia
   worker.value.idEquipa = profile.idEquipa ?? worker.value.idEquipa
@@ -275,6 +283,7 @@ const syncWorkerProfileFromBackend = async () => {
       firstName: worker.value.nome,
       lastName: worker.value.apelido,
       email: worker.value.email,
+      phone: worker.value.phone,
       fotoPerfil: worker.value.avatar,
       idEquipa: worker.value.idEquipa,
       idFreguesia: worker.value.idFreguesia,
@@ -374,6 +383,7 @@ const showEditModal = ref(false)
 const editFirstName = ref('')
 const editLastName = ref('')
 const editEmail = ref('')
+const editPhone = ref('')
 
 const openEditModal = () => {
   editFirstName.value = worker.value.nome
@@ -405,6 +415,7 @@ async function handleSaveEdit() {
         firstName: editFirstName.value.trim(),
         lastName: editLastName.value.trim(),
         email: editEmail.value.trim(),
+        telemovelTrabalhador: editPhone.value.trim(),
       }),
     })
 
@@ -419,6 +430,7 @@ async function handleSaveEdit() {
     worker.value.nome = firstName
     worker.value.apelido = lastName
     worker.value.email = updatedProfile.emailTrabalhador
+    worker.value.phone = updatedProfile.telemovelTrabalhador
 
     localStorage.setItem(
       'userProfile',
@@ -426,6 +438,7 @@ async function handleSaveEdit() {
         firstName: worker.value.nome,
         lastName: worker.value.apelido,
         email: worker.value.email,
+        phone: worker.value.phone,
         fotoPerfil: updatedProfile.fotoPerfil || worker.value.avatar,
         idEquipa: updatedProfile.idEquipa,
         idFreguesia: updatedProfile.idFreguesia,
@@ -449,8 +462,8 @@ const showDeleteModal = ref(false)
 function normalizeOccurrenceRow(occurrence) {
   return {
     id: occurrence.id,
-    status: occurrence.situacao || 'Em resolução',
-    statusClass: occurrence.statusClass || 'em-resolucao',
+    status: occurrence.situacao || 'À espera de equipa',
+    statusClass: occurrence.statusClass || 'espera',
     tipo: occurrence.tipo || 'Ocorrência',
     local: occurrence.location || occurrence.detalhes || '-',
   }
@@ -469,10 +482,10 @@ async function loadTeamAverageRating() {
   try {
     const resolved = await listWorkerResolvedOccurrences()
     const ratings = []
-    
-    resolved.forEach(occ => {
+
+    resolved.forEach((occ) => {
       if (occ.mensagens && occ.mensagens.length > 0) {
-        occ.mensagens.forEach(msg => {
+        occ.mensagens.forEach((msg) => {
           if (msg.classificacao != null) {
             ratings.push(Number(msg.classificacao))
           }

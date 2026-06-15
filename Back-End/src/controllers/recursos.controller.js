@@ -5,6 +5,7 @@ import {
   sequelizeValidationError,
 } from "../utils/error.utils.js";
 
+// Handle DB errors Validation
 const handleSequelizeValidation = (error, next) => {
   if (
     error?.name === "SequelizeValidationError" ||
@@ -13,10 +14,10 @@ const handleSequelizeValidation = (error, next) => {
     next(sequelizeValidationError(error.errors || []));
     return true;
   }
-
   return false;
 };
 
+// List all assets Read
 export const getAllRecursos = async (req, res, next) => {
   try {
     const recursos = await Recurso.findAll();
@@ -26,6 +27,7 @@ export const getAllRecursos = async (req, res, next) => {
   }
 };
 
+// Find asset by ID Read
 export const getRecursoById = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -41,6 +43,7 @@ export const getRecursoById = async (req, res, next) => {
   }
 };
 
+// Register new asset Database Update
 export const createRecurso = async (req, res, next) => {
   try {
     const recurso = await Recurso.create(req.body);
@@ -49,11 +52,11 @@ export const createRecurso = async (req, res, next) => {
     if (handleSequelizeValidation(error, next)) {
       return;
     }
-
     next(genericError("Error creating recurso"));
   }
 };
 
+// Edit asset data Database Update
 export const updateRecurso = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -69,11 +72,11 @@ export const updateRecurso = async (req, res, next) => {
     if (handleSequelizeValidation(error, next)) {
       return;
     }
-
     next(genericError("Error updating recurso"));
   }
 };
 
+// Wipe asset data Database Cleanup
 export const deleteRecurso = async (req, res, next) => {
   try {
     const { id } = req.params;
