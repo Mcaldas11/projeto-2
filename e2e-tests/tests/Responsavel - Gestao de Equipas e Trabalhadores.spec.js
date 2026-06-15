@@ -71,6 +71,9 @@ describe('Responsavel - Gestao de Equipas e Trabalhadores', function () {
             await test.driver.switchTo().alert().accept();
         } catch (e) {}
 
+        // Small delay to allow UI refresh
+        await test.driver.sleep(1000);
+
         const row = await test.findPaginatedElement(`//tr[td[contains(., '${uniqueWorkerLast}')]]`, 10);
         expect(row).to.exist;
     });

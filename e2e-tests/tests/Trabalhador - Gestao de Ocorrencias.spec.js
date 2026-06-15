@@ -27,6 +27,17 @@ describe('Trabalhador - Gestao de Ocorrencias', function () {
         // Go to worker home where tasks are listed
         await test.get('/trabalhador'); 
 
+        // Wait for list to load
+        await test.driver.wait(until.elementLocated(By.css('.worker-table')), 15000);
+        
+        // Ensure tasks exist (should be ensured by setup_test_data.mjs)
+        const emptyState = await test.driver.findElements(By.css('.empty-state'));
+        if (emptyState.length > 0) {
+            console.warn("Task list is empty even after setup. Attempting refresh...");
+            await test.driver.navigate().refresh();
+            await test.driver.wait(until.elementLocated(By.css('.worker-table')), 10000);
+        }
+
         // Wait for list and click "Ver detalhes"
         await test.waitAndClick('.details-link-btn');
 

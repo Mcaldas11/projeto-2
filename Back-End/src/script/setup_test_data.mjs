@@ -46,6 +46,8 @@ async function setup() {
         idEquipa: team.idEquipa
       }
     });
+    // Force update team ID in case the record was reused from a previous run with a different team ID
+    await responsavel.update({ idEquipa: team.idEquipa });
     console.log(`Responsavel created/found: ${responsavel.emailTrabalhador}`);
 
     // 4. Test Admin
@@ -70,11 +72,18 @@ async function setup() {
         nomeAutor: cidadao.nome,
         nrTelemovelAutor: cidadao.nrTelemovel,
         severidade: "Média",
-        estado: "Pendente",
+        estado: "À espera da equipa",
         idCidadao: cidadao.idCidadao,
         idFreguesia: 1,
+        idEquipa: team.idEquipa,
         tipo_ocorrencia: "Iluminação"
       }
+    });
+    
+    // Force update to ensure it has the current test team and correct state
+    await ocorrencia.update({
+      idEquipa: team.idEquipa,
+      estado: "À espera da equipa"
     });
     console.log(`Occurrence created/found: ID ${ocorrencia.idOcorrencia}`);
 

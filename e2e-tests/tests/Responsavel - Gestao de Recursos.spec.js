@@ -59,6 +59,9 @@ describe('Responsavel - Gestao de Recursos', function () {
             await test.driver.wait(until.alertIsPresent(), 2000);
             await test.driver.switchTo().alert().accept();
         } catch (e) {}
+
+        // Small delay to allow UI refresh
+        await test.driver.sleep(1000);
         
         // 2. Verificar na tabela
         let row = await test.findPaginatedElement(`//tr[td[contains(., '${resourceName}')]]`, 10);
