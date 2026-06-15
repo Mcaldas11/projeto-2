@@ -36,6 +36,28 @@ Plataforma municipal para reporte e gestao de ocorrencias. Os cidadaos submetem 
 - Atualizacao de estados e feedback de resolucao.
 - Gestao de equipas, recursos e mensagens.
 
+## Controlo de Acesso (RBAC)
+
+O sistema implementa um controlo de acesso baseado em funções (Role-Based Access Control), com quatro perfis distintos:
+
+| Funcionalidade | Cidadão | Trabalhador | Responsável | Admin |
+| :--- | :---: | :---: | :---: | :---: |
+| **Reportar ocorrências** | ✅ | ✅ | ✅ | ✅ |
+| **Resolver/Assumir ocorrências** | ❌ | ✅ | ✅ | ✅ |
+| **Gestão de trabalhadores** | ❌ | ❌ | ✅ (freguesia) | ✅ |
+| **Gestão de equipas** | ❌ | ❌ | ✅ (freguesia) | ✅ |
+| **Gestão de recursos** | ❌ | ❌ | ✅ (freguesia) | ✅ |
+| **Gestão de rotas** | ❌ | ❌ | ✅ (freguesia) | ✅ |
+| **Comentários/Mensagens** | ✅ | ✅ | ✅ | ✅ |
+| **Gestão de perfil próprio** | ✅ | ✅ | ✅ | ✅ |
+
+### Lógica de Permissões:
+
+- **Cidadão**: Focado na participação cívica, pode reportar problemas e acompanhar o estado das suas ocorrências.
+- **Trabalhador**: Focado na execução, pode visualizar e assumir a resolução de ocorrências na sua área.
+- **Responsável**: Perfil de gestão intermédia, com autoridade para gerir equipas, trabalhadores e recursos da sua freguesia.
+- **Admin**: Controlo total sobre o sistema, podendo gerir qualquer entidade em todas as freguesias.
+
 ## Arquitetura geral
 
 ```mermaid
