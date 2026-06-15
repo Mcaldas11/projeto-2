@@ -1,0 +1,23 @@
+$kind: http-request
+url: http://localhost:3000/cidadaos/me/ocorrencias
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"descricao\": \"Descrição detalhada do problema\",\r
+
+    \  \"localizacao\": \"Rua X, nº 10\",\r
+
+    \  \"dataOcorrencia\": \"2024-05-20T14:30:00.000Z\",\r
+
+    \  \"severidade\": \"Média\", // Opções: \"Baixa\", \"Média\", \"Alta\"\r
+
+    \  \"tipo_ocorrencia\": \"Iluminação\" \r
+
+    }\r\n"
+auth:
+  type: bearer
+  credentials:
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjkyLCJlbWFpbCI6Im1hcmlhbmFAZ21haWwuY29tIiwidXNlclR5cGUiOiJjaWRhZGFvIiwiaWF0IjoxNzgwNjY5OTA0LCJleHAiOjE3ODA2NzA4MDR9.ii981lyvcOMCHQRN7R09hkFb-XjFNq_93q6-BJ-iNC4
+order: 3000

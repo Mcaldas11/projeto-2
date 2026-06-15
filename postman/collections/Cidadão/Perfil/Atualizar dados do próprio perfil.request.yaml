@@ -1,0 +1,21 @@
+$kind: http-request
+url: http://localhost:3000/cidadaos/me
+method: PUT
+body:
+  type: json
+  content: "{\r
+
+    \  \"nome\": \"Mariana Ferreira\",\r
+
+    \  \"email\": \"mari@email.com\",\r
+
+    \  \"nrTelemovel\": \"987654321\",\r
+
+    \  \"fregCidadao\": 9\r
+
+    }\r\n"
+auth:
+  type: bearer
+  credentials:
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjkyLCJlbWFpbCI6Im1hcmlhbmFAZ21haWwuY29tIiwidXNlclR5cGUiOiJjaWRhZGFvIiwiaWF0IjoxNzgwNjY5OTA0LCJleHAiOjE3ODA2NzA4MDR9.ii981lyvcOMCHQRN7R09hkFb-XjFNq_93q6-BJ-iNC4
+order: 3000

@@ -1,0 +1,12 @@
+$kind: http-request
+url: http://localhost:3000/trabalhadores/me
+method: PUT
+body:
+  type: json
+  content: |-
+    {
+      "nomeTrabalhador": "João Silva",
+      "telemovelTrabalhador": "912000000",
+      "emailTrabalhador": "joao.novo@municipio.pt"
+    }
+order: 2000

@@ -77,9 +77,9 @@ const router = useRouter()
 
 const resolveLoginRoute = (userType) => {
   if (userType === 'trabalhador_admin') return { name: 'admin-home' }
-  if (userType === 'trabalhador_responsavel') return { name: 'responsavel-ocorrencias' }
-  if (userType === 'trabalhador') return { name: 'trabalhador-home' }
-  return { name: 'home' }
+  if (userType === 'trabalhador_responsavel') return { name: 'responsavel-profile' }
+  if (userType === 'trabalhador') return { name: 'trabalhador-profile' }
+  return { name: 'conta' }
 }
 
 const splitName = (fullName = '') => {
@@ -254,6 +254,14 @@ const handleLogin = async () => {
   max-width: 500px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   text-align: center;
+}
+
+@media (max-width: 600px) {
+  .login-card {
+    padding: 30px 20px;
+    margin: 0 20px;
+    max-width: 100%;
+  }
 }
 
 h1 {

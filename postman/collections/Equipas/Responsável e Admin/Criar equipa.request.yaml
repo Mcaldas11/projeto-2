@@ -1,0 +1,13 @@
+$kind: http-request
+url: http://localhost:3000/equipas
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "especializacao": "Limpeza Urbana",
+      "fregEquipa": 1
+    }
+order: 1000

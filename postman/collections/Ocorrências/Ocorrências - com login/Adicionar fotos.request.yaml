@@ -1,0 +1,6 @@
+$kind: http-request
+url: http://localhost:3000/ocorrencias/:id/fotos
+method: POST
+pathVariables:
+  id: ""
+order: 2000

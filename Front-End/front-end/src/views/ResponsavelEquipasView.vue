@@ -311,8 +311,8 @@ function getWorkerById(id) {
 const filteredTeams = computed(() => {
   const respFregId = selectedFreguesiaId.value
   if (respFregId) {
-    // Deriva o ID da freguesia a partir do ID da equipa (ex: 251 -> 25)
-    return teams.value.filter((team) => Math.floor(Number(team.id) / 10) === Number(respFregId))
+    // Filter by the actual freguesiaId field instead of encoded team ID
+    return teams.value.filter((team) => Number(team.freguesiaId) === Number(respFregId))
   }
   return []
 })

@@ -42,12 +42,30 @@ const extractPublicIdFromUrl = (url) => {
   return publicPath || null;
 };
 
-// Validate admin email Configuration
+const uploadToCloudinary = (file, folder) =>
+  new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder,
+        resource_type: "image",
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      },
+    );
+
+    Readable.from(file.buffer).pipe(stream);
+  });
+
 const isAdminEmail = (email) => {
-  const adminList = (process.env.ADMIN_EMAILS || "admin@vcc.pt,admin.geral@example.pt")
+  const adminList = (
+    process.env.ADMIN_EMAILS ||
+    "admin@vcc.pt,admin.geral@example.pt,admin_e2e_test@vcc.pt"
+  )
     .split(",")
-    .map((s) => s.trim());
-  return adminList.includes((email || "").trim());
+    .map((s) => s.trim().toLowerCase());
+  return adminList.includes((email || "").trim().toLowerCase());
 };
 
 // Check for admin status Authorization
@@ -126,7 +144,11 @@ export const loginTrabalhador = async (req, res, next) => {
     if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
 
     const isAdmin = isAdminEmail(trabalhador.emailTrabalhador);
-    const userType = isAdmin ? "trabalhador_admin" : "trabalhador";
+    // Detect responsavel based on email pattern (matches frontend heuristic)
+    const isResponsavel = (email || "").trim().toLowerCase().startsWith("responsavel.");
+    
+    const userType = isAdmin ? "trabalhador_admin" : 
+                    isResponsavel ? "trabalhador_responsavel" : "trabalhador";
 
     const token = jwt.sign(
       { userId: trabalhador.idTrabalhador, email, userType },

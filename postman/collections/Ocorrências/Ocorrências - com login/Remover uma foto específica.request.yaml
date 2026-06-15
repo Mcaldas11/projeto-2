@@ -1,0 +1,7 @@
+$kind: http-request
+url: http://localhost:3000/ocorrencias/:id/fotos/:fotoIndex
+method: DELETE
+pathVariables:
+  id: ""
+  fotoIndex: ""
+order: 4000

@@ -1,0 +1,21 @@
+$kind: http-request
+url: http://localhost:3000/ocorrencias/:id
+method: PUT
+pathVariables:
+  id: ""
+body:
+  type: json
+  content: |-
+    {
+      "descricao": "Descrição detalhada do problema (atualizada)",
+      "localizacao": "Rua X, nº 10",
+      "dataOcorrencia": "2024-05-20T14:30:00.000Z",
+      "severidade": "Alta",
+      "tipo_ocorrencia": "Iluminação",
+      "estado": "Em resolução",
+      "nomeAutor": "João Silva",
+      "nrTelemovelAutor": "912345678",
+      "idCidadao": 1,
+      "idFreguesia": 1
+    }
+order: 6000

@@ -108,6 +108,7 @@
                         : 'Aceitar Ocorrência'
                   }}
                 </button>
+                <p v-if="resolveNotice" class="resolve-notice">{{ resolveNotice }}</p>
               </div>
 
               <div v-if="isWorker && resolveFormOpen" class="resolve-panel">
@@ -155,7 +156,6 @@
                   >
                     {{ isSavingResolution ? 'A guardar...' : 'Guardar resolução' }}
                   </button>
-                  <p v-if="resolveNotice" class="resolve-notice">{{ resolveNotice }}</p>
                 </div>
               </div>
             </div>

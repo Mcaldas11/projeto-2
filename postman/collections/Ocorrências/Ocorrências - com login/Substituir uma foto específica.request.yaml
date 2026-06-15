@@ -1,0 +1,7 @@
+$kind: http-request
+url: http://localhost:3000/ocorrencias/:id/fotos/:fotoIndex
+method: PATCH
+pathVariables:
+  id: ""
+  fotoIndex: ""
+order: 5000

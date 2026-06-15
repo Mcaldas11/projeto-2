@@ -143,6 +143,7 @@ const handleFinish = async () => {
     }),
   )
 
+  sessionStorage.setItem('session_initialized', 'true')
   sessionStorage.removeItem(STORAGE_KEY)
   router.push({ name: 'home' })
 }

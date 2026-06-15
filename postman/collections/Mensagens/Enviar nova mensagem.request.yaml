@@ -1,0 +1,14 @@
+$kind: http-request
+url: http://localhost:3000/mensagens
+method: POST
+body:
+  type: json
+  content: |-
+    {
+      "texto": "Bom dia, gostaria de saber o ponto de situação da minha ocorrência.",
+      "dataMensagem": "2026-06-05T15:00:00.000Z",
+      "classificacao": "normal",
+      "idCidadao": "{{idCidadao}}",
+      "idOcorrencia": "{{idOcorrencia}}"
+    }
+order: 2000

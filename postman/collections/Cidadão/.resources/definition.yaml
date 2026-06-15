@@ -1,0 +1,20 @@
+$kind: collection
+description: |-
+  Esta coleção reúne os endpoints da API relacionados com a entidade **Cidadão**, cobrindo todo o ciclo de vida de um utilizador registado na plataforma VC Comunica.
+
+  ## Funcionalidades cobertas
+
+  - **Autenticação** — Registo de nova conta e login de cidadão.
+      
+  - **Gestão de cidadãos** — Listagem de todos os cidadãos e consulta de detalhes de um cidadão específico (operações de administração).
+      
+  - **Perfil** — Consulta e atualização dos dados do próprio perfil, bem como atualização da foto de perfil.
+      
+  - **Ocorrências** — Criação de novas ocorrências, listagem das ocorrências criadas pelo próprio cidadão e listagem das ocorrências da freguesia do cidadão.
+      
+  - **Admin** — Atualização e remoção de contas de cidadão por parte de um administrador.
+      
+
+  ## Base URL
+
+  Todos os endpoints apontam para `http://localhost:5173/cidadaos` e utilizam o prefixo `/:id` para operações sobre um cidadão específico.

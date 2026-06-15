@@ -1,0 +1,11 @@
+$kind: http-request
+url: http://localhost:3000/trabalhadores/login
+method: POST
+body:
+  type: json
+  content: |-
+    {
+      "email": "joao.silva@municipio.pt",
+      "password": "PasswordSegura123"
+    }
+order: 7000

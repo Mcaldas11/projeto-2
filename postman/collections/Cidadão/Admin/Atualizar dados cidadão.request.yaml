@@ -1,0 +1,15 @@
+$kind: http-request
+url: http://localhost:3000/cidadaos/:id
+method: PUT
+pathVariables:
+  id: ""
+body:
+  type: json
+  content: |-
+    {
+      "nome": "Nome Exemplo",
+      "email": "email@exemplo.com",
+      "nrTelemovel": "912345678",
+      "fregCidadao": 1
+    }
+order: 1000

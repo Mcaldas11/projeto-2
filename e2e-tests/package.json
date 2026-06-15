@@ -1,0 +1,18 @@
+{
+  "name": "e2e-tests",
+  "version": "1.0.0",
+  "description": "Selenium E2E tests for VC Comunica",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run db:setup && mocha tests/**/*.spec.js --timeout 60000; npm run db:teardown",
+    "db:setup": "node ../Back-End/src/script/setup_test_data.mjs setup",
+    "db:teardown": "node ../Back-End/src/script/setup_test_data.mjs teardown"
+  },
+  "dependencies": {
+    "selenium-webdriver": "^4.24.0"
+  },
+  "devDependencies": {
+    "mocha": "^10.7.3",
+    "chai": "^4.3.10"
+  }
+}

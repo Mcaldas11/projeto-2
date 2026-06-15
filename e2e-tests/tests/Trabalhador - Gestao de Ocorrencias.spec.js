@@ -1,0 +1,64 @@
+const { expect } = require('chai');
+const { until, By } = require('selenium-webdriver');
+const BaseTest = require('./base');
+
+describe('Trabalhador - Gestao de Ocorrencias', function () {
+    let test;
+
+    before(async function () {
+        test = new BaseTest();
+        await test.setup();
+
+        // Login as worker/responsible
+        await test.backgroundLogin('responsavel._e2e_test@vcc.pt', 'Password123!', '/trabalhador');
+    });
+
+    afterEach(async function () {
+        if (test && test.driver) {
+            await test.takeScreenshot(this.currentTest.title);
+        }
+    });
+
+    after(async function () {
+        await test.teardown();
+    });
+
+    it('[RF06, RF08] deve marcar uma ocorrência como resolvida', async function () {
+        // Go to worker home where tasks are listed
+        await test.get('/trabalhador'); 
+
+        // Wait for list to load
+        await test.driver.wait(until.elementLocated(By.css('.worker-table')), 15000);
+        
+        // Ensure tasks exist (should be ensured by setup_test_data.mjs)
+        const emptyState = await test.driver.findElements(By.css('.empty-state'));
+        if (emptyState.length > 0) {
+            console.warn("Task list is empty even after setup. Attempting refresh...");
+            await test.driver.navigate().refresh();
+            await test.driver.wait(until.elementLocated(By.css('.worker-table')), 10000);
+        }
+
+        // Wait for list and click "Ver detalhes"
+        await test.waitAndClick('.details-link-btn');
+
+        // Click resolve button
+        await test.waitAndClick('.report-btn-secondary');
+
+        // Select 'Resolvido'
+        await test.selectOptionByText('select.resolve-input', 'Resolvido');
+
+        // Fill feedback
+        await test.waitAndType('.resolve-textarea', 'Resolvido via teste automatizado Selenium.');
+
+        // Save
+        await test.waitAndClick(By.xpath("//button[contains(text(), 'Guardar resolução')]"));
+
+        // Verify success
+        const notice = await test.driver.wait(
+            until.elementLocated(By.css('.resolve-notice')), 
+            20000
+        );
+        const text = await notice.getText();
+        expect(text.toLowerCase()).to.contain('sucesso');
+    });
+});

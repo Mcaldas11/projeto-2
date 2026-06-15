@@ -1,0 +1,6 @@
+$kind: http-request
+url: http://localhost:3000/municipios/:id
+method: GET
+pathVariables:
+  id: ""
+order: 2000

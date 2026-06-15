@@ -375,8 +375,8 @@ const availableTeams = computed(() => {
   if (!editWorkerData.value) return []
   const workerFreg = editWorkerData.value.idFreguesia
   if (!workerFreg) return []
-  // A freguesia é obtida removendo o último dígito do ID da equipa (ex: 11 -> 1, 251 -> 25)
-  return allTeams.value.filter((team) => Math.floor(Number(team.id) / 10) === Number(workerFreg))
+  // Use the actual freguesiaId field from normalized team object
+  return allTeams.value.filter((team) => Number(team.freguesiaId) === Number(workerFreg))
 })
 
 const deleteWorker = async (id) => {
@@ -464,7 +464,7 @@ function buildWorkerCards(workers, teams) {
 
     return {
       id: worker.id,
-      nome: worker.nome,
+      nome: worker.name || worker.nome, // Fix: use worker.name from normalizeWorker
       email: worker.email,
       phone: worker.telemovelTrabalhador || worker.nrTelemovel || '-',
       avatar: worker.avatar || avatarImg,

@@ -1,0 +1,6 @@
+$kind: http-request
+url: http://localhost:3000/trabalhadores/:id
+method: DELETE
+pathVariables:
+  id: ""
+order: 9000
