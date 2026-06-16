@@ -42,14 +42,14 @@
 
           <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
 
-          <div class="form-options">
+          <!-- <div class="form-options">
             <label class="checkbox-container">
               <input type="checkbox" v-model="rememberMe" />
               <span class="checkmark"></span>
               Lembrar log in
             </label>
             <a href="#" class="forgot-password">Esqueci-me da password</a>
-          </div>
+          </div> -->
 
           <button type="submit" class="btn-sign-in">Log in</button>
         </form>
