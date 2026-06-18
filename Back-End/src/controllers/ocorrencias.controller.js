@@ -236,9 +236,8 @@ export const getOcorrenciasFreguesiaForCidadao = async (req, res, next) => {
 export const getOcorrenciasPendentesForTrabalhador = async (req, res, next) => {
   try {
     const trabalhador = await Trabalhador.findByPk(req.userData.userId);
-    if (!trabalhador || !trabalhador.idEquipa) {
-      return res.status(403).json({ message: "Worker without team" });
-    }
+    if (!trabalhador) return res.status(404).json({ message: "Worker not found" });
+    if (!trabalhador.idEquipa) return res.json([]);
 
     const ocorrencias = await Ocorrencia.findAll({
       where: {
@@ -273,9 +272,8 @@ export const getOcorrenciasFreguesiaForTrabalhador = async (req, res, next) => {
 export const getOcorrenciasResolvidasForTrabalhador = async (req, res, next) => {
   try {
     const trabalhador = await Trabalhador.findByPk(req.userData.userId);
-    if (!trabalhador || !trabalhador.idEquipa) {
-      return res.status(403).json({ message: "Worker without team" });
-    }
+    if (!trabalhador) return res.status(404).json({ message: "Worker not found" });
+    if (!trabalhador.idEquipa) return res.json([]);
 
     const ocorrencias = await Ocorrencia.findAll({
       where: {
@@ -293,9 +291,8 @@ export const getOcorrenciasResolvidasForTrabalhador = async (req, res, next) => 
 export const getOcorrenciasEmResolucaoForTrabalhador = async (req, res, next) => {
   try {
     const trabalhador = await Trabalhador.findByPk(req.userData.userId);
-    if (!trabalhador || !trabalhador.idEquipa) {
-      return res.status(403).json({ message: "Worker without team" });
-    }
+    if (!trabalhador) return res.status(404).json({ message: "Worker not found" });
+    if (!trabalhador.idEquipa) return res.json([]);
 
     const ocorrencias = await Ocorrencia.findAll({
       where: {
@@ -313,8 +310,12 @@ export const getOcorrenciasEmResolucaoForTrabalhador = async (req, res, next) =>
 export const getOcorrenciasHomeForTrabalhador = async (req, res, next) => {
   try {
     const trabalhador = await Trabalhador.findByPk(req.userData.userId);
-    if (!trabalhador || !trabalhador.idEquipa) {
-      return res.status(403).json({ message: "Worker without team" });
+    if (!trabalhador) {
+      return res.status(404).json({ message: "Worker not found" });
+    }
+    // Worker without team: return empty list (not an error)
+    if (!trabalhador.idEquipa) {
+      return res.json([]);
     }
 
     const ocorrencias = await Ocorrencia.findAll({

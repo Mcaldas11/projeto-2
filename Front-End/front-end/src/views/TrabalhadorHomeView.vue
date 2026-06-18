@@ -177,7 +177,7 @@ import AdminSidebarMenu from '@/components/AdminSidebarMenu.vue'
 import ResponsavelSidebarMenu from '@/components/ResponsavelSidebarMenu.vue'
 import defaultAvatar from '@/assets/avatar.png'
 import workerFooterLogo from '@/assets/logoP.png'
-import { API_BASE_URL, listWorkerPendingOccurrences } from '@/services/occurrenceService'
+import { API_BASE_URL } from '@/services/occurrenceService'
 import { getAuthToken } from '@/utils/auth'
 import { resolveOccurrenceCoordinates } from '@/utils/occurrenceStorage'
 import {
@@ -399,22 +399,41 @@ function handleDocClick(e) {
 
 onMounted(() => document.addEventListener('click', handleDocClick))
 onMounted(async () => {
+  await initMap()
+
+  const token = getAuthToken()
+  const headers = token ? { Authorization: `Bearer ${token}` } : {}
+
+  // --- Carregar ocorrências (independente da equipa) ---
   try {
-    await initMap()
-
-    const token = getAuthToken()
-    const headers = token ? { Authorization: `Bearer ${token}` } : {}
-
-    const workerOccurrences = await listWorkerPendingOccurrences()
-    tasks.value = Array.isArray(workerOccurrences) ? workerOccurrences : []
-    drawAcceptedOccurrencesOnMap()
-
-    if (!API_BASE_URL || !token) {
-      teamResources.value = []
-      teamMates.value = []
-      return
+    if (API_BASE_URL && token) {
+      const occResponse = await fetch(`${API_BASE_URL}/trabalhadores/me/ocorrencias/pendentes`, {
+        headers,
+      })
+      if (occResponse.ok) {
+        const data = await occResponse.json()
+        const { backendOccurrenceToUi } = await import('@/utils/occurrenceStorage')
+        tasks.value = Array.isArray(data) ? data.map((o) => backendOccurrenceToUi(o)) : []
+      } else {
+        // 403 = sem equipa, outros erros: ficamos com lista vazia mas não bloqueamos
+        tasks.value = []
+      }
+    } else {
+      tasks.value = []
     }
+  } catch {
+    tasks.value = []
+  }
+  drawAcceptedOccurrencesOnMap()
 
+  // --- Carregar recursos e colegas de equipa ---
+  if (!API_BASE_URL || !token) {
+    teamResources.value = []
+    teamMates.value = []
+    return
+  }
+
+  try {
     const meResponse = await fetch(`${API_BASE_URL}/trabalhadores/me`, { headers })
     if (!meResponse.ok) {
       teamResources.value = []
@@ -465,10 +484,8 @@ onMounted(async () => {
           }))
       : []
   } catch {
-    tasks.value = []
     teamResources.value = []
     teamMates.value = []
-    drawAcceptedOccurrencesOnMap()
   }
 })
 
