@@ -39,10 +39,12 @@ app.use(cors(corsOptions));
 // Serve uploaded files
 app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
-app.get("/health", (req, res) => {
+app.get(["/health", "/api/health"], (req, res) => {
   res.json({ status: "ok" });
 });
 
+// On Vercel the service is public under /api; keep "/" for local dev.
+app.use("/api", apiRoutes);
 app.use("/", apiRoutes);
 
 app.use(notFoundMiddleware);
@@ -67,4 +69,8 @@ const startServer = async () => {
   }
 };
 
-startServer();
+if (!process.env.VERCEL) {
+  startServer();
+}
+
+export default app;
